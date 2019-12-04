@@ -8,12 +8,13 @@ from giskardpy.python_interface import GiskardWrapper
 class MoveGripperAction():
     _feedback = move_gripper_action_server.msg.MoveGripperFeedback()
     _result = move_gripper_action_server.msg.MoveGripperResult()
-    _giskard_wrapper = GiskardWrapper()
+
 
     def __init__(self, name):
         self._action_name = name
         self._as = actionlib.SimpleActionServer(self._action_name, move_gripper_action_server.msg.MoveGripperAction, execute_cb = self.execute_cb, auto_start = False)
         self._as.start()
+        self._giskard_wrapper = GiskardWrapper()
 
     def execute_cb(self, goal):
         ## Integrate giskard here
