@@ -7,8 +7,9 @@ find_package(catkin REQUIRED COMPONENTS
   actionlib_msgs
   giskard_msgs
   giskardpy
-  message_generation
   rospy
+  std_msgs
+  message_generation
 )
 
 ## Generate actions in the 'action' folder
@@ -21,13 +22,15 @@ generate_messages(
   DEPENDENCIES
   actionlib_msgs 
   geometry_msgs
+  std_msgs
 )
 
 catkin_package(
 #  INCLUDE_DIRS include
-#  LIBRARIES move_gripper_action_server
+  LIBRARIES move_gripper_action_server
   CATKIN_DEPENDS actionlib geometry_msgs giskard_msgs giskardpy message_generation rospy
-#  DEPENDS system_lib
+  DEPENDS system_lib
+  DEPENDS message_runtime
 )
 
 include_directories(
