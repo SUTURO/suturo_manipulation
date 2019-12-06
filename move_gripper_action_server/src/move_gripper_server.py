@@ -4,6 +4,8 @@ import rospy
 import actionlib
 from move_gripper_action_server.msg import MoveGripperAction, MoveGripperFeedback, MoveGripperResult
 from giskardpy.python_interface import GiskardWrapper
+from giskardpy import tfwrapper
+from geometry_msgs.msg import TransformStamped
 
 class MoveGripperServer():
     _feedback = MoveGripperFeedback()
@@ -26,7 +28,11 @@ class MoveGripperServer():
         self._giskard_wrapper.set_cart_goal(self._root, u'hand_palm_link', goal.goal_pose)
         self._giskard_wrapper.plan_and_execute(wait=False)
 
+        #TODO: send feedback periodically?
+
         result = self._giskard_wrapper.get_result(rospy.Duration(30))
+
+        self._feedback.tf_gripper_to_goal = tfwrapper.lookup_transform(goal.goal_pose.header.frame_id, u'hand_palm_link')
 
         self._as.publish_feedback(self._feedback)
 
