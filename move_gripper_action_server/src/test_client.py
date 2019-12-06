@@ -1,25 +1,25 @@
 #! /usr/bin/env python
 import rospy
 import actionlib
-import move_gripper_action_server.msg
-import geometry_msgs
+from move_gripper_action_server.msg import MoveGripperGoal, MoveGripperAction
+from geometry_msgs.msg import PoseStamped, Point, Quaternion
 
 def test_client():
-    client = actionlib.SimpleActionClient('move_gripper_server', move_gripper_action_server.msg.MoveGripperAction)
+    client = actionlib.SimpleActionClient('move_gripper_server', MoveGripperAction)
 
     # Waits until the action server has started up and started
     # listening for goals.
     client.wait_for_server()
 
     # Creates a goal to send to the action server.
-    pose = geometry_msgs.msg.PoseStamped()
+    pose = PoseStamped()
     pose.header.stamp = rospy.Time.now()
-    pose.header.frame_id = "map"
-    pose.pose.position.x = 10.0
-    pose.pose.position.y = 5.0
-    pose.pose.position.z = 0.25
+    pose.header.frame_id = u'map'
+    pose.header.stamp = rospy.get_rostime()
+    pose.pose.position = Point(0.2,0,0.5)
+    pose.pose.orientation = Quaternion(0,0,0,1)
 
-    goal = move_gripper_action_server.msg.MoveGripperGoal(goal_pose= pose)
+    goal = MoveGripperGoal(goal_pose= pose)
     
 
     # Sends the goal to the action server.
@@ -29,7 +29,7 @@ def test_client():
     client.wait_for_result()
 
     # Prints out the result of executing the action
-    return client.get_result()  # A FibonacciResult
+    return client.get_result()
 
 if __name__ == '__main__':
     try:
