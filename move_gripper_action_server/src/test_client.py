@@ -1,7 +1,7 @@
 #! /usr/bin/env python
 import rospy
 import actionlib
-from move_gripper_action_server.msg import MoveGripperGoal, MoveGripperAction
+from manipulation_action_msgs.msg import MoveGripperGoal, MoveGripperAction
 from geometry_msgs.msg import PoseStamped, Point, Quaternion
 
 def test_client():
