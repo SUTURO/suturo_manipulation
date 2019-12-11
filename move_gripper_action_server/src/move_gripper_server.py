@@ -10,7 +10,7 @@ from geometry_msgs.msg import TransformStamped
 class MoveGripperServer():
     _feedback = MoveGripperFeedback()
     _result = MoveGripperResult()
-    _root = u'base_link'
+    _root = u'odom'
 
 
     def __init__(self, name):
@@ -25,12 +25,14 @@ class MoveGripperServer():
         print("Order recieved")
         self._result.error_code = self._result.FAILED
 
+        self._giskard_wrapper.interrupt()
+
         self._giskard_wrapper.set_cart_goal(self._root, u'hand_palm_link', goal.goal_pose)
         self._giskard_wrapper.plan_and_execute(wait=False)
 
         #TODO: send feedback periodically?
 
-        result = self._giskard_wrapper.get_result(rospy.Duration(30))
+        result = self._giskard_wrapper.get_result(rospy.Duration(60))
 
         self._feedback.tf_gripper_to_goal = tfwrapper.lookup_transform(goal.goal_pose.header.frame_id, u'hand_palm_link')
 
