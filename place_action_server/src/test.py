@@ -17,8 +17,8 @@ def test_client():
     pose.header.stamp = rospy.Time.now()
     pose.header.frame_id = u'map'
     pose.header.stamp = rospy.get_rostime()
-    pose.pose.position = Point(0, 0, 0)
-    pose.pose.orientation = Quaternion(0, 0, 0, 1)
+    pose.pose.position = Point(0.50, 0, 0)
+    pose.pose.orientation = Quaternion(0.7, 0, 0.7, 0)
 
     goal = PlaceGoal(goal_pose=pose)
 
