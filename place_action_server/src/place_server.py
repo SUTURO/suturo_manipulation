@@ -10,7 +10,7 @@ from geometry_msgs.msg import PoseStamped, Point, Quaternion
 class PlaceServer():
     _feedback = PlaceFeedback()
     _result =PlaceResult()
-    _root = u'base_footprint'
+    _root = u'odom'
 
 
     def __init__(self, name):
