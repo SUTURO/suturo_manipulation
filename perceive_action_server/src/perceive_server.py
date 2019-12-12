@@ -19,18 +19,21 @@ class PerceiveServer():
         print("PerceiveActionServer greets its masters and is waiting for orders")
 
     def execute_cb(self, goal):
-        ## Integrate giskard here
         print("Order recieved")
         self._result.error_code = self._result.FAILED
 
-	self._giskard_wrapper.set_joint_goal(u'arm_lift_joint': goal.torso_joint_state) #raise/lower torso to the given joint state
-	#TODO: test joint positions
+	#raise/lower torso to the given joint state
 	if goal.perceive_mode == goal.PERCEIVE_ARM_LOW:
-            self._giskard_wrapper.set_joint_goal({u'head_pan_joint': 0, u'arm_lift_joint': 0}) #PERCEIVE_ARM_LOW
+	    #PERCEIVE_ARM_LOW
+            self._giskard_wrapper.set_joint_goal({u'head_pan_joint': 0, u'arm_lift_joint': goal.torso_joint_state, u'arm_flex_joint': -1.5, u'wrist_flex_joint': -1.9}) 
 	elif goal.perceive_mode == goal.PERCEIVE_SIDE:
-	    self._giskard_wrapper.set_joint_goal({u'head_pan_joint': 1.0, u'arm_flex_joint': -1.0}) #PERCEIVE_SIDE
+	    #PERCEIVE_SIDE
+	    self._giskard_wrapper.set_joint_goal({u'arm_lift_joint': goal.torso_joint_state, u'arm_flex_joint': -0.5}) 
+	    self._giskard_wrapper.plan_and_execute(wait=True) #avoid self-collision
+	    self._giskard_wrapper.set_joint_goal({u'head_pan_joint': -1.6})
 	elif goal.perceive_mode == goal.PERCEIVE_ARM_HIGH:
-	    self._giskard_wrapper.set_joint_goal({u'head_pan_joint': 0, u'arm_lift_joint': 0.5, u'arm_roll_joint': 3.0}) #PERCEIVE_ARM_HIGH
+	    #PERCEIVE_ARM_HIGH
+	    self._giskard_wrapper.set_joint_goal({u'head_pan_joint': 0, u'arm_lift_joint': goal.torso_joint_state, u'arm_flex_joint': 0, u'arm_roll_joint': 1.5, u'wrist_flex_joint': -1.9}) 
 
 
         self._giskard_wrapper.plan_and_execute(wait=False)
@@ -39,7 +42,7 @@ class PerceiveServer():
 
         result = self._giskard_wrapper.get_result(rospy.Duration(30))
 
-	self._feedback.torso_joint_state = 1.0 #TODO:?
+	self._feedback.torso_joint_state = goal.torso_joint_state
 
         self._as.publish_feedback(self._feedback)
 
