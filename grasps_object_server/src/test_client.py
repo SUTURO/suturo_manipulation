@@ -4,26 +4,31 @@ import actionlib
 import tf
 from manipulation_action_msgs.msg import GraspAction, GraspActionGoal
 
+from giskardpy import world
 
+'''
 def test_client():
 
-    '''
     client = actionlib.SimpleActionClient('grasps_object_server', GraspAction)
 
     # Waits until the action server has started up and started
     # listening for goals.
     client.wait_for_server()
 
-    #goal = GraspActionGoal(object_frame_id="")
+    goal = GraspActionGoal(object_frame_id=u'cylinder')
 
     # Sends the goal to the action server.
-    #client.send_goal()
+    client.send_goal()
 
     # Waits for the server to finish performing the action.
-    #client.wait_for_result()
+    client.wait_for_result()
 
     # Prints out the result of executing the action
-    #return client.get_result()
+    return client.get_result()
+'''
+
+def cart_goal(id):
+    print(world.)
 
 
 if __name__ == '__main__':
@@ -31,13 +36,13 @@ if __name__ == '__main__':
         # Initializes a rospy node so that the SimpleActionClient can
         # publish and subscribe over ROS.
         rospy.init_node('test_client_py')
-        result = test_client()
+        #result = test_client()
+        cart_goal('grasps_obj')
         #print("Result:", result)
     except rospy.ROSInterruptException:
         print("program interrupted before completion")
-        '''
 
-
+'''
 if __name__ == '__main__':
         rospy.init_node('fixed_tf_Broadcaster')
         br = tf.TransformBroadcaster()
@@ -49,3 +54,4 @@ if __name__ == '__main__':
                                 "test_tf",
                                 "hand_palm_link")
             rate.sleep()
+'''
