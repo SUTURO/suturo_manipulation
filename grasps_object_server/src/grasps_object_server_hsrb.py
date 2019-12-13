@@ -40,4 +40,3 @@ traj.points = [p]
 # publish ROS message
 pub.publish(traj)
 
-#u'arm_roll_joint':1.57, u'wrist_flex_joint': -1.37
