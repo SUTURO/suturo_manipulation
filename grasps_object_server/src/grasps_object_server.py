@@ -15,7 +15,7 @@ class GraspsObjectServer:
 
     def __init__(self, name):
         self._action_name = name
-        self._as = actionlib.SimpleActionServer(self._action_name, GraspAction, self.execute_cb, False)
+        self._as = actionlib.SimpleActionServer(self._action_name, GraspAction, execute_cb=self.execute_cb, auto_start=False)
         self._as.start()
         self._giskard_wrapper = GiskardWrapper()
         print("GraspsActionServer greats its masters and is waiting for orders")
@@ -24,7 +24,7 @@ class GraspsObjectServer:
         print("try to do something")
         self._result.error_code = self.result.FAILED
 
-        self._giskard_wrapper.add_cylinder(u'cylinder', (0.25, 0.7), u'map', (0, 0, 0), (0, 0, 0, 1))
+        self._giskard_wrapper.add_cylinder(u'cylinder', (0.25, 0.07), u'map', (0, 0, 0), (0, 0, 0, 1))
 
         # Close the Gripper
         self._giskard_wrapper.set_joint_goal({u'hand_l_spring_proximal_joint: 0.4, u', u'hand_r_spring_proximal_joint: 0.4'})
@@ -69,6 +69,6 @@ class GraspsObjectServer:
 if __name__ == '__main__':
     rospy.init_node('grasps_object_server')
     server = GraspsObjectServer(rospy.get_name())
-    #server.place_object()
+    server.place_object()
     #server.hardcode_grasp()
     rospy.spin()
