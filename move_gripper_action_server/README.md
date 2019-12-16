@@ -6,12 +6,13 @@ The actual calculation of the joint states and the collision avoidance is handle
 
 The Action message is defined as follows:
 
+MoveGripperAction
 
-    goal:
+    Goal:
         geometry_msgs/PoseStamped goal_pose // pose in map
-    result
+    result:
         uint8 success = 0; failure = 1
         uint8 error_code
     feedback
-        geometry_msgs/TransformStamped tf_object_to_goal //object-pose in goal_frame
-        float64 gripper_joint_state
+        geometry_msgs/TransformStamped tf_gripper_to_goal //object-pose in goal_frame
+
