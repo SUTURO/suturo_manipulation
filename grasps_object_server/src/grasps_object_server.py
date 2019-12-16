@@ -2,15 +2,15 @@
 
 import rospy
 import actionlib
-from manipulation_action_msgs.msg import GraspAction, GraspActionFeedback, GraspActionResult
+from manipulation_action_msgs.msg import GraspAction, GraspFeedback, GraspResult
 from giskardpy.python_interface import GiskardWrapper
 from giskardpy import tfwrapper
 #import hsrb_interface
 
 
 class GraspsObjectServer:
-    _feedback = GraspActionFeedback
-    _result = GraspActionResult
+    _feedback = GraspFeedback()
+    _result = GraspResult()
     _root = u'odom'
 
     def __init__(self, name):
@@ -22,19 +22,25 @@ class GraspsObjectServer:
 
     def execute_cb(self, goal):
         print("try to do something")
-        self._result.error_code = self.result.FAILED
 
-        self._giskard_wrapper.add_cylinder(u'cylinder', (0.25, 0.07), u'map', (0, 0, 0), (0, 0, 0, 1))
+        #remove before demo
+        self._giskard_wrapper.set_joint_goal({u'hand_l_spring_proximal_joint: 0.7, u', u'hand_r_spring_proximal_joint: 0.7'})
+        self._giskard_wrapper.plan_and_execute()
+
+        self._result.error_code = self._result.FAILED
+
+        self._giskard_wrapper.add_cylinder(u'cylinder', (0.25, 0.07), u'map', (1.1, 0, 0.8), (0, 0, 0, 1))
 
         # Close the Gripper
         self._giskard_wrapper.set_joint_goal({u'hand_l_spring_proximal_joint: 0.4, u', u'hand_r_spring_proximal_joint: 0.4'})
         self._giskard_wrapper.plan_and_execute()
 
         # Attach object
-        self._giskard_wrapper.attach_box(u'cylinder')
+        self._giskard_wrapper.attach_cylinder(u'cylinder')
 
         # Pose to move with an attatched Object
         self._giskard_wrapper.set_joint_goal({u'arm_roll_joint': 1.57, u'wrist_flex_joint': -1.37})
+        self._giskard_wrapper.plan_and_execute()
 
         result = self._giskard_wrapper.get_result()
 
@@ -69,6 +75,6 @@ class GraspsObjectServer:
 if __name__ == '__main__':
     rospy.init_node('grasps_object_server')
     server = GraspsObjectServer(rospy.get_name())
-    server.place_object()
+    #server.place_object()
     #server.hardcode_grasp()
     rospy.spin()
