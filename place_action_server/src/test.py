@@ -3,6 +3,7 @@ import rospy
 import actionlib
 from manipulation_action_msgs.msg import PlaceGoal, PlaceAction
 from geometry_msgs.msg import PoseStamped, Point, Quaternion
+from tf.transformations import quaternion_from_euler
 
 
 def test_client():
@@ -13,12 +14,14 @@ def test_client():
     client.wait_for_server()
 
     # Creates a goal to send to the action server.
+    q = quaternion_from_euler(0,0, 3.14)
+
     pose = PoseStamped()
     pose.header.stamp = rospy.Time.now()
     pose.header.frame_id = u'map'
     pose.header.stamp = rospy.get_rostime()
-    pose.pose.position = Point(0.50, 0, 0)
-    pose.pose.orientation = Quaternion(0.7, 0, 0.7, 0)
+    pose.pose.position = Point(0.50, 0, 0.05)
+    pose.pose.orientation = Quaternion(q[0], q[1], q[2], q[3])
 
     goal = PlaceGoal(goal_pose=pose)
 
