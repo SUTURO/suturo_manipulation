@@ -6,8 +6,6 @@ The actual calculation of the joint states and the collision avoidance is handle
 
 The Action message is defined as follows:
 
-PlaceAction
-Platziert das Objekt im Gripper an der gegebenen pose
 
     goal:
         geometry_msgs/PoseStamped goal_pose // pose in map
