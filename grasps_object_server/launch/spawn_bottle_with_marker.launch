@@ -1,0 +1,7 @@
+<launch>
+  <arg name="x" default="-2.37" />
+  <arg name="y" default="-6.14" />
+  <arg name="z" default="1.12" />
+  <node name="spawn_bottle" pkg="gazebo_ros" type="spawn_model"
+        args="-sdf -database bottle_with_marker -x $(arg x) -y $(arg y) -z $(arg z) -model bottle" />
+</launch>
