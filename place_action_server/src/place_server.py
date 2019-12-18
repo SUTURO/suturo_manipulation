@@ -51,6 +51,7 @@ class PlaceServer():
             self._giskard_wrapper.set_joint_goal(goal_js)
             result = self._giskard_wrapper.plan_and_execute()
             self._giskard_wrapper.detach_object(object_frame_id)
+            self._giskard_wrapper.remove_object(object_frame_id)
 
 
         ##TODO: load default pose from json file
