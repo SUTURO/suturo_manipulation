@@ -6,6 +6,7 @@ from manipulation_action_msgs.msg import GraspAction, GraspFeedback, GraspResult
 from giskardpy.python_interface import GiskardWrapper
 from giskardpy import tfwrapper
 from geometry_msgs.msg import PoseStamped, Point, Quaternion
+from tf.transformations import quaternion_from_euler, quaternion_multiply
 
 
 class GraspsObjectServer:
@@ -21,32 +22,59 @@ class GraspsObjectServer:
         print("GraspsActionServer greats its masters and is waiting for orders")
 
     def execute_cb(self, goal):
-        grasped_object = u'grasped_object'
 
+        self._giskard_wrapper.interrupt()
+
+        grasped_object = u'grasped_object'
         pose = PoseStamped()
-        pose.header.frame_id = u'hand_palm_link'
-        pose.header.stamp = rospy.Time.now()
-        pose.pose.position = Point(0, 0.035, 0)
-        pose.pose.orientation = Quaternion(0, 0.7, 0, 0.7)
+        pose.header = goal.goal_pose.header
+        pose.pose.position = goal.goal_pose.pose.position
+
+        self._giskard_wrapper.detach_object(grasped_object)
+        self._giskard_wrapper.remove_object(grasped_object)
 
         self._result.error_code = self._result.FAILED
 
-        self._giskard_wrapper.add_cylinder(name=grasped_object, size=(0.25, 0.07), pose=pose)
+        self._giskard_wrapper.set_joint_goal({u'hand_l_spring_proximal_joint': 0.7,
+                                              u'hand_r_spring_proximal_joint': 0.7})
+        self._giskard_wrapper.plan_and_execute(wait=True)
 
-        # Close the Gripper
-        self._giskard_wrapper.set_joint_goal({u'hand_l_spring_proximal_joint': 0.2,
-                                              u'hand_r_spring_proximal_joint': 0.2})
-        self._giskard_wrapper.plan_and_execute()
+        quat1 = [goal.goal_pose.pose.orientation.x, goal.goal_pose.pose.orientation.y, goal.goal_pose.pose.orientation.z, goal.goal_pose.pose.orientation.w]
 
-        # Attach object
-        self._giskard_wrapper.attach_object(name=grasped_object, link_frame_id=u'hand_palm_link')
+        orientation = quaternion_multiply(quat1, quaternion_from_euler(0, 1.57, 0))
+        pose.pose.orientation = Quaternion(orientation[0], orientation[1], orientation[2], orientation[3])
 
-        # Pose to move with an attatched Object
-        self._giskard_wrapper.set_joint_goal({u'arm_roll_joint': 1.57,
-                                              u'wrist_flex_joint': -1.37})
-        self._giskard_wrapper.plan_and_execute()
+        self._giskard_wrapper.set_cart_goal(self._root, u'hand_palm_link', pose)
+        self._giskard_wrapper.plan_and_execute(wait=False)
 
-        result = self._giskard_wrapper.get_result()
+        # TODO: send feedback periodically?
+
+        result = self._giskard_wrapper.get_result(rospy.Duration(60))
+        if result.error_code == result.SUCCESS:
+
+            # Close the Gripper
+            self._giskard_wrapper.set_joint_goal({u'hand_l_spring_proximal_joint': 0.2,
+                                                  u'hand_r_spring_proximal_joint': 0.2})
+            self._giskard_wrapper.plan_and_execute()
+
+            # Attach object
+            self._giskard_wrapper.add_cylinder(name=grasped_object, size=(goal.object_size.x, goal.object_size.y), pose=goal.goal_pose)
+            self._giskard_wrapper.attach_object(name=grasped_object, link_frame_id=u'hand_palm_link')
+
+            # Pose to move with an attatched Object
+            neutral_js = {
+                u'head_pan_joint': 0,
+                u'head_tilt_joint': 0,
+                u'arm_lift_joint': 0,
+                u'arm_flex_joint': 0,
+                u'arm_roll_joint': 1.4,
+                u'wrist_flex_joint': -1.5,
+                u'wrist_roll_joint': 0.14}
+
+            self._giskard_wrapper.set_joint_goal(neutral_js)
+            self._giskard_wrapper.plan_and_execute()
+
+            result = self._giskard_wrapper.get_result()
 
         # self._feedback.tf_gripper_to_object = tfwrapper.lookup_transform(goal.object_frame_id, u'hand_palm_link')
         # self._feedback.gripper_joint_state = u'hand_l_spring_proximal_joint' + u'hand_r_spring_proximal_joint'
