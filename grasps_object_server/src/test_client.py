@@ -1,8 +1,8 @@
 #! /usr/bin/env python
 import rospy
 import actionlib
-import tf
 from manipulation_action_msgs.msg import GraspAction, GraspGoal
+from geometry_msgs.msg import PoseStamped, Quaternion, Point
 
 from giskardpy import world
 
@@ -14,7 +14,20 @@ def test_client():
     # listening for goals.
     client.wait_for_server()
 
-    goal = GraspGoal(object_frame_id='cylinder')
+    goal = GraspGoal()
+
+    goal.object_size.x = 0.25
+    goal.object_size.y = 0.07
+    goal.object_size.z = 0.07
+
+    pose = PoseStamped()
+    pose.header.stamp = rospy.Time.now()
+    pose.header.frame_id = u'map'
+    pose.header.stamp = rospy.get_rostime()
+    pose.pose.position = Point(1, 0.0, 0.4)
+    pose.pose.orientation = Quaternion(0, 0, 0, 1)
+
+    goal.goal_pose = pose
 
     # Sends the goal to the action server.
     client.send_goal(goal)
