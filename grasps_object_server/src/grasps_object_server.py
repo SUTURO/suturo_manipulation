@@ -30,11 +30,14 @@ class GraspsObjectServer:
         pose.header = goal.goal_pose.header
         pose.pose.position = goal.goal_pose.pose.position
 
+        # Remove old object, with same name like the new object.
         self._giskard_wrapper.detach_object(grasped_object)
         self._giskard_wrapper.remove_object(grasped_object)
 
+        # Set initial result value.
         self._result.error_code = self._result.FAILED
 
+        # Open the gripper.
         self._giskard_wrapper.set_joint_goal({u'hand_l_spring_proximal_joint': 0.7,
                                               u'hand_r_spring_proximal_joint': 0.7})
         self._giskard_wrapper.plan_and_execute(wait=True)
@@ -44,6 +47,7 @@ class GraspsObjectServer:
         orientation = quaternion_multiply(quat1, quaternion_from_euler(0, 1.57, 0))
         pose.pose.orientation = Quaternion(orientation[0], orientation[1], orientation[2], orientation[3])
 
+        # Move the robot in goal position.
         self._giskard_wrapper.set_cart_goal(self._root, u'hand_palm_link', pose)
         self._giskard_wrapper.plan_and_execute(wait=False)
 
@@ -84,43 +88,8 @@ class GraspsObjectServer:
 
         self._as.set_succeeded(self._result)
 
-    def hardcode_grasp(self):
-        giskard_wrapper = GiskardWrapper()
-        print("start grasp")
-        self._giskard_wrapper.set_joint_goal({u'hand_l_spring_proximal_joint': 0.2, u'hand_r_spring_proximal_joint': 0.2})
-        self._giskard_wrapper.plan_and_execute()
-
-        # Alternative without Giskard
-        '''
-            robot = hsrb_interface.Robot()
-            gripper = robot.get('gripper', robot.Items.END_EFFECTOR)
-            gripper.command(1.2, 2.0)
-        '''
-        print("finish")
-
-    def place_object(self):
-        giskard_wrapper = GiskardWrapper()
-        GiskardWrapper.add_box(giskard_wrapper, 'box', (1, 1, 0.5), u'map', (1.5, 0, 0.5), (0, 0, 0, 1))
-        GiskardWrapper.add_box(giskard_wrapper, 'grasps_obj', (0.1, 0.1, 0.1), u'map', (1.1, 0, 0.8), (0, 0, 0, 1))
-
-    def attach_test(self):
-        giskard_wrapper = GiskardWrapper()
-
-        pose = PoseStamped()
-        pose.header.frame_id = u'hand_palm_link'
-        pose.header.stamp = rospy.Time.now()
-        pose.pose.position = Point(0, 0, 0)
-        pose.pose.orientation = Quaternion(0, 0.7, 0, 0.7)
-
-        giskard_wrapper.add_cylinder(name=u'box', size=(0.25, 0.07), pose=pose)
-        # TODO: Add object ro gripper
-        giskard_wrapper.attach_object(name=u'box', link_frame_id=u'hand_palm_link')
-
 
 if __name__ == '__main__':
     rospy.init_node('grasps_object_server')
     server = GraspsObjectServer(rospy.get_name())
-    #server.place_object()
-    #server.hardcode_grasp()
-    #server.attach_test()
     rospy.spin()
