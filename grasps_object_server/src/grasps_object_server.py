@@ -31,6 +31,7 @@ class GraspsObjectServer:
         self._gripper = self._robot('gripper')
         print("GraspsActionServer greats its masters and is waiting for orders")
 
+        '''
         # initialize action client
         self.cli = actionlib.SimpleActionClient(
             '/hsrb/gripper_controller/follow_joint_trajectory',
@@ -50,6 +51,7 @@ class GraspsObjectServer:
             for c in list_controllers().controller:
                 if c.name == 'gripper_controller' and c.state == 'running':
                     self._running = True
+        '''
 
     def execute_cb(self, goal):
 
@@ -129,7 +131,7 @@ class GraspsObjectServer:
             self._result.error_code = self._result.SUCCESS
 
         self._as.set_succeeded(self._result)
-
+'''
     def move_gripper(self, position_value, velocity, effort):
         """
         this method is used to catch objects with the grippers
@@ -170,7 +172,7 @@ class GraspsObjectServer:
         :return:
         """
         return self.move_gripper(1.2, 1, 0.0)
-
+'''
 
 if __name__ == '__main__':
     rospy.init_node('grasps_object_server')
