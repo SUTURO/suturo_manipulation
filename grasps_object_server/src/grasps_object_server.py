@@ -26,6 +26,8 @@ class GraspsObjectServer:
         self._as = actionlib.SimpleActionServer(self._action_name, GraspAction, execute_cb=self.execute_cb, auto_start=False)
         self._as.start()
         self._giskard_wrapper = GiskardWrapper()
+        self._robot = hsrb_interface.Robot()
+        self._whole_body = self._robot('whole_body')
         print("GraspsActionServer greats its masters and is waiting for orders")
 
         # initialize action client
@@ -73,7 +75,9 @@ class GraspsObjectServer:
         self._giskard_wrapper.plan_and_execute(wait=True)
         '''
 
-        gripper.command(1.2)
+        self._gripper.command(0.0)
+        self._gripper.command(1.2)
+
         quat1 = [goal.goal_pose.pose.orientation.x, goal.goal_pose.pose.orientation.y, goal.goal_pose.pose.orientation.z, goal.goal_pose.pose.orientation.w]
 
 
@@ -167,5 +171,5 @@ class GraspsObjectServer:
 if __name__ == '__main__':
     rospy.init_node('grasps_object_server')
     server = GraspsObjectServer(rospy.get_name())
-    server.open_gripper()
+    #server.open_gripper()
     rospy.spin()
