@@ -28,6 +28,7 @@ class GraspsObjectServer:
         self._giskard_wrapper = GiskardWrapper()
         self._robot = hsrb_interface.Robot()
         self._whole_body = self._robot('whole_body')
+        self._gripper = self._robot('gripper')
         print("GraspsActionServer greats its masters and is waiting for orders")
 
         # initialize action client
@@ -95,9 +96,12 @@ class GraspsObjectServer:
         if result.error_code == result.SUCCESS:
 
             # Close the Gripper
+            '''
             self._giskard_wrapper.set_joint_goal({u'hand_l_spring_proximal_joint': 0.2,
                                                   u'hand_r_spring_proximal_joint': 0.2})
             self._giskard_wrapper.plan_and_execute()
+            '''
+            self._gripper.set_distance(0.05)
 
             # Attach object
             self._giskard_wrapper.add_cylinder(name=grasped_object, size=(goal.object_size.x, goal.object_size.y), pose=goal.goal_pose)
