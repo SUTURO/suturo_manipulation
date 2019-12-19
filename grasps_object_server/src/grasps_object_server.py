@@ -27,8 +27,8 @@ class GraspsObjectServer:
         self._as.start()
         self._giskard_wrapper = GiskardWrapper()
         self._robot = hsrb_interface.Robot()
-        self._whole_body = self._robot('whole_body')
-        self._gripper = self._robot('gripper')
+        self._whole_body = self._robot.get('whole_body')
+        self._gripper = self._robot.get('gripper')
         print("GraspsActionServer greats its masters and is waiting for orders")
 
     def execute_cb(self, goal):
@@ -43,8 +43,8 @@ class GraspsObjectServer:
         pose.pose.position = goal.goal_pose.pose.position
 
         # Remove old object, with same name like the new object.
-        self._giskard_wrapper.detach_object(grasped_object)
-        self._giskard_wrapper.remove_object(grasped_object)
+        #self._giskard_wrapper.detach_object(grasped_object)
+        #self._giskard_wrapper.remove_object(grasped_object)
 
         # Set initial result value.
         self._result.error_code = self._result.FAILED
@@ -66,6 +66,7 @@ class GraspsObjectServer:
 
         # Move the robot in goal position.
         self._giskard_wrapper.set_cart_goal(self._root, u'hand_palm_link', pose)
+        self._giskard_wrapper.plan_and_execute(wait=False)
 
         # TODO: send feedback periodically?
 
