@@ -24,62 +24,28 @@ class ObjectStateListener:
                 self._giskard_wrapper.add_box(
                     name=object.object_id,
                     size=(object.size.x, object.size.y, object.size.z),
-                    frame_id=object.static_transforms[0].child_frame,
-                    position=(
-                        object.static_transforms[0].transform.translation.x,
-                        object.static_transforms[0].transform.translation.y,
-                        object.static_transforms[0].transform.translation.z,
-                    ),
-                    orientation=(
-                        object.static_transforms[0].transform.rotation.x,
-                        object.static_transforms[0].transform.rotation.y,
-                        object.static_transforms[0].transform.rotation.z,
-                        object.static_transforms[0].transform.rotation.w,
-                    ),
                     pose=object.pose
                 )
             elif object.shape == ObjectState.CYLINDER:
                 self._giskard_wrapper.add_cylinder(
                     name=object.object_id,
                     size=(object.size.x, object.size.y),
-                    frame_id=object.static_transforms[0].child_frame,
-                    position=(
-                        object.static_transforms[0].transform.translation.x,
-                        object.static_transforms[0].transform.translation.y,
-                        object.static_transforms[0].transform.translation.z,
-                    ),
-                    orientation=(
-                        object.static_transforms[0].transform.rotation.x,
-                        object.static_transforms[0].transform.rotation.y,
-                        object.static_transforms[0].transform.rotation.z,
-                        object.static_transforms[0].transform.rotation.w,
-                    ),
                     pose=object.pose
                 )
             elif object.shape == ObjectState.SPHERE:
                 self._giskard_wrapper.add_sphere(
                     name=object.object_id,
                     size=object.size.x,
-                    frame_id=object.static_transforms[0].child_frame,
-                    position=(
-                        object.static_transforms[0].transform.translation.x,
-                        object.static_transforms[0].transform.translation.y,
-                        object.static_transforms[0].transform.translation.z,
-                    ),
-                    orientation=(
-                        object.static_transforms[0].transform.rotation.x,
-                        object.static_transforms[0].transform.rotation.y,
-                        object.static_transforms[0].transform.rotation.z,
-                        object.static_transforms[0].transform.rotation.w,
-                    ),
                     pose=object.pose
                 )
             else:
-                rospy.logout("Unknown shape: ", object.shape)
+                print("Unknown shape: ", object.shape)
 
 
     def object_state_callback(self, object_state_array):
+        print("received object_state_array")
         if object_state_array.action == ObjectStateArray.ADD:
+            self.delete_object(object_state_array) # Hack to update objects
             self.add_object(object_state_array)
         elif object_state_array.action == ObjectStateArray.DELETE:
             self.delete_object(object_state_array)
@@ -88,8 +54,9 @@ class ObjectStateListener:
 
 
 if __name__ == '__main__':
+    print("Hello DO I EVEN START")
     rospy.init_node('object_state_istenter')
     object_state_listener = ObjectStateListener()
-    rospy.Subscriber('~object_state', ObjectStateArray, object_state_listener.object_state_callback)
+    rospy.Subscriber('/knowledgebase/object_state', ObjectStateArray, object_state_listener.object_state_callback)
     print('ObjectStateListener is ready')
     rospy.spin()
