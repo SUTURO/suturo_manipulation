@@ -22,7 +22,7 @@ class PerceiveServer():
         print("PerceiveActionServer greets its masters and is waiting for orders")
 
     def execute_cb(self, goal):
-        print("Order recieved")
+        print("Order recieved: perceive")
         self._result.error_code = self._result.FAILED
 
 	#raise/lower torso to the given joint state

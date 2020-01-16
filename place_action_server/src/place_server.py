@@ -26,7 +26,7 @@ class PlaceServer():
 
     def execute_cb(self, goal):
         ## Integrate giskard here
-        print("Order recieved")
+        print("Order recieved. place")
         self._result.error_code = self._result.FAILED
 
         ##TODO change message to send this / Or get from tf-tree
