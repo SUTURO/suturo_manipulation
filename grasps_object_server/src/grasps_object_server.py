@@ -33,7 +33,7 @@ class GraspsObjectServer:
 
     def execute_cb(self, goal):
 
-        print("Recieve Order")
+        print("Recieve Order. grasp")
 
         self._giskard_wrapper.interrupt()
 
@@ -43,8 +43,8 @@ class GraspsObjectServer:
         pose.pose.position = goal.goal_pose.pose.position
 
         # Remove old object, with same name like the new object.
-        #self._giskard_wrapper.detach_object(grasped_object)
-        #self._giskard_wrapper.remove_object(grasped_object)
+        self._giskard_wrapper.detach_object(grasped_object)
+        self._giskard_wrapper.remove_object(grasped_object)
 
         # Set initial result value.
         self._result.error_code = self._result.FAILED

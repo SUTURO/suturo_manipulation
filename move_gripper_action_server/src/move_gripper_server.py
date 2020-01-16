@@ -22,7 +22,7 @@ class MoveGripperServer():
 
     def execute_cb(self, goal):
         ## Integrate giskard here
-        print("Order recieved")
+        print("Order recieved: move")
         self._result.error_code = self._result.FAILED
 
         self._giskard_wrapper.interrupt()
