@@ -14,6 +14,8 @@
 		</include>
 	</group>
 
-	<node pkg="object_state_listener" name="giskard_object_state_listener" type="object_state_listener" output="screen"/>
+	<node pkg="object_state_listener" name="giskard_object_state_listener" type="object_state_listener" output="screen">
+		<remap from="~object_state" to="/object_state"/>
+	</node>
 
 </launch>

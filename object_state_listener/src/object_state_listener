@@ -55,8 +55,8 @@ class ObjectStateListener:
 
 if __name__ == '__main__':
     print("Hello DO I EVEN START")
-    rospy.init_node('object_state_istenter')
+    rospy.init_node('object_state_listenter')
     object_state_listener = ObjectStateListener()
-    rospy.Subscriber('/knowledgebase/object_state', ObjectStateArray, object_state_listener.object_state_callback)
+    rospy.Subscriber('~object_state', ObjectStateArray, object_state_listener.object_state_callback)
     print('ObjectStateListener is ready')
     rospy.spin()
