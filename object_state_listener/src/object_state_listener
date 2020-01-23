@@ -1,0 +1,62 @@
+#! /usr/bin/env python
+
+import rospy
+from giskardpy.python_interface import GiskardWrapper
+from giskardpy import tfwrapper
+from geometry_msgs.msg import PoseStamped, Point, Quaternion
+from knowrob_objects.msg import ObjectStateArray, ObjectState
+
+
+class ObjectStateListener:
+
+    def __init__(self):
+        self._giskard_wrapper = GiskardWrapper()
+
+
+    def delete_object(self, object_state_array):
+        for object in object_state_array.object_states:
+            self._giskard_wrapper.remove_object(object.object_id)
+
+
+    def add_object(self, object_state_array):
+        for object in object_state_array.object_states:
+            if object.shape == ObjectState.CUBE:
+                self._giskard_wrapper.add_box(
+                    name=object.object_id,
+                    size=(object.size.x, object.size.y, object.size.z),
+                    pose=object.pose
+                )
+            elif object.shape == ObjectState.CYLINDER:
+                self._giskard_wrapper.add_cylinder(
+                    name=object.object_id,
+                    size=(object.size.x, object.size.y),
+                    pose=object.pose
+                )
+            elif object.shape == ObjectState.SPHERE:
+                self._giskard_wrapper.add_sphere(
+                    name=object.object_id,
+                    size=object.size.x,
+                    pose=object.pose
+                )
+            else:
+                print("Unknown shape: ", object.shape)
+
+
+    def object_state_callback(self, object_state_array):
+        print("received object_state_array")
+        if object_state_array.action == ObjectStateArray.ADD:
+            self.delete_object(object_state_array) # Hack to update objects
+            self.add_object(object_state_array)
+        elif object_state_array.action == ObjectStateArray.DELETE:
+            self.delete_object(object_state_array)
+        else:
+            rospy.logout("Unknown action:", object_state_array.action)
+
+
+if __name__ == '__main__':
+    print("Hello DO I EVEN START")
+    rospy.init_node('object_state_listenter')
+    object_state_listener = ObjectStateListener()
+    rospy.Subscriber('~object_state', ObjectStateArray, object_state_listener.object_state_callback)
+    print('ObjectStateListener is ready')
+    rospy.spin()
