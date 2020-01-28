@@ -5,17 +5,20 @@
 	<arg name="run_percive_server" default="true"/>
 	<arg name="run_place_server" default="true"/>
 	<arg name="run_object_state_listener" default="true"/>
+	<arg name="load_static_objects" default="true"/>
 
 	<group if="$(eval sim == true)">
     	<include file="$(find iai_hsr_sim)/launch/ros_control_sim.launch" />
     	<include file="$(find giskardpy)/launch/giskardpy_hsr.launch" >
         	<arg name="sim" value="true"/>
+			<arg name="gui" value="true"/>
 		</include>
 	</group>
 	
 	<group if="$(eval sim == false)">
     	<include file="$(find suturo_manipulation_launch)/launch/giskardpy_hsr.launch" >
         	<arg name="sim" value="false"/>
+			<arg name="gui" value="true"/>
 		</include>
 	</group>	
 	
@@ -25,6 +28,8 @@
 		  if="$(eval run_object_state_listener == true)">
 			<remap from="~object_state" to="/object_state"/>
 	</node>
+
+	<node pkg="suturo_manipulation_launch" type="giskard_load_static_objects.py" name="load_static_objects"/>
 
 	<node pkg="move_gripper_action_server" name="move_gripper_server" type="move_gripper_server.py" output="screen" 
 		if="$(eval run_move_gripper_server == true)"/>
@@ -37,5 +42,7 @@
 
 	<node pkg="perceive_action_server" name="perceive_server" type="perceive_server.py" output="screen" 
 		if="$(eval run_percive_server == true)"/>
+
+
 
 </launch>
