@@ -29,8 +29,8 @@ class PlaceServer():
         print("Order recieved. place")
         self._result.error_code = self._result.FAILED
 
-        ##TODO change message to send this / Or get from tf-tree
-        object_frame_id = u'grasped_object'
+        #
+        object_frame_id = goal.object_frame_id
 
         ## Calculate offset for hand palm link because of grasped object
         ## TODO: Find out if giskard can handle this. if not make it more generic and put it in an extra library
