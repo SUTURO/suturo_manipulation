@@ -29,7 +29,7 @@
 			<remap from="~object_state" to="/object_state"/>
 	</node>
 
-	<node pkg="suturo_manipulation_launch" type="giskard_load_static_objects.py" name="load_static_objects"/>
+	<node pkg="suturo_manipulation_launch" type="giskard_load_static_objects.py" name="load_static_objects" if="$(eval load_static_objects == true)"/>
 
 	<node pkg="move_gripper_action_server" name="move_gripper_server" type="move_gripper_server.py" output="screen" 
 		if="$(eval run_move_gripper_server == true)"/>
