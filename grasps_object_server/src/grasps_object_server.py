@@ -1,5 +1,4 @@
-! / usr / bin / env
-python
+#!/usr/bin/env python
 
 import math
 import sys
@@ -79,13 +78,13 @@ class GraspsObjectServer:
             self._gripper.apply_force(1.0)
 
             # Wait for force sensor data to become stable and save the force after grasp
-            rospy.sleep(1)
-            self._force_checker._post_force_list = self._force_checker.get_current_force()
+            #rospy.sleep(1)
+            #self._force_checker._post_force_list = self._force_checker.get_current_force()
 
             # Calculate the current weight from object in gripper
-            weight = self._force_checker.round_grasp()
+            #weight = self._force_checker.round_grasp()
 
-            print weight
+            #print weight
 
             # Attach object
             self._giskard_wrapper.attach_object(goal.object_frame_id)
