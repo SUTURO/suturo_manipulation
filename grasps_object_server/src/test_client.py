@@ -8,7 +8,7 @@ from giskardpy import world
 
 def test_client():
 
-    client = actionlib.SimpleActionClient('grasps_object_server', GraspAction)
+    client = actionlib.SimpleActionClient('grasps_server', GraspAction)
 
     # Waits until the action server has started up and started
     # listening for goals.
@@ -25,7 +25,7 @@ def test_client():
     pose.header.stamp = rospy.Time.now()
     pose.header.frame_id = u'map'
     pose.header.stamp = rospy.get_rostime()
-    pose.pose.position = Point(0, 1, 1.2)
+    pose.pose.position = Point(0.5, 1,0.3)
     pose.pose.orientation = Quaternion(0, 0, 0, 1)
 
     goal.object_frame_id = 'test'

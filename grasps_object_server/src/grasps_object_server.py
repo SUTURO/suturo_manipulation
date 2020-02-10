@@ -14,7 +14,7 @@ from geometry_msgs.msg import PoseStamped, Point, Quaternion
 from tf.transformations import quaternion_from_euler, quaternion_multiply
 from listener import Listener
 from sensor_msgs.msg import JointState
-import force_checking
+from force_checking import ForceSensorCapture
 from giskardpy import tfwrapper
 
 
@@ -32,7 +32,7 @@ class GraspsObjectServer:
         self._robot = hsrb_interface.Robot()
         self._whole_body = self._robot.get('whole_body')
         self._gripper = self._robot.get('gripper')
-        self._force_checker = force_checking.ForceSensorCapture()
+        self._force_checker = ForceSensorCapture()
         print("GraspsActionServer greats its masters and is waiting for orders")
 
     def execute_cb(self, goal):
@@ -40,6 +40,8 @@ class GraspsObjectServer:
         print("Recieve Order. grasp")
 
         self._giskard_wrapper.interrupt()
+
+
 
         # grasped_object = u'grasped_object'
         pose = PoseStamped()
@@ -78,17 +80,23 @@ class GraspsObjectServer:
             self._gripper.apply_force(1.0)
 
             # Wait for force sensor data to become stable and save the force after grasp
-            #rospy.sleep(1)
-            #self._force_checker._post_force_list = self._force_checker.get_current_force()
+            rospy.sleep(1)
+            self._force_checker._post_force_list = self._force_checker.get_current_force()
 
             # Calculate the current weight from object in gripper
-            #weight = self._force_checker.round_grasp()
+            weight = self._force_checker.round_grasp()
 
-            #print weight
+            print weight
 
             # Attach object
-            self._giskard_wrapper.attach_object(goal.object_frame_id)
-
+            '''
+            self._giskard_wrapper.add_cylinder(
+                name=goal.object_frame_id,
+                size=(0.2, 0.07),
+                pose=goal.goal_pose
+            )
+            self._giskard_wrapper.attach_object(u'hand_palm_link', goal.object_frame_id)
+            '''
             # Pose to move with an attatched Object
             neutral_js = {
                 u'head_pan_joint': 0,

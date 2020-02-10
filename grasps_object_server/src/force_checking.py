@@ -48,7 +48,7 @@ class ForceSensorCapture(object):
             rospy.logerr(e)
             sys.exit(1)
 
-    def compute_difference(pre_data_list, post_data_list):
+    def compute_difference(self, pre_data_list, post_data_list):
         if (len(pre_data_list) != len(post_data_list)):
             raise ValueError('Argument lists differ in length')
         # Calcurate square sum of difference
@@ -66,7 +66,7 @@ class ForceSensorCapture(object):
 
     def round_grasp(self):
         force_difference = self.compute_difference(_pre_force_list, _post_force_list)
-        return round(force_difference / 9.81 * 1000, 1)
+        return round(force_difference / 9.81 * 1000, 3)
 
 """
     def main(self):
@@ -82,7 +82,7 @@ class ForceSensorCapture(object):
         print weight
 """
 
-if __name__ == '__main__':
-    rospy.init_node('force_measure')
-    force_sensor_capture = ForceSensorCapture()
-    force_sensor_capture.main()
+#if __name__ == '__main__':
+#    rospy.init_node('force_measure')
+#    force_sensor_capture = ForceSensorCapture()
+#    force_sensor_capture.main()
