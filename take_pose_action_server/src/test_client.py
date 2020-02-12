@@ -1,17 +1,17 @@
 #! /usr/bin/env python
 import rospy
 import actionlib
-from manipulation_action_msgs.msg import PerceiveGoal, PerceiveAction
+from manipulation_action_msgs.msg import TakePoseGoal, TakePoseAction
 
 def test_client():
-    client = actionlib.SimpleActionClient('perceive_server', PerceiveAction)
+    client = actionlib.SimpleActionClient('take_pose_server', TakePoseAction)
 
     # Waits until the action server has started up and started
     # listening for goals.
     client.wait_for_server()
 
     # Creates a goal to send to the action server.
-    goal = PerceiveGoal(torso_joint_state= 0.2, perceive_mode= 0) #change values here to test different states/modes
+    goal = TakePoseGoal( pose_mode= 0) #change values here to test different states/modes
 
     # Sends the goal to the action server.
     client.send_goal(goal)

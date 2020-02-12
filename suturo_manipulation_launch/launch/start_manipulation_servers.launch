@@ -2,7 +2,7 @@
 	<arg name="sim" default="false"/>
 	<arg name="run_move_gripper_server" default="true"/>
 	<arg name="run_grasps_server" default="true"/>
-	<arg name="run_percive_server" default="true"/>
+	<arg name="run_take_pose_server" default="true"/>
 	<arg name="run_place_server" default="true"/>
 	<arg name="run_object_state_listener" default="true"/>
 	<arg name="load_static_objects" default="true"/>
@@ -40,8 +40,8 @@
 	<node pkg="place_action_server" name="place_server" type="place_server.py" output="screen" 
 		if="$(eval run_place_server == true)"/>
 
-	<node pkg="perceive_action_server" name="perceive_server" type="perceive_server.py" output="screen" 
-		if="$(eval run_percive_server == true)"/>
+	<node pkg="take_pose_action_server" name="take_pose_server" type="take_pose_server.py" output="screen"
+		if="$(eval run_take_pose_server == true)"/>
 
 
 
