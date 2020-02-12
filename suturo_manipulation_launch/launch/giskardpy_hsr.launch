@@ -22,7 +22,7 @@
   </node>
 
   <node pkg="giskardpy" type="interactive_marker.py" name="giskard_interactive_marker" output="screen">
-    <rosparam param="enable_self_collision">False</rosparam>
+    <rosparam param="enable_self_collision">True</rosparam>
     <rosparam param="interactive_marker_chains">
       - [odom, hand_palm_link]
     </rosparam>

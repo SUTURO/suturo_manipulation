@@ -1,6 +1,6 @@
 <?xml version="1.0"?>
 <package format="2">
-  <name>perceive_action_server</name>
+  <name>take_pose_action_server</name>
   <version>0.0.0</version>
   <description>The perceive_action_server package</description>
 
