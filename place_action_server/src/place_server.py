@@ -7,6 +7,7 @@ from giskardpy.python_interface import GiskardWrapper
 from giskardpy import tfwrapper
 from geometry_msgs.msg import PoseStamped, Point, Quaternion
 import hsrb_interface
+from tf.transformations import quaternion_from_euler, quaternion_multiply
 
 class PlaceServer():
     _feedback = PlaceFeedback()
@@ -26,75 +27,58 @@ class PlaceServer():
 
     def execute_cb(self, goal):
         ## Integrate giskard here
-        print("Order recieved. place")
+        print("Order recieved. place", goal)
         self._result.error_code = self._result.FAILED
 
         #
         object_frame_id = goal.object_frame_id
 
-        ## Calculate offset for hand palm link because of grasped object
-        ## TODO: Find out if giskard can handle this. if not make it more generic and put it in an extra library
-#        goal.goal_pose.pose.position = Point(
-#            goal.goal_pose.pose.position.x,
-#            goal.goal_pose.pose.position.y,
-#            goal.goal_pose.pose.position.z + 0.125
-#        )
 
         #TODO: Move gripper with object to goal
-        self._giskard_wrapper.set_cart_goal(self._root, object_frame_id, goal.goal_pose)
-        self._giskard_wrapper.plan_and_execute(wait=False)
-        result = self._giskard_wrapper.get_result(rospy.Duration(30))
+        #self._giskard_wrapper.set_cart_goal(self._root, object_frame_id, goal.goal_pose)
+        #self._giskard_wrapper.plan_and_execute(wait=False)
+        #result = self._giskard_wrapper.get_result(rospy.Duration(30))
+        pose = PoseStamped()
+        pose.header = goal.goal_pose.header
+        pose.pose.position = goal.goal_pose.pose.position
+        hsr_transform = tfwrapper.lookup_transform('map', 'base_footprint')
+        q1 = [hsr_transform.transform.rotation.x, hsr_transform.transform.rotation.y, hsr_transform.transform.rotation.z,
+              hsr_transform.transform.rotation.w]
+        # place_mode
+        if goal.place_mode == goal.FRONT:
+            q2 = [0.7, 0.0, 0.7, 0.0]  # Quaternion for rotation to grasp from front relative to map for hand_palm_link
+        elif goal.place_mode == goal.TOP:
+            q2 = [1, 0, 0, 0]  # Quaternion for rotation to grasp from above relative to map for hand_palm_link
 
-        # Release gripper
-        # Detach object from gripper
-        '''
-        goal_js ={
-            u'hand_l_spring_proximal_joint': 0.7,
-            u'hand_r_spring_proximal_joint': 0.7
-        }
-        if result.error_code == result.SUCCESS:
-            self._giskard_wrapper.set_joint_goal(goal_js)
-            result = self._giskard_wrapper.plan_and_execute()
+        if goal.place_mode != goal.FREE:
+            q3 = quaternion_multiply(q1, q2)
+            pose.pose.orientation = Quaternion(q3[0], q3[1], q3[2], q3[3])
+
+        # Move the robot in goal position.
+        self._giskard_wrapper.set_cart_goal(self._root, u'hand_palm_link', pose)
+        self._giskard_wrapper.plan_and_execute()
+        self._result = self._giskard_wrapper.get_result()
+
+        if self._result.error_code == self._result.SUCCESS:
+            # Release gripper
+
+            self._gripper.command(1.2)
             self._giskard_wrapper.detach_object(object_frame_id)
-            self._giskard_wrapper.remove_object(object_frame_id)
-            
-        '''
-        self._gripper.command(1.2)
-        self._giskard_wrapper.detach_object(object_frame_id)
-        #self._giskard_wrapper.remove_object(object_frame_id)
 
-        ##TODO: load default pose from json file
-        '''
-        goal_js = {
-            u'head_pan_joint': 0,
-            u'head_tilt_joint': 0,
-            u'arm_lift_joint': 0,
-            u'arm_flex_joint': 0,
-            u'arm_roll_joint': 1.4,
-            u'wrist_flex_joint': -1.5,
-            u'wrist_roll_joint': 0.14,
+            ##TODO: load default pose from json file
+            self._giskard_wrapper.set_joint_goal({
+                u'head_pan_joint': 0.0,
+                u'head_tilt_joint': 0.0,
+                u'arm_lift_joint': 0.0,
+                u'arm_flex_joint': 0.0,
+                u'arm_roll_joint': 1.4,
+                u'wrist_flex_joint': -1.5,
+                u'wrist_roll_joint': 0.14
+            })
+            self._giskard_wrapper.plan_and_execute(True)
 
-            u'hand_l_spring_proximal_joint': 0.1,
-            u'hand_r_spring_proximal_joint': 0.1
-        }
-        
-
-        if result.error_code == result.SUCCESS:
-            self._giskard_wrapper.set_joint_goal(goal_js)
-            result = self._giskard_wrapper.plan_and_execute()
-
-        #TODO: send feedback periodically?
-        '''
-        self._whole_body.move_to_neutral()
-
-
-
-#        self._feedback.tf_gripper_to_goal = tfwrapper.lookup_transform(goal.goal_pose.header.frame_id, u'hand_palm_link')
-
-#        self._as.publish_feedback(self._feedback)
-
-        if result and result.error_code == result.SUCCESS:
-            self._result.error_code = self._result.SUCCESS
+    #        self._feedback.tf_gripper_to_goal = tfwrapper.lookup_transform(goal.goal_pose.header.frame_id, u'hand_palm_link')
+    #        self._as.publish_feedback(self._feedback)
 
         self._as.set_succeeded(self._result)
 

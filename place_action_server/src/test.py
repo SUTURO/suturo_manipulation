@@ -20,10 +20,12 @@ def test_client():
     pose.header.stamp = rospy.Time.now()
     pose.header.frame_id = u'map'
     pose.header.stamp = rospy.get_rostime()
-    pose.pose.position = Point(0.50, 0, 0.05)
+    pose.pose.position = Point(0.5, 1, 0.3)
     pose.pose.orientation = Quaternion(q[0], q[1], q[2], q[3])
 
     goal = PlaceGoal(goal_pose=pose)
+
+    goal.place_mode = goal.TOP
 
     # Sends the goal to the action server.
     client.send_goal(goal)
