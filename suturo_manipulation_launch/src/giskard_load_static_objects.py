@@ -14,10 +14,14 @@ while not _urdf:
 print(_urdf)
 giskard_wrapper = GiskardWrapper()
 giskard_wrapper.remove_object('lab')
+p = tfwrapper.lookup_pose('map', 'environment/env_origin')
+print(p)
+'''
 p = PoseStamped()
 p.header.stamp = rospy.Time.now()
 p.header.frame_id = u'map'
 p.pose.position = Point(0, 0, 0)
 q = quaternion_from_euler(0, 0, 4.715)
 p.pose.orientation = Quaternion(q[0], q[1], q[2], q[3])
+'''
 giskard_wrapper.add_urdf(name='lab', urdf=_urdf, js_topic='/kitchen/joint_states', pose=p)
