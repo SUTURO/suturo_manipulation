@@ -11,7 +11,15 @@ def test_client():
     client.wait_for_server()
 
     # Creates a goal to send to the action server.
-    goal = TakePoseGoal( pose_mode= 0) #change values here to test different states/modes
+    goal = TakePoseGoal( pose_mode= TakePoseGoal.FREE) #change values here to test different states/modes
+
+    goal.head_pan_joint = 0.0
+    goal.head_tilt_joint = 0.0
+    goal.arm_lift_joint = 0.0
+    goal.arm_flex_joint = 0.0
+    goal.arm_roll_joint = 0.0
+    goal.wrist_flex_joint = 0.0
+    goal.wrist_roll_joint = 0.0
 
     # Sends the goal to the action server.
     client.send_goal(goal)
