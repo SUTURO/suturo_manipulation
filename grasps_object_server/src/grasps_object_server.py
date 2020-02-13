@@ -83,11 +83,13 @@ class GraspsObjectServer:
             self._gripper.apply_force(1.0)
 
             # Attach object
+            '''
             self._giskard_wrapper.add_cylinder(
                 name=goal.object_frame_id,
                 size=(0.2, 0.07),
                 pose=goal.goal_pose
             )
+            '''
             self._giskard_wrapper.attach_object(goal.object_frame_id, u'hand_palm_link')
 
             # Pose to move with an attatched Object

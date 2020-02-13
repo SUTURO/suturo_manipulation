@@ -25,7 +25,17 @@ class TakePoseServer():
         print("Order recieved: perceive", goal)
         self._result.error_code = self._result.FAILED
 
-        if goal.pose_mode == goal.NEUTRAL:
+        if goal.pose_mode == goal.FREE:
+            self._giskard_wrapper.set_joint_goal({
+                u'head_pan_joint': goal.head_pan_joint,
+                u'head_tilt_joint': goal.head_tilt_joint,
+                u'arm_lift_joint': goal.arm_lift_joint,
+                u'arm_flex_joint': goal.arm_flex_joint,
+                u'arm_roll_joint': goal.arm_roll_joint,
+                u'wrist_flex_joint': goal.wrist_flex_joint,
+                u'wrist_roll_joint': goal.wrist_roll_joint
+            })
+        elif goal.pose_mode == goal.NEUTRAL:
             self._giskard_wrapper.set_joint_goal({
              u'head_pan_joint': 0.0,
              u'head_tilt_joint': 0.0,
