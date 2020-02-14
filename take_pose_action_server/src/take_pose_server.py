@@ -19,10 +19,10 @@ class TakePoseServer():
         self._giskard_wrapper = GiskardWrapper()
         self._robot = hsrb_interface.Robot()
         self._whole_body = self._robot.get('whole_body')
-        print("PerceiveActionServer greets its masters and is waiting for orders")
+        print("TakePoseActionServer greets its masters and is waiting for orders")
 
     def execute_cb(self, goal):
-        print("Order recieved: perceive", goal)
+        print("Order recieved: take_pose", goal)
         self._result.error_code = self._result.FAILED
 
         if goal.pose_mode == goal.FREE:
@@ -67,9 +67,19 @@ class TakePoseServer():
              u'wrist_flex_joint': -1.57,
              u'wrist_roll_joint': 0.0
         })
-        else:
+        elif goal.pose_mode == goal.GAZE:
+            self._giskard_wrapper.set_joint_goal({
+             u'head_pan_joint': -1.54,
+             u'head_tilt_joint': 0.0,
+             u'arm_lift_joint': (goal.gaze_point.z - 0.8),
+             u'arm_flex_joint': -0.5,
+             u'arm_roll_joint': -1.8,
+             u'wrist_flex_joint': -1.57,
+             u'wrist_roll_joint': 0.0
+        })
+            self._giskard_wrapper.plan_and_execute(wait=True)
+            self._whole_body.gaze_point(point = goal.gaze_point, ref_frame_id='map')
             self._giskard_wrapper.set_joint_goal({})
-            print("Mode not implemented yet!")
 
 
         self._giskard_wrapper.plan_and_execute(wait=False)
@@ -87,6 +97,6 @@ class TakePoseServer():
 
 
 if __name__ == '__main__':
-    rospy.init_node('perceive_server')
+    rospy.init_node('take_pose_server')
     server = TakePoseServer(rospy.get_name())
     rospy.spin()
