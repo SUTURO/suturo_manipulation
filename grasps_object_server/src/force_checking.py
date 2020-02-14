@@ -24,8 +24,7 @@ from tmc_msgs.msg import (
 )
 
 _CONNECTION_TIMEOUT = 10.0
-_pre_force_list = []
-_post_force_list = []
+
 
 class ForceSensorCapture(object):
 
@@ -33,6 +32,8 @@ class ForceSensorCapture(object):
         self._force_data_x = 0.0
         self._force_data_y = 0.0
         self._force_data_z = 0.0
+        self.pre_force_list = []
+        self.force_list = []
 
 
         # Subscribe force torque sensor data from HSRB
@@ -65,7 +66,7 @@ class ForceSensorCapture(object):
         self._force_data_z = data.wrench.force.z
 
     def round_grasp(self):
-        force_difference = self.compute_difference(_pre_force_list, _post_force_list)
+        force_difference = self.compute_difference(self.pre_force_list, self.post_force_list)
         print force_difference
         return round(force_difference / 9.81 , 2)
 

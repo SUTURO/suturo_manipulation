@@ -76,8 +76,8 @@ class GraspsObjectServer:
         if result.error_code == result.SUCCESS:
 
             # Save the force before grasp
-            self._force_checker._pre_force_list = self._force_checker.get_current_force()
-            for values in self._force_checker._pre_force_list:
+            self._force_checker.pre_force_list = self._force_checker.get_current_force()
+            for values in self._force_checker.pre_force_list:
                 print values
 
             # Close the Gripper
@@ -91,7 +91,7 @@ class GraspsObjectServer:
                 pose=goal.goal_pose
             )
             '''
-            self._giskard_wrapper.attach_object(goal.object_frame_id, u'hand_palm_link')
+            #self._giskard_wrapper.attach_object(goal.object_frame_id, u'hand_palm_link')
 
             # Pose to move with an attatched Object
             neutral_js = {
@@ -110,8 +110,8 @@ class GraspsObjectServer:
 
             # Wait for force sensor data to become stable and save the force after grasp
             rospy.sleep(1)
-            self._force_checker._post_force_list = self._force_checker.get_current_force()
-            for values in self._force_checker._post_force_list:
+            self._force_checker.post_force_list = self._force_checker.get_current_force()
+            for values in self._force_checker.post_force_list:
                 print values
 
             # Calculate the current weight from object in gripper
