@@ -32,7 +32,7 @@ class GraspsObjectServer:
         self._robot = hsrb_interface.Robot()
         self._whole_body = self._robot.get('whole_body')
         self._gripper = self._robot.get('gripper')
-        #self._force_checker = ForceSensorCapture()
+        self._force_checker = ForceSensorCapture()
         print("GraspsActionServer greats its masters and is waiting for orders")
 
     def execute_cb(self, goal):
@@ -74,10 +74,11 @@ class GraspsObjectServer:
 
         result = self._giskard_wrapper.get_result(rospy.Duration(60))
         if result.error_code == result.SUCCESS:
+
             # Save the force before grasp
-            #self._force_checker._pre_force_list = self._force_checker.get_current_force()
-            #for values in self._force_checker._pre_force_list:
-            #    print values
+            self._force_checker._pre_force_list = self._force_checker.get_current_force()
+            for values in self._force_checker._pre_force_list:
+                print values
 
             # Close the Gripper
             self._gripper.apply_force(1.0)
@@ -108,14 +109,14 @@ class GraspsObjectServer:
             result = self._giskard_wrapper.get_result()
 
             # Wait for force sensor data to become stable and save the force after grasp
-            #rospy.sleep(1)
-            #self._force_checker._post_force_list = self._force_checker.get_current_force()
-            #for values in self._force_checker._post_force_list:
-            #    print values
+            rospy.sleep(1)
+            self._force_checker._post_force_list = self._force_checker.get_current_force()
+            for values in self._force_checker._post_force_list:
+                print values
 
             # Calculate the current weight from object in gripper
-            #weight = self._force_checker.round_grasp()
-            #print weight
+            weight = self._force_checker.round_grasp()
+            print weight + "grams"
 
         # self._feedback.tf_gripper_to_object = tfwrapper.lookup_transform(goal.object_frame_id, u'hand_palm_link')
         # self._feedback.gripper_joint_state = u'hand_l_spring_proximal_joint' + u'hand_r_spring_proximal_joint'

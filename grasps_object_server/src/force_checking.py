@@ -66,7 +66,8 @@ class ForceSensorCapture(object):
 
     def round_grasp(self):
         force_difference = self.compute_difference(_pre_force_list, _post_force_list)
-        return round(force_difference / 9.81 * 1000, 3)
+        print "diff: " + force_difference
+        return round(force_difference / 9.81 , 2)
 
 """
     def main(self):
