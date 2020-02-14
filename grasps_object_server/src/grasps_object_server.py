@@ -116,7 +116,7 @@ class GraspsObjectServer:
 
             # Calculate the current weight from object in gripper
             weight = self._force_checker.round_grasp()
-            print weight + "grams"
+            print weight
 
         # self._feedback.tf_gripper_to_object = tfwrapper.lookup_transform(goal.object_frame_id, u'hand_palm_link')
         # self._feedback.gripper_joint_state = u'hand_l_spring_proximal_joint' + u'hand_r_spring_proximal_joint'
