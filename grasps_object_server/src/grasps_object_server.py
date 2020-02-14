@@ -75,6 +75,8 @@ class GraspsObjectServer:
         result = self._giskard_wrapper.get_result(rospy.Duration(60))
         if result.error_code == result.SUCCESS:
 
+            rospy.sleep(rospy.Duration(0, 100))
+
             # Save the force before grasp
             self._force_checker.pre_force_list = self._force_checker.get_current_force()
             for values in self._force_checker.pre_force_list:
@@ -109,7 +111,7 @@ class GraspsObjectServer:
             result = self._giskard_wrapper.get_result()
 
             # Wait for force sensor data to become stable and save the force after grasp
-            rospy.sleep(1)
+            rospy.sleep(rospy.Duration(1))
             self._force_checker.post_force_list = self._force_checker.get_current_force()
             for values in self._force_checker.post_force_list:
                 print values
