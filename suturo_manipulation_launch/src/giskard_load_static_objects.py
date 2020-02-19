@@ -8,13 +8,14 @@ from tf.transformations import quaternion_from_euler
 rospy.init_node('add_static_giskard')
 
 _urdf = rospy.get_param('kitchen_description', False)
+kitchen_frame = rospy.get_param('~environment_frame', 'iai_kitchen/world')
 while not _urdf:
     rospy.sleep(5)
     _urdf = rospy.get_param('kitchen_description', False)
 print(_urdf)
 giskard_wrapper = GiskardWrapper()
 giskard_wrapper.remove_object('lab')
-p = tfwrapper.lookup_pose('map', 'environment/env_origin')
+p = tfwrapper.lookup_pose('map', kitchen_frame)
 print(p)
 '''
 p = PoseStamped()
