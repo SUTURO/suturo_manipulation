@@ -13,6 +13,8 @@ def test_client():
     # Creates a goal to send to the action server.
     goal = TakePoseGoal( pose_mode= TakePoseGoal.FREE) #change values here to test different states/modes
 
+    goal.gaze_point = (0.0, 0.0, 0.0)
+
     goal.head_pan_joint = 0.0
     goal.head_tilt_joint = 0.0
     goal.arm_lift_joint = 0.0
