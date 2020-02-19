@@ -27,14 +27,15 @@ class TakePoseServer():
 
         if goal.pose_mode == goal.FREE:
             self._giskard_wrapper.set_joint_goal({
-                u'head_pan_joint': goal.head_pan_joint,
-                u'head_tilt_joint': goal.head_tilt_joint,
-                u'arm_lift_joint': goal.arm_lift_joint,
-                u'arm_flex_joint': goal.arm_flex_joint,
-                u'arm_roll_joint': goal.arm_roll_joint,
-                u'wrist_flex_joint': goal.wrist_flex_joint,
-                u'wrist_roll_joint': goal.wrist_roll_joint
+             u'head_pan_joint': goal.head_pan_joint,
+             u'head_tilt_joint': goal.head_tilt_joint,
+             u'arm_lift_joint': goal.arm_lift_joint,
+             u'arm_flex_joint': goal.arm_flex_joint,
+             u'arm_roll_joint': goal.arm_roll_joint,
+             u'wrist_flex_joint': goal.wrist_flex_joint,
+             u'wrist_roll_joint': goal.wrist_roll_joint
             })
+            self._giskard_wrapper.plan_and_execute(wait=True)
         elif goal.pose_mode == goal.NEUTRAL:
             self._giskard_wrapper.set_joint_goal({
              u'head_pan_joint': 0.0,
@@ -44,9 +45,9 @@ class TakePoseServer():
              u'arm_roll_joint': 1.4,
              u'wrist_flex_joint': -1.5,
              u'wrist_roll_joint': 0.14
-        })
+            })
+            self._giskard_wrapper.plan_and_execute(wait=True)
         elif goal.pose_mode == goal.LOOK_HIGH:
-	    #TABLE_BIG
             self._giskard_wrapper.set_joint_goal({
              u'head_pan_joint': -1.54,
              u'head_tilt_joint': -0.22,
@@ -55,9 +56,9 @@ class TakePoseServer():
              u'arm_roll_joint': -1.8,
              u'wrist_flex_joint': -1.57,
              u'wrist_roll_joint': 0.0
-        })
+            })
+            self._giskard_wrapper.plan_and_execute(wait=True)
         elif goal.pose_mode == goal.LOOK_LOW:
-	    #TABLE_SMALL
             self._giskard_wrapper.set_joint_goal({
              u'head_pan_joint': -1.54,
              u'head_tilt_joint': -0.46,
@@ -66,27 +67,31 @@ class TakePoseServer():
              u'arm_roll_joint': -1.8,
              u'wrist_flex_joint': -1.57,
              u'wrist_roll_joint': 0.0
-        })
+            })
+            self._giskard_wrapper.plan_and_execute(wait=True)
         elif goal.pose_mode == goal.GAZE:
+            camera_height = goal.gaze_point.z - 0.8 #test if offset correct
+            if camera_height < 0.0:
+                camera_height = 0.0
+            elif camera_height > 0.69:
+                camera_height = 0.69
             self._giskard_wrapper.set_joint_goal({
              u'head_pan_joint': -1.54,
              u'head_tilt_joint': 0.0,
-             u'arm_lift_joint': (goal.gaze_point.z - 0.8),
+             u'arm_lift_joint': camera_height, #must be between 0 and 0.69
              u'arm_flex_joint': -0.5,
              u'arm_roll_joint': -1.8,
              u'wrist_flex_joint': -1.57,
              u'wrist_roll_joint': 0.0
-        })
+            })
             self._giskard_wrapper.plan_and_execute(wait=True)
-            self._whole_body.gaze_point(point = goal.gaze_point, ref_frame_id='map')
-            self._giskard_wrapper.set_joint_goal({})
+            self._whole_body.gaze_point(point = goal.gaze_point, ref_frame_id='map') #test if map works as frameid instead of base_link
 
 
-        self._giskard_wrapper.plan_and_execute(wait=False)
 
         result = self._giskard_wrapper.get_result(rospy.Duration(60))
 
-        self._feedback.torso_joint_state = 0.0
+        self._feedback.torso_joint_state = 0.0 #not used currently
 
         self._as.publish_feedback(self._feedback)
 
