@@ -2,7 +2,7 @@
 <package format="2">
   <name>take_pose_action_server</name>
   <version>0.0.0</version>
-  <description>The perceive_action_server package</description>
+  <description>The take_pose_action_server package</description>
 
   <!-- One maintainer tag required, multiple allowed, one person per tag -->
   <!-- Example:  -->
