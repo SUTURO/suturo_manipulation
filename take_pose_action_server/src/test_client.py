@@ -2,6 +2,7 @@
 import rospy
 import actionlib
 from manipulation_action_msgs.msg import TakePoseGoal, TakePoseAction
+from geometry_msgs.msg import Point
 
 def test_client():
     client = actionlib.SimpleActionClient('take_pose_server', TakePoseAction)
@@ -11,9 +12,9 @@ def test_client():
     client.wait_for_server()
 
     # Creates a goal to send to the action server.
-    goal = TakePoseGoal( pose_mode= TakePoseGoal.FREE) #change values here to test different states/modes
+    goal = TakePoseGoal( pose_mode= TakePoseGoal.LOOK_HIGH) #change values here to test different states/modes
 
-    goal.gaze_point = (0.0, 0.0, 0.0)
+    goal.gaze_point = Point(0.5, 0.0, 0.8)
 
     goal.head_pan_joint = 0.0
     goal.head_tilt_joint = 0.0

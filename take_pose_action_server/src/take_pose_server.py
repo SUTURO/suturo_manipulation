@@ -6,6 +6,7 @@ import actionlib
 from manipulation_action_msgs.msg import TakePoseAction, TakePoseFeedback, TakePoseResult
 from giskardpy.python_interface import GiskardWrapper
 
+
 class TakePoseServer():
     _feedback = TakePoseFeedback()
     _result = TakePoseResult()
@@ -70,7 +71,7 @@ class TakePoseServer():
             })
             self._giskard_wrapper.plan_and_execute(wait=True)
         elif goal.pose_mode == goal.GAZE:
-            camera_height = goal.gaze_point.z - 0.8 #test if offset correct
+            camera_height = goal.gaze_point.z - 0.4 #test if offset correct
             if camera_height < 0.0:
                 camera_height = 0.0
             elif camera_height > 0.69:
@@ -85,9 +86,8 @@ class TakePoseServer():
              u'wrist_roll_joint': 0.0
             })
             self._giskard_wrapper.plan_and_execute(wait=True)
-            self._whole_body.gaze_point(point = goal.gaze_point, ref_frame_id='map') #test if map works as frameid instead of base_link
-
-
+            v3 = hsrb_interface.geometry.Vector3(x=goal.gaze_point.x, y=goal.gaze_point.y, z=goal.gaze_point.z)
+            self._whole_body.gaze_point(point = v3, ref_frame_id='map') #test if map works as frameid instead of base_link
 
         result = self._giskard_wrapper.get_result(rospy.Duration(60))
 
