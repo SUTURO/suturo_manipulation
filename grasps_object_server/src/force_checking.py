@@ -68,7 +68,6 @@ class ForceSensorCapture(object):
         force_difference = self.compute_difference(_pre_force_list, _post_force_list)
         return round(force_difference / 9.81 * 1000, 3)
 
-"""
     def main(self):
         # Start force sensor capture
         force_sensor_capture = ForceSensorCapture()
@@ -80,7 +79,6 @@ class ForceSensorCapture(object):
         # Convert newton to gram
         weight = round(force_difference / 9.81 * 1000, 1)
         print weight
-"""
 
 #if __name__ == '__main__':
 #    rospy.init_node('force_measure')
