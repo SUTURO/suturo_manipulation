@@ -71,7 +71,7 @@ class TakePoseServer():
             })
             self._giskard_wrapper.plan_and_execute(wait=True)
         elif goal.pose_mode == goal.GAZE:
-            camera_height = goal.gaze_point.z - 0.4 #test if offset correct
+            camera_height = goal.gaze_point.z - 0.4 
             if camera_height < 0.0:
                 camera_height = 0.0
             elif camera_height > 0.69:
@@ -87,7 +87,7 @@ class TakePoseServer():
             })
             self._giskard_wrapper.plan_and_execute(wait=True)
             v3 = hsrb_interface.geometry.Vector3(x=goal.gaze_point.x, y=goal.gaze_point.y, z=goal.gaze_point.z)
-            self._whole_body.gaze_point(point = v3, ref_frame_id='map') #test if map works as frameid instead of base_link
+            self._whole_body.gaze_point(point = v3, ref_frame_id='map') 
 
         result = self._giskard_wrapper.get_result(rospy.Duration(60))
 
