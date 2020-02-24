@@ -32,7 +32,6 @@ class GraspsObjectServer:
         self._robot = hsrb_interface.Robot()
         self._whole_body = self._robot.get('whole_body')
         self._gripper = self._robot.get('gripper')
-        #self._force_checker = ForceSensorCapture()
         print("GraspsActionServer greats its masters and is waiting for orders")
 
     def execute_cb(self, goal):
@@ -40,8 +39,6 @@ class GraspsObjectServer:
         print("Recieve Order. grasp", goal)
 
         self._giskard_wrapper.interrupt()
-
-
 
         # grasped_object = u'grasped_object'
         pose = PoseStamped()
@@ -70,29 +67,16 @@ class GraspsObjectServer:
         self._giskard_wrapper.set_cart_goal(self._root, u'hand_palm_link', pose)
         self._giskard_wrapper.plan_and_execute(wait=False)
 
-        # TODO: send feedback periodically?
-
         result = self._giskard_wrapper.get_result(rospy.Duration(60))
         if result.error_code == result.SUCCESS:
-            # Save the force before grasp
-            #self._force_checker._pre_force_list = self._force_checker.get_current_force()
-            #for values in self._force_checker._pre_force_list:
-            #    print values
 
             # Close the Gripper
             self._gripper.apply_force(1.0)
 
             # Attach object
-            '''
-            self._giskard_wrapper.add_cylinder(
-                name=goal.object_frame_id,
-                size=(0.2, 0.07),
-                pose=goal.goal_pose
-            )
-            '''
             self._giskard_wrapper.attach_object(goal.object_frame_id, u'hand_palm_link')
 
-            # Pose to move with an attatched Object
+            # Pose to move with an attached Object
             neutral_js = {
                 u'head_pan_joint': 0,
                 u'head_tilt_joint': 0,
@@ -104,46 +88,29 @@ class GraspsObjectServer:
 
             self._giskard_wrapper.set_joint_goal(neutral_js)
             self._giskard_wrapper.plan_and_execute()
+            result_grasp = self.object_in_gripper()
 
-            result = self._giskard_wrapper.get_result()
+            result_giskard = self._giskard_wrapper.get_result()
 
-            # Wait for force sensor data to become stable and save the force after grasp
-            #rospy.sleep(1)
-            #self._force_checker._post_force_list = self._force_checker.get_current_force()
-            #for values in self._force_checker._post_force_list:
-            #    print values
-
-            # Calculate the current weight from object in gripper
-            #weight = self._force_checker.round_grasp()
-            #print weight
-
-        # self._feedback.tf_gripper_to_object = tfwrapper.lookup_transform(goal.object_frame_id, u'hand_palm_link')
-        # self._feedback.gripper_joint_state = u'hand_l_spring_proximal_joint' + u'hand_r_spring_proximal_joint'
-
-        if result and result.error_code == result.SUCCESS:
+        if result_grasp and result_giskard and result_giskard.error_code == result.SUCCESS:
             self._result.error_code = self._result.SUCCESS
 
         self._as.set_succeeded(self._result)
 
-    """
-    Force checking method from Michelle
-    def object_in_gripper(self, width_object):
-
-        This method checks if the object is in the gripper, then position_value of gripper should be greater as -0.5
-        :param width_object: float
+    def object_in_gripper(self):
+        """
+        This method checks if an object is in the gripper
             :return: false or true, boolean
-
-        self.move_gripper(-2, 1, 0.8)
+        """
         l= Listener()
         l.set_topic_and_typMEssage("/hsrb/joint_states", JointState)
         l.listen_topic_with_sensor_msg()
-        current_hand_motor_value= l.get_value_from_sensor_msg("hand_motor_joint")
+        current_hand_motor_value = l.get_value_from_sensor_msg("hand_motor_joint")
         print("Current hand motor joint is:")
         print current_hand_motor_value
         print("Is object in gripper ?")
-        print current_hand_motor_value >= -0.5
-        return current_hand_motor_value >= -0.5
-        """
+        print current_hand_motor_value >= -0.8
+        return current_hand_motor_value >= -0.8
 
 
 if __name__ == '__main__':
