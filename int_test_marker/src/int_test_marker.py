@@ -3,7 +3,7 @@
 import rospy
 import actionlib
 from manipulation_action_msgs.msg import TakePoseAction, TakePoseGoal, GraspAction, GraspGoal, PlaceAction, PlaceGoal
-
+from geometry_msgs.msg import PoseStamped
 from interactive_markers.interactive_marker_server import *
 from interactive_markers.menu_handler import *
 from visualization_msgs.msg import *
@@ -89,31 +89,43 @@ def take_pose(mode):
     goal.pose_mode = mode
     take_pose_client.send_goal(goal)
     result = take_pose_client.wait_for_result()
-    print("Result:", ', '.join([str(n) for n in result.sequence]))
+    print("Result:", result)
 
 def grasp_object(pose, mode):
     goal = GraspGoal()
     goal.grasp_mode = mode
     goal.object_frame_id = "test"
-    goal.goal_pose = pose
+
+    poseS = PoseStamped()
+    poseS.header.frame_id="map"
+    poseS.header.stamp = rospy.Time.now()
+    poseS.pose = pose
+
+    goal.goal_pose = poseS
     grasp_client.send_goal(goal)
     result = grasp_client.wait_for_result()
-    print("Result:", ', '.join([str(n) for n in result.sequence]))
+    print("Result:", result)
 
 def place_object(pose, mode):
     goal = PlaceGoal()
     goal.place_mode = mode
     goal.object_frame_id = "test"
-    goal.goal_pose = pose
+
+    poseS = PoseStamped()
+    poseS.header.frame_id = "map"
+    poseS.header.stamp = rospy.Time.now()
+    poseS.pose = pose
+
+    goal.goal_pose = poseS
     place_client.send_goal(goal)
     result = place_client.wait_for_result()
-    print("Result:", ', '.join([str(n) for n in result.sequence]))
+    print("Result:", result)
 
 if __name__ == '__main__':
     rospy.init_node("int_test_marker_manipulation")
 
-    take_pose_client = actionlib.SimpleActionClient('grasps_server', TakePoseAction)
-    grasp_client = actionlib.SimpleActionClient('take_pose_server', GraspAction)
+    take_pose_client = actionlib.SimpleActionClient('take_pose_server', TakePoseAction)
+    grasp_client = actionlib.SimpleActionClient('grasps_server', GraspAction)
     place_client = actionlib.SimpleActionClient('place_server', PlaceAction)
 
     take_pose_client.wait_for_server()
