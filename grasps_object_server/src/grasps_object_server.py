@@ -40,8 +40,6 @@ class GraspsObjectServer:
 
         self._giskard_wrapper.interrupt()
 
-
-
         # grasped_object = u'grasped_object'
         pose = PoseStamped()
         pose.header = goal.goal_pose.header
@@ -69,8 +67,6 @@ class GraspsObjectServer:
         self._giskard_wrapper.set_cart_goal(self._root, u'hand_palm_link', pose)
         self._giskard_wrapper.plan_and_execute(wait=False)
 
-        # TODO: send feedback periodically?
-
         result = self._giskard_wrapper.get_result(rospy.Duration(60))
         if result.error_code == result.SUCCESS:
 
@@ -78,16 +74,9 @@ class GraspsObjectServer:
             self._gripper.apply_force(1.0)
 
             # Attach object
-            '''
-            self._giskard_wrapper.add_cylinder(
-                name=goal.object_frame_id,
-                size=(0.2, 0.07),
-                pose=goal.goal_pose
-            )
-            '''
             self._giskard_wrapper.attach_object(goal.object_frame_id, u'hand_palm_link')
 
-            # Pose to move with an attatched Object
+            # Pose to move with an attached Object
             neutral_js = {
                 u'head_pan_joint': 0,
                 u'head_tilt_joint': 0,
@@ -99,21 +88,18 @@ class GraspsObjectServer:
 
             self._giskard_wrapper.set_joint_goal(neutral_js)
             self._giskard_wrapper.plan_and_execute()
-            print self.object_in_gripper()
+            result_grasp = self.object_in_gripper()
 
-            result = self._giskard_wrapper.get_result()
+            result_giskard = self._giskard_wrapper.get_result()
 
-        # self._feedback.tf_gripper_to_object = tfwrapper.lookup_transform(goal.object_frame_id, u'hand_palm_link')
-        # self._feedback.gripper_joint_state = u'hand_l_spring_proximal_joint' + u'hand_r_spring_proximal_joint'
-
-        if result and result.error_code == result.SUCCESS:
+        if result_grasp and result_giskard and result_giskard.error_code == result.SUCCESS:
             self._result.error_code = self._result.SUCCESS
 
         self._as.set_succeeded(self._result)
 
     def object_in_gripper(self):
         """
-        This method checks if the object is in the gripper, then position_value of gripper should be greater as -0.5
+        This method checks if an object is in the gripper
             :return: false or true, boolean
         """
         l= Listener()
@@ -123,9 +109,8 @@ class GraspsObjectServer:
         print("Current hand motor joint is:")
         print current_hand_motor_value
         print("Is object in gripper ?")
-        print current_hand_motor_value >= -0.5
-        return current_hand_motor_value >= -0.5
-
+        print current_hand_motor_value >= -0.8
+        return current_hand_motor_value >= -0.8
 
 
 if __name__ == '__main__':
