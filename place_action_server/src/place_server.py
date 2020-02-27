@@ -11,7 +11,7 @@ from tf.transformations import quaternion_from_euler, quaternion_multiply
 
 class PlaceServer():
     _feedback = PlaceFeedback()
-    _result =PlaceResult()
+    _result = PlaceResult()
     _root = u'odom'
 
 
@@ -57,9 +57,9 @@ class PlaceServer():
         # Move the robot in goal position.
         self._giskard_wrapper.set_cart_goal(self._root, u'hand_palm_link', pose)
         self._giskard_wrapper.plan_and_execute()
-        self._result = self._giskard_wrapper.get_result()
+        giskard_result = self._giskard_wrapper.get_result()
 
-        if self._result.error_code == self._result.SUCCESS:
+        if giskard_result and giskard_result.error_code == giskard_result.SUCCESS:
             # Release gripper
 
             self._gripper.command(1.2)

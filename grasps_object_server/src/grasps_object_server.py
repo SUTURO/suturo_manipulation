@@ -37,7 +37,6 @@ class GraspsObjectServer:
     def execute_cb(self, goal):
 
         print("Recieve Order. grasp", goal)
-
         self._giskard_wrapper.interrupt()
 
         # grasped_object = u'grasped_object'
@@ -68,7 +67,7 @@ class GraspsObjectServer:
         self._giskard_wrapper.plan_and_execute(wait=False)
 
         result = self._giskard_wrapper.get_result(rospy.Duration(60))
-        if result.error_code == result.SUCCESS:
+        if result and result.error_code == result.SUCCESS:
 
             # Close the Gripper
             self._gripper.apply_force(1.0)
@@ -88,12 +87,12 @@ class GraspsObjectServer:
 
             self._giskard_wrapper.set_joint_goal(neutral_js)
             self._giskard_wrapper.plan_and_execute()
-            result_grasp = self.object_in_gripper()
 
             result_giskard = self._giskard_wrapper.get_result()
 
-        if result_grasp and result_giskard and result_giskard.error_code == result.SUCCESS:
-            self._result.error_code = self._result.SUCCESS
+        if result_giskard and result_giskard.error_code == result_giskard.SUCCESS:
+            if self.object_in_gripper():
+                self._result.error_code = self._result.SUCCESS
 
         self._as.set_succeeded(self._result)
 
