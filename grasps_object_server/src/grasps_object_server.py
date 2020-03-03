@@ -64,7 +64,7 @@ class GraspsObjectServer:
 
         # Move the robot in goal position.
         self._giskard_wrapper.set_cart_goal(self._root, u'hand_palm_link', pose)
-        self._giskard_wrapper.plan_and_execute(wait=False)
+        self._giskard_wrapper.plan_and_execute(wait=True)
 
         result = self._giskard_wrapper.get_result(rospy.Duration(60))
         if result and result.error_code == result.SUCCESS:
@@ -76,17 +76,23 @@ class GraspsObjectServer:
             self._giskard_wrapper.attach_object(goal.object_frame_id, u'hand_palm_link')
 
             # Pose to move with an attached Object
-            neutral_js = {
+            self._giskard_wrapper.set_joint_goal({
+                u'head_pan_joint': 0,
+                u'head_tilt_joint': 0,
+                u'arm_flex_joint': 0,
+                u'arm_roll_joint': 1.4,
+                u'wrist_flex_joint': -1.5,
+                u'wrist_roll_joint': 0.14})
+            self._giskard_wrapper.plan_and_execute(wait=True)
+            self._giskard_wrapper.set_joint_goal({
                 u'head_pan_joint': 0,
                 u'head_tilt_joint': 0,
                 u'arm_lift_joint': 0,
                 u'arm_flex_joint': 0,
                 u'arm_roll_joint': 1.4,
                 u'wrist_flex_joint': -1.5,
-                u'wrist_roll_joint': 0.14}
-
-            self._giskard_wrapper.set_joint_goal(neutral_js)
-            self._giskard_wrapper.plan_and_execute()
+                u'wrist_roll_joint': 0.14})
+            self._giskard_wrapper.plan_and_execute(wait=True)
 
             result_giskard = self._giskard_wrapper.get_result()
 
