@@ -29,10 +29,20 @@ class GraspsObjectServer:
                                                 auto_start=False)
         self._as.start()
         self._giskard_wrapper = GiskardWrapper()
+        self._giskard_wrapper.avoid_all_collisions(0.075)
         self._robot = hsrb_interface.Robot()
         self._whole_body = self._robot.get('whole_body')
         self._gripper = self._robot.get('gripper')
         print("GraspsActionServer greats its masters and is waiting for orders")
+
+    def get_current_joint_state(self, joint):
+        """
+        sets the value of every slider to its corresponding current joint state
+        """
+        msg = rospy.wait_for_message(u'joint_states', JointState)
+        for i in range(len(msg.name)):
+            if msg.name[i] == joint:
+                return  msg.position[i]
 
     def execute_cb(self, goal):
 
@@ -72,13 +82,17 @@ class GraspsObjectServer:
             # Close the Gripper
             self._gripper.apply_force(1.0)
 
-            # Attach object
-            self._giskard_wrapper.attach_object(goal.object_frame_id, u'hand_palm_link')
+            # Attach object TODO: Add again once we disable collision for object to grasp | enable after grasp
+            #self._giskard_wrapper.attach_object(goal.object_frame_id, u'hand_palm_link')
+
+
 
             # Pose to move with an attached Object
+            arm_lift_joint = self.get_current_joint_state(u'arm_lift_joint')
             self._giskard_wrapper.set_joint_goal({
                 u'head_pan_joint': 0,
                 u'head_tilt_joint': 0,
+                u'arm_lift_joint': arm_lift_joint + 0.1,
                 u'arm_flex_joint': 0,
                 u'arm_roll_joint': 1.4,
                 u'wrist_flex_joint': -1.5,
