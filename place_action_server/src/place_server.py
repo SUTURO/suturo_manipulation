@@ -2,7 +2,7 @@
 
 import rospy
 import actionlib
-from manipulation_action_msgs.msg import PlaceAction, PlaceFeedback, PlaceResult
+from manipulation_action_msgs.msg import PlaceAction, PlaceFeedback, PlaceResult, ObjectInGripper
 from giskardpy.python_interface import GiskardWrapper
 from giskardpy import tfwrapper
 from geometry_msgs.msg import PoseStamped, Point, Quaternion
@@ -23,6 +23,7 @@ class PlaceServer():
         self._robot = hsrb_interface.Robot()
         self._whole_body = self._robot.get('whole_body')
         self._gripper = self._robot.get('gripper')
+        self._obj_in_gripper_pub = rospy.Publisher("object_in_gripper", ObjectInGripper)
         print("PlaceActionServer greats its masters and is waiting for orders")
 
     def execute_cb(self, goal):
@@ -65,6 +66,13 @@ class PlaceServer():
             self._gripper.command(1.2)
             self._giskard_wrapper.detach_object(object_frame_id)
             self._giskard_wrapper.avoid_collision(0.05, body_b=object_frame_id)
+
+            obj_in_gri = ObjectInGripper()
+            obj_in_gri.object_frame_id = object_frame_id
+            obj_in_gri.goal_pose = goal.goal_pose
+            obj_in_gri.mode = ObjectInGripper.PLACED
+
+            self._obj_in_gripper_pub.publish(obj_in_gri)
 
             ##TODO: load default pose from json file
             self._giskard_wrapper.set_joint_goal({
