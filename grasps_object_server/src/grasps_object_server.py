@@ -74,7 +74,7 @@ class GraspsObjectServer:
             pose.pose.orientation = Quaternion(q3[0], q3[1], q3[2], q3[3])
 
         # Move the robot in goal position.
-        self._giskard_wrapper.allow_collision(body_b=goal.object_frame_id) 'TODO PUT THIS BACK IN
+        self._giskard_wrapper.allow_collision(body_b=goal.object_frame_id)
 
         self._giskard_wrapper.set_cart_goal(self._root, u'hand_palm_link', pose)
         self._giskard_wrapper.plan_and_execute(wait=True)
