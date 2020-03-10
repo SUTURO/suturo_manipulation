@@ -73,6 +73,8 @@ class GraspsObjectServer:
             pose.pose.orientation = Quaternion(q3[0], q3[1], q3[2], q3[3])
 
         # Move the robot in goal position.
+        self._giskard_wrapper.allow_collision(body_b=goal.object_frame_id)
+
         self._giskard_wrapper.set_cart_goal(self._root, u'hand_palm_link', pose)
         self._giskard_wrapper.plan_and_execute(wait=True)
 
@@ -83,7 +85,8 @@ class GraspsObjectServer:
             self._gripper.apply_force(1.0)
 
             # Attach object TODO: Add again once we disable collision for object to grasp | enable after grasp
-            #self._giskard_wrapper.attach_object(goal.object_frame_id, u'hand_palm_link')
+            self._giskard_wrapper.attach_object(goal.object_frame_id, u'hand_palm_link')
+            #self._giskard_wrapper.avoid_all_collisions(0.05)
 
 
 

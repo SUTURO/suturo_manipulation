@@ -64,6 +64,7 @@ class PlaceServer():
 
             self._gripper.command(1.2)
             self._giskard_wrapper.detach_object(object_frame_id)
+            self._giskard_wrapper.avoid_collision(0.05, body_b=object_frame_id)
 
             ##TODO: load default pose from json file
             self._giskard_wrapper.set_joint_goal({
