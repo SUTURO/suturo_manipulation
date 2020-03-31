@@ -2,7 +2,7 @@
 
 import rospy
 import actionlib
-from manipulation_action_msgs.msg import PlaceAction, PlaceFeedback, PlaceResult
+from manipulation_action_msgs.msg import PlaceAction, PlaceFeedback, PlaceResult, ObjectInGripper
 from giskardpy.python_interface import GiskardWrapper
 from giskardpy import tfwrapper
 from geometry_msgs.msg import PoseStamped, Point, Quaternion
@@ -11,7 +11,7 @@ from tf.transformations import quaternion_from_euler, quaternion_multiply
 
 class PlaceServer():
     _feedback = PlaceFeedback()
-    _result =PlaceResult()
+    _result = PlaceResult()
     _root = u'odom'
 
 
@@ -23,6 +23,7 @@ class PlaceServer():
         self._robot = hsrb_interface.Robot()
         self._whole_body = self._robot.get('whole_body')
         self._gripper = self._robot.get('gripper')
+        self._obj_in_gripper_pub = rospy.Publisher("object_in_gripper", ObjectInGripper)
         print("PlaceActionServer greats its masters and is waiting for orders")
 
     def execute_cb(self, goal):
@@ -57,13 +58,21 @@ class PlaceServer():
         # Move the robot in goal position.
         self._giskard_wrapper.set_cart_goal(self._root, u'hand_palm_link', pose)
         self._giskard_wrapper.plan_and_execute()
-        self._result = self._giskard_wrapper.get_result()
+        giskard_result = self._giskard_wrapper.get_result()
 
-        if self._result.error_code == self._result.SUCCESS:
+        if giskard_result and giskard_result.error_code == giskard_result.SUCCESS:
             # Release gripper
 
             self._gripper.command(1.2)
             self._giskard_wrapper.detach_object(object_frame_id)
+            self._giskard_wrapper.avoid_collision(0.05, body_b=object_frame_id)
+
+            obj_in_gri = ObjectInGripper()
+            obj_in_gri.object_frame_id = object_frame_id
+            obj_in_gri.goal_pose = goal.goal_pose
+            obj_in_gri.mode = ObjectInGripper.PLACED
+
+            self._obj_in_gripper_pub.publish(obj_in_gri)
 
             ##TODO: load default pose from json file
             self._giskard_wrapper.set_joint_goal({

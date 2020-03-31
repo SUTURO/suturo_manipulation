@@ -7,7 +7,7 @@ from geometry_msgs.msg import WrenchStamped
 
 import rospy
 import actionlib
-from manipulation_action_msgs.msg import GraspAction, GraspFeedback, GraspResult
+from manipulation_action_msgs.msg import GraspAction, GraspFeedback, GraspResult, ObjectInGripper
 from giskardpy.python_interface import GiskardWrapper
 import hsrb_interface
 from geometry_msgs.msg import PoseStamped, Point, Quaternion
@@ -29,20 +29,27 @@ class GraspsObjectServer:
                                                 auto_start=False)
         self._as.start()
         self._giskard_wrapper = GiskardWrapper()
+        self._giskard_wrapper.avoid_all_collisions(0.075)
         self._robot = hsrb_interface.Robot()
         self._whole_body = self._robot.get('whole_body')
         self._gripper = self._robot.get('gripper')
-        #self._force_checker = ForceSensorCapture()
+        self._obj_in_gripper_pub = rospy.Publisher("object_in_gripper", ObjectInGripper)
         print("GraspsActionServer greats its masters and is waiting for orders")
+
+    def get_current_joint_state(self, joint):
+        """
+        sets the value of every slider to its corresponding current joint state
+        """
+        msg = rospy.wait_for_message(u'joint_states', JointState)
+        for i in range(len(msg.name)):
+            if msg.name[i] == joint:
+                return  msg.position[i]
 
     def execute_cb(self, goal):
 
         print("Recieve Order. grasp", goal)
-
         self._giskard_wrapper.interrupt()
-
-
-
+        in_gripper = False
         # grasped_object = u'grasped_object'
         pose = PoseStamped()
         pose.header = goal.goal_pose.header
@@ -67,83 +74,74 @@ class GraspsObjectServer:
             pose.pose.orientation = Quaternion(q3[0], q3[1], q3[2], q3[3])
 
         # Move the robot in goal position.
-        self._giskard_wrapper.set_cart_goal(self._root, u'hand_palm_link', pose)
-        self._giskard_wrapper.plan_and_execute(wait=False)
+        self._giskard_wrapper.allow_collision(body_b=goal.object_frame_id)
 
-        # TODO: send feedback periodically?
+        self._giskard_wrapper.set_cart_goal(self._root, u'hand_palm_link', pose)
+        self._giskard_wrapper.plan_and_execute(wait=True)
 
         result = self._giskard_wrapper.get_result(rospy.Duration(60))
-        if result.error_code == result.SUCCESS:
-            # Save the force before grasp
-            #self._force_checker._pre_force_list = self._force_checker.get_current_force()
-            #for values in self._force_checker._pre_force_list:
-            #    print values
+        if result and result.error_code == result.SUCCESS:
 
             # Close the Gripper
             self._gripper.apply_force(1.0)
 
-            # Attach object
-            '''
-            self._giskard_wrapper.add_cylinder(
-                name=goal.object_frame_id,
-                size=(0.2, 0.07),
-                pose=goal.goal_pose
-            )
-            '''
-            self._giskard_wrapper.attach_object(goal.object_frame_id, u'hand_palm_link')
+            if self.object_in_gripper():
+                # Attach object TODO: Add again once we disable collision for object to grasp | enable after grasp
+                self._giskard_wrapper.attach_object(goal.object_frame_id, u'hand_palm_link')
+                #self._giskard_wrapper.avoid_all_collisions(0.05)
 
-            # Pose to move with an attatched Object
-            neutral_js = {
+                obj_in_gri = ObjectInGripper()
+                obj_in_gri.object_frame_id = goal.object_frame_id
+                obj_in_gri.goal_pose = goal.goal_pose
+                obj_in_gri.mode = ObjectInGripper.GRASPED
+                self._obj_in_gripper_pub.publish(obj_in_gri)
+
+                in_gripper = True
+
+
+            # Pose to move with an attached Object
+            arm_lift_joint = self.get_current_joint_state(u'arm_lift_joint')
+            self._giskard_wrapper.set_joint_goal({
+                u'head_pan_joint': 0,
+                u'head_tilt_joint': 0,
+                u'arm_lift_joint': arm_lift_joint + 0.1,
+                u'arm_flex_joint': 0,
+                u'arm_roll_joint': 1.4,
+                u'wrist_flex_joint': -1.5,
+                u'wrist_roll_joint': 0.14})
+            self._giskard_wrapper.plan_and_execute(wait=True)
+            self._giskard_wrapper.set_joint_goal({
                 u'head_pan_joint': 0,
                 u'head_tilt_joint': 0,
                 u'arm_lift_joint': 0,
                 u'arm_flex_joint': 0,
                 u'arm_roll_joint': 1.4,
                 u'wrist_flex_joint': -1.5,
-                u'wrist_roll_joint': 0.14}
+                u'wrist_roll_joint': 0.14})
+            self._giskard_wrapper.plan_and_execute(wait=True)
 
-            self._giskard_wrapper.set_joint_goal(neutral_js)
-            self._giskard_wrapper.plan_and_execute()
+            result_giskard = self._giskard_wrapper.get_result()
 
-            result = self._giskard_wrapper.get_result()
+        if in_gripper and result_giskard and result_giskard.error_code == result_giskard.SUCCESS:
+                self._result.error_code = self._result.SUCCESS
 
-            # Wait for force sensor data to become stable and save the force after grasp
-            #rospy.sleep(1)
-            #self._force_checker._post_force_list = self._force_checker.get_current_force()
-            #for values in self._force_checker._post_force_list:
-            #    print values
-
-            # Calculate the current weight from object in gripper
-            #weight = self._force_checker.round_grasp()
-            #print weight
-
-        # self._feedback.tf_gripper_to_object = tfwrapper.lookup_transform(goal.object_frame_id, u'hand_palm_link')
-        # self._feedback.gripper_joint_state = u'hand_l_spring_proximal_joint' + u'hand_r_spring_proximal_joint'
-
-        if result and result.error_code == result.SUCCESS:
-            self._result.error_code = self._result.SUCCESS
 
         self._as.set_succeeded(self._result)
 
-    """
-    Force checking method from Michelle
-    def object_in_gripper(self, width_object):
-
-        This method checks if the object is in the gripper, then position_value of gripper should be greater as -0.5
-        :param width_object: float
+    def object_in_gripper(self):
+        """
+        This method checks if an object is in the gripper
             :return: false or true, boolean
-
-        self.move_gripper(-2, 1, 0.8)
+        """
         l= Listener()
         l.set_topic_and_typMEssage("/hsrb/joint_states", JointState)
         l.listen_topic_with_sensor_msg()
-        current_hand_motor_value= l.get_value_from_sensor_msg("hand_motor_joint")
+        current_hand_motor_value = l.get_value_from_sensor_msg("hand_motor_joint")
         print("Current hand motor joint is:")
         print current_hand_motor_value
         print("Is object in gripper ?")
-        print current_hand_motor_value >= -0.5
-        return current_hand_motor_value >= -0.5
-        """
+        print current_hand_motor_value >= -0.8
+        return current_hand_motor_value >= -0.8
 
 
 if __name__ == '__main__':

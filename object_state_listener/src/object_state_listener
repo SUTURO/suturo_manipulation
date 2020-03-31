@@ -14,27 +14,31 @@ class ObjectStateListener:
 
 
     def delete_object(self, object_state_array):
-        for object in object_state_array.object_states:
-            self._giskard_wrapper.remove_object(object.object_id)
+        for object in object_state_array.object_states:            
+            names = object.object_id.split('#')
+            name = names[len(names) - 1]
+            self._giskard_wrapper.remove_object(name)
 
 
     def add_object(self, object_state_array):
         for object in object_state_array.object_states:
+            names = object.object_id.split('#')
+            name = names[len(names) - 1]
             if object.shape == ObjectState.CUBE:
                 self._giskard_wrapper.add_box(
-                    name=object.object_id,
+                    name=name,
                     size=(object.size.x, object.size.y, object.size.z),
                     pose=object.pose
                 )
             elif object.shape == ObjectState.CYLINDER:
                 self._giskard_wrapper.add_cylinder(
-                    name=object.object_id,
+                    name=name,
                     size=(object.size.x, object.size.y),
                     pose=object.pose
                 )
             elif object.shape == ObjectState.SPHERE:
                 self._giskard_wrapper.add_sphere(
-                    name=object.object_id,
+                    name=name,
                     size=object.size.x,
                     pose=object.pose
                 )

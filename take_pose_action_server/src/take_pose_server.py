@@ -6,6 +6,7 @@ import actionlib
 from manipulation_action_msgs.msg import TakePoseAction, TakePoseFeedback, TakePoseResult
 from giskardpy.python_interface import GiskardWrapper
 
+
 class TakePoseServer():
     _feedback = TakePoseFeedback()
     _result = TakePoseResult()
@@ -19,22 +20,23 @@ class TakePoseServer():
         self._giskard_wrapper = GiskardWrapper()
         self._robot = hsrb_interface.Robot()
         self._whole_body = self._robot.get('whole_body')
-        print("PerceiveActionServer greets its masters and is waiting for orders")
+        print("TakePoseActionServer greets its masters and is waiting for orders")
 
     def execute_cb(self, goal):
-        print("Order recieved: perceive", goal)
+        print("Order recieved: take_pose", goal)
         self._result.error_code = self._result.FAILED
 
         if goal.pose_mode == goal.FREE:
             self._giskard_wrapper.set_joint_goal({
-                u'head_pan_joint': goal.head_pan_joint,
-                u'head_tilt_joint': goal.head_tilt_joint,
-                u'arm_lift_joint': goal.arm_lift_joint,
-                u'arm_flex_joint': goal.arm_flex_joint,
-                u'arm_roll_joint': goal.arm_roll_joint,
-                u'wrist_flex_joint': goal.wrist_flex_joint,
-                u'wrist_roll_joint': goal.wrist_roll_joint
+             u'head_pan_joint': goal.head_pan_joint,
+             u'head_tilt_joint': goal.head_tilt_joint,
+             u'arm_lift_joint': goal.arm_lift_joint,
+             u'arm_flex_joint': goal.arm_flex_joint,
+             u'arm_roll_joint': goal.arm_roll_joint,
+             u'wrist_flex_joint': goal.wrist_flex_joint,
+             u'wrist_roll_joint': goal.wrist_roll_joint
             })
+            self._giskard_wrapper.plan_and_execute(wait=True)
         elif goal.pose_mode == goal.NEUTRAL:
             self._giskard_wrapper.set_joint_goal({
              u'head_pan_joint': 0.0,
@@ -44,9 +46,9 @@ class TakePoseServer():
              u'arm_roll_joint': 1.4,
              u'wrist_flex_joint': -1.5,
              u'wrist_roll_joint': 0.14
-        })
+            })
+            self._giskard_wrapper.plan_and_execute(wait=True)
         elif goal.pose_mode == goal.LOOK_HIGH:
-	    #TABLE_BIG
             self._giskard_wrapper.set_joint_goal({
              u'head_pan_joint': -1.54,
              u'head_tilt_joint': -0.22,
@@ -55,9 +57,9 @@ class TakePoseServer():
              u'arm_roll_joint': -1.8,
              u'wrist_flex_joint': -1.57,
              u'wrist_roll_joint': 0.0
-        })
+            })
+            self._giskard_wrapper.plan_and_execute(wait=True)
         elif goal.pose_mode == goal.LOOK_LOW:
-	    #TABLE_SMALL
             self._giskard_wrapper.set_joint_goal({
              u'head_pan_joint': -1.54,
              u'head_tilt_joint': -0.46,
@@ -66,17 +68,42 @@ class TakePoseServer():
              u'arm_roll_joint': -1.8,
              u'wrist_flex_joint': -1.57,
              u'wrist_roll_joint': 0.0
-        })
-        else:
-            self._giskard_wrapper.set_joint_goal({})
-            print("Mode not implemented yet!")
+            })
+            self._giskard_wrapper.plan_and_execute(wait=True)
+        elif goal.pose_mode == goal.LOOK_FLOOR:
+            self._giskard_wrapper.set_joint_goal({
+                u'head_pan_joint': -1.54,
+                u'head_tilt_joint': -0.86,
+                u'arm_lift_joint': 0.0,
+                u'arm_flex_joint': -0.5,
+                u'arm_roll_joint': -1.8,
+                u'wrist_flex_joint': -1.57,
+                u'wrist_roll_joint': 0.0
+            })
+            self._giskard_wrapper.plan_and_execute(wait=True)
+        elif goal.pose_mode == goal.GAZE:
+            camera_height = goal.gaze_point.z - 0.4 
+            if camera_height < 0.0:
+                camera_height = 0.0
+            elif camera_height > 0.69:
+                camera_height = 0.69
+            self._giskard_wrapper.set_joint_goal({
+             u'head_pan_joint': -1.54,
+             u'head_tilt_joint': 0.0,
+             u'arm_lift_joint': camera_height, #must be between 0 and 0.69
+             u'arm_flex_joint': -0.5,
+             u'arm_roll_joint': -1.8,
+             u'wrist_flex_joint': -1.57,
+             u'wrist_roll_joint': 0.0
+            })
+            self._giskard_wrapper.plan_and_execute(wait=True)
+            v3 = hsrb_interface.geometry.Vector3(x=goal.gaze_point.x, y=goal.gaze_point.y, z=goal.gaze_point.z)
+            self._whole_body.gaze_point(point = v3, ref_frame_id='map')
 
-
-        self._giskard_wrapper.plan_and_execute(wait=False)
 
         result = self._giskard_wrapper.get_result(rospy.Duration(60))
 
-        self._feedback.torso_joint_state = 0.0
+        self._feedback.torso_joint_state = 0.0 #not used currently
 
         self._as.publish_feedback(self._feedback)
 
@@ -87,6 +114,6 @@ class TakePoseServer():
 
 
 if __name__ == '__main__':
-    rospy.init_node('perceive_server')
+    rospy.init_node('take_pose_server')
     server = TakePoseServer(rospy.get_name())
     rospy.spin()
