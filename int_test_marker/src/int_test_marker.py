@@ -7,6 +7,7 @@ from geometry_msgs.msg import PoseStamped
 from interactive_markers.interactive_marker_server import *
 from interactive_markers.menu_handler import *
 from visualization_msgs.msg import *
+from giskardpy.python_interface import GiskardWrapper
 
 server = None
 menu_handler = MenuHandler()
@@ -14,6 +15,7 @@ menu_handler = MenuHandler()
 take_pose_client = None
 grasp_client = None
 place_client = None
+giskard_wrapper = None
 
 def make_int_marker():
     int_marker = InteractiveMarker()
@@ -100,8 +102,13 @@ def grasp_object(pose, mode):
     poseS.header.frame_id="map"
     poseS.header.stamp = rospy.Time.now()
     poseS.pose = pose
+    giskard_wrapper.add_cylinder(
+                    name= "test",
+                    size=(0.2, 0.07),
+                    pose=poseS
+                )
 
-    goal.goal_pose = poseS
+    goal.goal_pose = poseS    
     grasp_client.send_goal(goal)
     result = grasp_client.wait_for_result()
     print("Result:", result)
@@ -123,6 +130,8 @@ def place_object(pose, mode):
 
 if __name__ == '__main__':
     rospy.init_node("int_test_marker_manipulation")
+    
+    giskard_wrapper = GiskardWrapper()
 
     take_pose_client = actionlib.SimpleActionClient('take_pose_server', TakePoseAction)
     grasp_client = actionlib.SimpleActionClient('grasps_server', GraspAction)
