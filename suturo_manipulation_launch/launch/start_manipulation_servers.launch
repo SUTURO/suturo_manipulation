@@ -16,13 +16,13 @@
 	</group>
 	
 	<group if="$(eval sim == false)">
-    	<include file="$(find suturo_manipulation_launch)/launch/giskardpy_hsr.launch" >
-        	<arg name="sim" value="false"/>
-			<arg name="gui" value="true"/>
+    		<include file="$(find suturo_manipulation_launch)/launch/giskardpy_hsr.launch" >
+        		<arg name="sim" value="false"/>
+			<arg name="gui" value="true"/>			
 		</include>
 	</group>	
 	
-    <node pkg="rviz" type="rviz" name="rviz" args="-d $(find suturo_manipulation_launch)/config/iai_hsr_sim.rviz" />
+    <!--node pkg="rviz" type="rviz" name="rviz" args="-d $(find suturo_manipulation_launch)/config/iai_hsr_sim.rviz" /-->
 
 	<node pkg="object_state_listener" name="object_state_listener" type="object_state_listener" output="screen"
 		  if="$(eval run_object_state_listener == true)">
