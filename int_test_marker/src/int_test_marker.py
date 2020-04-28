@@ -108,7 +108,8 @@ def grasp_object(pose, mode):
                     pose=poseS
                 )
 
-    goal.goal_pose = poseS    
+    goal.goal_pose = poseS
+    goal.object_size.x = 0.07    
     grasp_client.send_goal(goal)
     result = grasp_client.wait_for_result()
     print("Result:", result)

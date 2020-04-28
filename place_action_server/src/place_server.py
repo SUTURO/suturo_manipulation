@@ -56,6 +56,7 @@ class PlaceServer():
             pose.pose.orientation = Quaternion(q3[0], q3[1], q3[2], q3[3])
 
         # Move the robot in goal position.
+        self._giskard_wrapper.avoid_all_collisions(distance=0.1)
         self._giskard_wrapper.set_cart_goal(self._root, u'hand_palm_link', pose)
         self._giskard_wrapper.plan_and_execute()
         giskard_result = self._giskard_wrapper.get_result()
@@ -65,7 +66,6 @@ class PlaceServer():
 
             self._gripper.command(1.2)
             self._giskard_wrapper.detach_object(object_frame_id)
-            self._giskard_wrapper.avoid_collision(0.05, body_b=object_frame_id)
 
             obj_in_gri = ObjectInGripper()
             obj_in_gri.object_frame_id = object_frame_id
@@ -75,6 +75,7 @@ class PlaceServer():
             self._obj_in_gripper_pub.publish(obj_in_gri)
 
             ##TODO: load default pose from json file
+            self._giskard_wrapper.avoid_all_collisions(distance=0.1)
             self._giskard_wrapper.set_joint_goal({
                 u'head_pan_joint': 0.0,
                 u'head_tilt_joint': 0.0,
