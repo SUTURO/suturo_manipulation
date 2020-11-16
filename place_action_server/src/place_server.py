@@ -8,6 +8,7 @@ from giskardpy import tfwrapper
 from geometry_msgs.msg import PoseStamped, Point, Quaternion
 import hsrb_interface
 from tf.transformations import quaternion_from_euler, quaternion_multiply
+import math
 
 class PlaceServer():
     _feedback = PlaceFeedback()
@@ -25,6 +26,16 @@ class PlaceServer():
         self._gripper = self._robot.get('gripper')
         self._obj_in_gripper_pub = rospy.Publisher("object_in_gripper", ObjectInGripper)
         print("PlaceActionServer greats its masters and is waiting for orders")
+
+    def calculateWayPoint2D(self, target, origin, distance):
+        x = target.x - origin.x
+        y = target.y - origin.y
+
+        alpha = math.atan(y / x)
+        dx = math.cos(alpha) * distance
+        dy = math.sin(alpha) * distance
+
+        return Point(target.x - dx, target.y - dy, target.z)
 
     def execute_cb(self, goal):
         ## Integrate giskard here
@@ -55,7 +66,19 @@ class PlaceServer():
             q3 = quaternion_multiply(q1, q2)
             pose.pose.orientation = Quaternion(q3[0], q3[1], q3[2], q3[3])
 
+        if goal.place_mode == goal.FRONT:
+            pose_step = PoseStamped()
+            pose_step.header.frame_id = "map"
+            pose_step.header.stamp = rospy.Time.now()
+            pose_step.pose.position = self.calculateWayPoint2D(pose.pose.position, hsr_transform.transform.translation, 0.1)
+            pose_step.pose.orientation = pose.pose.orientation
+            self._giskard_wrapper.set_cart_goal(self._root, u'hand_palm_link', pose_step)
+            self._giskard_wrapper.plan_and_execute(wait=True)
+
+        pose.header.stamp = rospy.Time.now()
+
         # Move the robot in goal position.
+        self._giskard_wrapper.avoid_all_collisions(distance=0.1)
         self._giskard_wrapper.set_cart_goal(self._root, u'hand_palm_link', pose)
         self._giskard_wrapper.plan_and_execute()
         giskard_result = self._giskard_wrapper.get_result()
@@ -65,7 +88,6 @@ class PlaceServer():
 
             self._gripper.command(1.2)
             self._giskard_wrapper.detach_object(object_frame_id)
-            self._giskard_wrapper.avoid_collision(0.05, body_b=object_frame_id)
 
             obj_in_gri = ObjectInGripper()
             obj_in_gri.object_frame_id = object_frame_id
@@ -74,7 +96,17 @@ class PlaceServer():
 
             self._obj_in_gripper_pub.publish(obj_in_gri)
 
+            p_temp = PoseStamped()
+            p_temp.header.frame_id = "map"
+            p_temp.header.stamp = rospy.Time.now()
+            p_temp.pose.position = Point(hsr_transform.transform.translation.x, hsr_transform.transform.translation.y,
+                                         hsr_transform.transform.translation.z)
+            p_temp.pose.orientation = hsr_transform.transform.rotation
+            self._giskard_wrapper.set_cart_goal(self._root, u'base_footprint', p_temp)
+            self._giskard_wrapper.plan_and_execute(wait=True)
+
             ##TODO: load default pose from json file
+            self._giskard_wrapper.avoid_all_collisions(distance=0.1)
             self._giskard_wrapper.set_joint_goal({
                 u'head_pan_joint': 0.0,
                 u'head_tilt_joint': 0.0,

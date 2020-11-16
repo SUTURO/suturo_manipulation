@@ -55,7 +55,7 @@
 
   <!--launch node that combines base joint states and body joint states on the /joint_state topic-->
   <!--#######################################################################-->
-  <node pkg="joint_state_publisher" type="joint_state_publisher" name="joint_state_publisher" output="screen" >
+  <node pkg="joint_state_publisher" type="joint_state_publisher" name="giskard_joint_state_publisher" output="screen" >
     <rosparam param="source_list">
     - /hsrb/joint_states
     - /hsrb_base/joint_states
@@ -66,7 +66,7 @@
     'odom_z': 0.0
     </rosparam>
     <param name="rate" value="120"/>
-    <param name="use_gui" value="False"/>
+    <param name="use_gui" value="false"/>
   </node>
 <!--#######################################################################-->
 

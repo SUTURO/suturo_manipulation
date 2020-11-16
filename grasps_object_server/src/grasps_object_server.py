@@ -29,7 +29,6 @@ class GraspsObjectServer:
                                                 auto_start=False)
         self._as.start()
         self._giskard_wrapper = GiskardWrapper()
-        self._giskard_wrapper.avoid_all_collisions(0.075)
         self._robot = hsrb_interface.Robot()
         self._whole_body = self._robot.get('whole_body')
         self._gripper = self._robot.get('gripper')
@@ -44,6 +43,16 @@ class GraspsObjectServer:
         for i in range(len(msg.name)):
             if msg.name[i] == joint:
                 return  msg.position[i]
+
+    def calculateWayPoint2D(self, target, origin, distance):
+        x = target.x - origin.x
+        y = target.y - origin.y
+
+        alpha = math.atan(y / x)
+        dx = math.cos(alpha) * distance
+        dy = math.sin(alpha) * distance
+
+        return Point(target.x - dx, target.y - dy, target.z)
 
     def execute_cb(self, goal):
 
@@ -65,15 +74,27 @@ class GraspsObjectServer:
               hsr_transform.transform.rotation.w]
         # grasp_mode
         if goal.grasp_mode == goal.FRONT:
+            pose.pose.position = self.calculateWayPoint2D(pose.pose.position, hsr_transform.transform.translation, goal.object_size.x / 2)
             q2 = [0.7, 0.0, 0.7, 0.0]  # Quaternion for rotation to grasp from front relative to map for hand_palm_link
         elif goal.grasp_mode == goal.TOP:
-            q2 = [1, 0, 0, 0]  # Quaternion for rotation to grasp from above relative to map for hand_palm_link
+            q2 = [1, 0, 0, 0]  # Quaternion for rotation to grasp from above relative to map for hand_palm_link           
 
-        if goal.grasp_mode != goal.FREE:
+        if goal.grasp_mode != goal.FREE:  
             q3 = quaternion_multiply(q1, q2)
             pose.pose.orientation = Quaternion(q3[0], q3[1], q3[2], q3[3])
 
-        # Move the robot in goal position.
+        if goal.grasp_mode == goal.FRONT:
+            pose_step = PoseStamped()
+            pose_step.header.frame_id = "map"
+            pose_step.header.stamp = rospy.Time.now()
+            pose_step.pose.position = self.calculateWayPoint2D(pose.pose.position, hsr_transform.transform.translation, 0.1)
+            pose_step.pose.orientation = pose.pose.orientation
+            self._giskard_wrapper.set_cart_goal(self._root, u'hand_palm_link', pose_step)
+            self._giskard_wrapper.plan_and_execute(wait=True)
+
+        pose.header.stamp = rospy.Time.now()
+        # Move the robot in goal position.        
+        self._giskard_wrapper.avoid_all_collisions(distance=0.1)
         self._giskard_wrapper.allow_collision(body_b=goal.object_frame_id)
 
         self._giskard_wrapper.set_cart_goal(self._root, u'hand_palm_link', pose)
@@ -88,8 +109,7 @@ class GraspsObjectServer:
             if self.object_in_gripper():
                 # Attach object TODO: Add again once we disable collision for object to grasp | enable after grasp
                 self._giskard_wrapper.attach_object(goal.object_frame_id, u'hand_palm_link')
-                #self._giskard_wrapper.avoid_all_collisions(0.05)
-
+            
                 obj_in_gri = ObjectInGripper()
                 obj_in_gri.object_frame_id = goal.object_frame_id
                 obj_in_gri.goal_pose = goal.goal_pose
@@ -100,6 +120,16 @@ class GraspsObjectServer:
 
 
             # Pose to move with an attached Object
+
+            p_temp = PoseStamped()
+            p_temp.header.frame_id = "map"
+            p_temp.header.stamp = rospy.Time.now()
+            p_temp.pose.position = Point(hsr_transform.transform.translation.x, hsr_transform.transform.translation.y, hsr_transform.transform.translation.z)
+            p_temp.pose.orientation = hsr_transform.transform.rotation
+            self._giskard_wrapper.set_cart_goal(self._root, u'base_footprint', p_temp)
+            self._giskard_wrapper.plan_and_execute(wait = True)
+
+            self._giskard_wrapper.avoid_all_collisions(distance=0.1)
             arm_lift_joint = self.get_current_joint_state(u'arm_lift_joint')
             self._giskard_wrapper.set_joint_goal({
                 u'head_pan_joint': 0,
@@ -110,6 +140,8 @@ class GraspsObjectServer:
                 u'wrist_flex_joint': -1.5,
                 u'wrist_roll_joint': 0.14})
             self._giskard_wrapper.plan_and_execute(wait=True)
+            
+            self._giskard_wrapper.avoid_all_collisions(distance=0.1)
             self._giskard_wrapper.set_joint_goal({
                 u'head_pan_joint': 0,
                 u'head_tilt_joint': 0,
