@@ -6,17 +6,18 @@ from geometry_msgs.msg import PoseStamped, Point, Quaternion
 from tf.transformations import quaternion_from_euler
 
 rospy.init_node('add_static_giskard')
-
+giskard_wrapper = GiskardWrapper()
 _urdf = rospy.get_param('hsrb_lab', False)
 kitchen_frame = rospy.get_param('~environment_frame', 'iai_kitchen/world')
 while not _urdf:
     rospy.sleep(5)
     _urdf = rospy.get_param('hsrb_lab', False)
-print(_urdf)
-giskard_wrapper = GiskardWrapper()
+#print(_urdf)
+giskard_wrapper.detach_object('gripper_dummy')
+giskard_wrapper.remove_object('gripper_dummy')
 giskard_wrapper.remove_object('lab')
 p = tfwrapper.lookup_pose('map', kitchen_frame)
-print(p)
+#print(p)
 '''
 p = PoseStamped()
 p.header.stamp = rospy.Time.now()
@@ -25,4 +26,5 @@ p.pose.position = Point(0, 0, 0)
 q = quaternion_from_euler(0, 0, 4.715)
 p.pose.orientation = Quaternion(q[0], q[1], q[2], q[3])
 '''
+giskard_wrapper.attach_box(name='gripper_dummy', size=(0.05, 0.1, 0.1), frame_id=u'hand_palm_link', position=(0.05, 0, 0.05), orientation=(0, 0, 0, 1))
 giskard_wrapper.add_urdf(name='lab', urdf=_urdf, js_topic='/kitchen/joint_states', pose=p)
