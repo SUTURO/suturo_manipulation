@@ -99,12 +99,13 @@ def grasp_object(pose, mode):
     goal.object_frame_id = "test"
 
     poseS = PoseStamped()
-    poseS.header.frame_id="map"
+    poseS.header.frame_id = "map"
     poseS.header.stamp = rospy.Time.now()
     poseS.pose = pose
     giskard_wrapper.add_cylinder(
-                    name= "test",
-                    size=(0.2, 0.07),
+                    name="test",
+                    height=0.2,
+                    radius=0.07,
                     pose=poseS
                 )
 
@@ -134,11 +135,11 @@ if __name__ == '__main__':
     
     giskard_wrapper = GiskardWrapper()
 
-    take_pose_client = actionlib.SimpleActionClient('take_pose_server', TakePoseAction)
+    #take_pose_client = actionlib.SimpleActionClient('take_pose_server', TakePoseAction)
     grasp_client = actionlib.SimpleActionClient('grasps_server', GraspAction)
     place_client = actionlib.SimpleActionClient('place_server', PlaceAction)
 
-    take_pose_client.wait_for_server()
+    #take_pose_client.wait_for_server()
     grasp_client.wait_for_server()
     place_client.wait_for_server()
 
