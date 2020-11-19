@@ -135,11 +135,11 @@ if __name__ == '__main__':
     
     giskard_wrapper = GiskardWrapper()
 
-    #take_pose_client = actionlib.SimpleActionClient('take_pose_server', TakePoseAction)
+    take_pose_client = actionlib.SimpleActionClient('take_pose_server', TakePoseAction)
     grasp_client = actionlib.SimpleActionClient('grasps_server', GraspAction)
     place_client = actionlib.SimpleActionClient('place_server', PlaceAction)
 
-    #take_pose_client.wait_for_server()
+    take_pose_client.wait_for_server()
     grasp_client.wait_for_server()
     place_client.wait_for_server()
 
