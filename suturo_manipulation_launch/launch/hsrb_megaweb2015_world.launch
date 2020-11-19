@@ -1,6 +1,7 @@
 <?xml version="1.0"?>
 <launch>
-  <arg name="namespace" default="/hsrb"/>
+  <arg name="namespace" default="hsrb"/>
+  <arg name="personal_name" default=""/>
   <arg name="debug" default="false"/>
   <arg name="gui" default="true" />
   <arg name="rviz" default="true"/>
@@ -20,8 +21,10 @@
   <arg     if="$(arg fast_physics)" name="world_suffix" value="_fast"/>
 
   <include file="$(find hsrb_gazebo_launch)/launch/include/hsrb_gazebo_common.xml" pass_all_args="true" >
-    <arg name="map" default="$(find maps)/corona_sim/sim_v1.yaml" />
-    <arg name="world_name" value="/home/suturo/suturo_ws/src/suturo_resources/corona_sim/suturo_sim_world.world" />
+    <arg name="map" default="$(find suturo_resources)/maps/corona_sim/sim_v1.yaml" />
+    <arg name="world_name" value="$(find suturo_resources)/gazebo_worlds/suturo_sim_world.world" />
     <arg name="robot_pos" value="-x 0 -y 0 -z 0 -Y 0"/>
+    <arg name="ground_truth_xyz_offset" value="0.0\ 0.0\ 0.0" />
+    <arg name="ground_truth_rpy_offset" value="0.0\ 0.0\ 0.0" />
   </include>
 </launch>
