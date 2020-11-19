@@ -1,6 +1,6 @@
 <?xml version="1.0"?>
 <launch>
-  <arg name="namespace" default="/hsrb"/>
+  <arg name="namespace" default="hsrb"/>
   <arg name="debug" default="false"/>
   <arg name="gui" default="true" />
   <arg name="rviz" default="true"/>
@@ -10,7 +10,7 @@
   <arg name="use_perception" default="true" />
   <arg name="use_task" default="true" />
   <arg name="use_teleop" default="true" />
-  <arg name="use_web" default="true" />
+  <arg name="use_web" default="false" />
   <arg name="use_laser_odom" default="true" />
   <arg name="paused" default="true" />
   <arg name="fast_physics" default="false" />
@@ -23,5 +23,7 @@
     <arg name="map" default="$(find suturo_resources)/maps/corona_sim/sim_v1.yaml" />
     <arg name="world_name" value="$(find suturo_resources)/gazebo_worlds/suturo_sim_clean_up_v1.world" />
     <arg name="robot_pos" value="-x 0 -y 0 -z 0 -Y 0"/>
+    <arg name="ground_truth_xyz_offset" value="0.0\ 0.0\ 0.0" />
+    <arg name="ground_truth_rpy_offset" value="0.0\ 0.0\ 0.0" />
   </include>
 </launch>
