@@ -83,7 +83,7 @@ class PlaceServer():
         self._giskard_wrapper.plan_and_execute()
         giskard_result = self._giskard_wrapper.get_result()
 
-        if giskard_result and giskard_result.error_code == giskard_result.SUCCESS:
+        if giskard_result and giskard_result.SUCCESS in giskard_result.error_codes:
             # Release gripper
 
             self._gripper.command(1.2)
