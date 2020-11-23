@@ -98,8 +98,7 @@ class TakePoseServer():
             })
             self._giskard_wrapper.plan_and_execute(wait=True)
             v3 = hsrb_interface.geometry.Vector3(x=goal.gaze_point.x, y=goal.gaze_point.y, z=goal.gaze_point.z)
-            self._whole_body.gaze_point(point = v3, ref_frame_id='map')
-
+            self._whole_body.gaze_point(point=v3, ref_frame_id='map')
 
         result = self._giskard_wrapper.get_result(rospy.Duration(60))
 
@@ -107,7 +106,7 @@ class TakePoseServer():
 
         self._as.publish_feedback(self._feedback)
 
-        if result and result.error_code == result.SUCCESS:
+        if result and result.SUCCESS in result.error_codes:
             self._result.error_code = self._result.SUCCESS
 
         self._as.set_succeeded(self._result)
