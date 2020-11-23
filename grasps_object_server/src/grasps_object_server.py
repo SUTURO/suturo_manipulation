@@ -33,7 +33,7 @@ class GraspsObjectServer:
         self._whole_body = self._robot.get('whole_body')
         self._gripper = self._robot.get('gripper')
         self._obj_in_gripper_pub = rospy.Publisher("object_in_gripper", ObjectInGripper)
-        print("GraspsActionServer greats its masters and is waiting for orders")
+        print("GraspsActionServer greets its masters and is waiting for orders")
 
     def get_current_joint_state(self, joint):
         """
@@ -101,7 +101,7 @@ class GraspsObjectServer:
         self._giskard_wrapper.plan_and_execute(wait=True)
 
         result = self._giskard_wrapper.get_result(rospy.Duration(60))
-        if result and result.error_code == result.SUCCESS:
+        if result and result.SUCCESS in result.error_codes:
 
             # Close the Gripper
             self._gripper.apply_force(1.0)
@@ -154,9 +154,8 @@ class GraspsObjectServer:
 
             result_giskard = self._giskard_wrapper.get_result()
 
-        if in_gripper and result_giskard and result_giskard.error_code == result_giskard.SUCCESS:
+            if in_gripper and result_giskard and result_giskard.SUCCESS in result_giskard.error_codes:
                 self._result.error_code = self._result.SUCCESS
-
 
         self._as.set_succeeded(self._result)
 
@@ -165,10 +164,10 @@ class GraspsObjectServer:
         This method checks if an object is in the gripper
             :return: false or true, boolean
         """
-        l= Listener()
-        l.set_topic_and_typMEssage("/hsrb/joint_states", JointState)
-        l.listen_topic_with_sensor_msg()
-        current_hand_motor_value = l.get_value_from_sensor_msg("hand_motor_joint")
+        listener = Listener()
+        listener.set_topic_and_typMEssage("/hsrb/joint_states", JointState)
+        listener.listen_topic_with_sensor_msg()
+        current_hand_motor_value = listener.get_value_from_sensor_msg("hand_motor_joint")
         print("Current hand motor joint is:")
         print current_hand_motor_value
         print("Is object in gripper ?")

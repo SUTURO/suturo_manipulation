@@ -99,12 +99,13 @@ def grasp_object(pose, mode):
     goal.object_frame_id = "test"
 
     poseS = PoseStamped()
-    poseS.header.frame_id="map"
+    poseS.header.frame_id = "map"
     poseS.header.stamp = rospy.Time.now()
     poseS.pose = pose
     giskard_wrapper.add_cylinder(
-                    name= "test",
-                    size=(0.2, 0.07),
+                    name="test",
+                    height=0.2,
+                    radius=0.07,
                     pose=poseS
                 )
 
