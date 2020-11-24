@@ -33,7 +33,8 @@ class ObjectStateListener:
             elif object.shape == ObjectState.CYLINDER:
                 self._giskard_wrapper.add_cylinder(
                     name=name,
-                    size=(object.size.x, object.size.y),
+                    height=object.size.y,
+                    radius=object.size.x,
                     pose=object.pose
                 )
             elif object.shape == ObjectState.SPHERE:
