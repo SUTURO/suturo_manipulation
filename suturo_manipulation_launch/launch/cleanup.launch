@@ -21,7 +21,7 @@
 
   <include file="$(find hsrb_gazebo_launch)/launch/include/hsrb_gazebo_common.xml" pass_all_args="true" >
     <arg name="map" default="$(find suturo_resources)/maps/corona_sim/sim_v1.yaml" />
-    <arg name="world_name" value="$(find suturo_resources)/gazebo_worlds/suturo_sim_clean_up_v1.world" />
+    <arg name="world_name" value="$(find suturo_resources)/gazebo_worlds/suturo_sim_clean_up_v2.world" />
     <arg name="robot_pos" value="-x 0 -y 0 -z 0 -Y 0"/>
     <arg name="ground_truth_xyz_offset" value="0.0\ 0.0\ 0.0" />
     <arg name="ground_truth_rpy_offset" value="0.0\ 0.0\ 0.0" />
