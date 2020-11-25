@@ -21,6 +21,7 @@
   <exec_depend>geometry_msgs</exec_depend>
   <exec_depend>giskardpy</exec_depend>
   <exec_depend>knowledge_msgs</exec_depend>
+
   <exec_depend>rospy</exec_depend>
 
 
