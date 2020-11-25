@@ -4,7 +4,7 @@ import rospy
 from giskardpy.python_interface import GiskardWrapper
 from giskardpy import tfwrapper
 from geometry_msgs.msg import PoseStamped, Point, Quaternion
-from knowrob_objects.msg import ObjectStateArray, ObjectState
+from knowledge_objects.msg import ObjectStateArray, ObjectState
 
 
 class ObjectStateListener:
