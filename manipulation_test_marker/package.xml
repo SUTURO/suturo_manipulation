@@ -1,6 +1,6 @@
 <?xml version="1.0"?>
 <package format="2">
-  <name>int_test_marker</name>
+  <name>manipulation_test_marker</name>
   <version>0.0.0</version>
   <description>Tool that uses an interactive marker to test the varius manipulation server</description>
 
