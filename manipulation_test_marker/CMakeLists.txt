@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 2.8.3)
-project(int_test_marker)
+project(manipulation_test_marker)
 
 find_package(catkin REQUIRED COMPONENTS
   rospy

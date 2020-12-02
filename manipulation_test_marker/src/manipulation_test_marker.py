@@ -1,12 +1,12 @@
 #! /usr/bin/env python
 
-import rospy
 import actionlib
-from manipulation_action_msgs.msg import TakePoseAction, TakePoseGoal, GraspAction, GraspGoal, PlaceAction, PlaceGoal
-from geometry_msgs.msg import PoseStamped
+from geometry_msgs.msg import PoseStamped, Vector3
 from interactive_markers.interactive_marker_server import *
 from interactive_markers.menu_handler import *
+from manipulation_action_msgs.msg import TakePoseAction, TakePoseGoal, GraspAction, GraspGoal, PlaceAction, PlaceGoal
 from visualization_msgs.msg import *
+
 from giskardpy.python_interface import GiskardWrapper
 
 server = None
@@ -17,6 +17,7 @@ grasp_client = None
 place_client = None
 giskard_wrapper = None
 
+
 def make_int_marker():
     int_marker = InteractiveMarker()
     int_marker.header.frame_id = "map"
@@ -24,11 +25,12 @@ def make_int_marker():
     int_marker.pose.position.z = 1
     int_marker.pose.orientation.w = 1
     int_marker.name = "manipulation_test_marker"
-    int_marker.description = str(int_marker.pose.position.x) + ", " + str(int_marker.pose.position.y) + ", " + str(int_marker.pose.position.z)
+    int_marker.description = str(int_marker.pose.position.x) + ", " + str(int_marker.pose.position.y) + ", " + str(
+        int_marker.pose.position.z)
 
     marker = Marker()
     marker.type = Marker.CUBE
-    marker.scale.x  = 0.25
+    marker.scale.x = 0.25
     marker.scale.y = 0.25
     marker.scale.z = 0.25
     marker.color.r = 1.0
@@ -50,6 +52,8 @@ def init_menu():
     menu_handler.insert("Neutral", parent=pose_men, callback=take_neutral_pose_cb)
     menu_handler.insert("Look low", parent=pose_men, callback=take_look_low_pose_cb)
     menu_handler.insert("Look high", parent=pose_men, callback=take_look_high_pose_cb)
+    menu_handler.insert("Look floor", parent=pose_men, callback=take_look_floor_pose_cb)
+    menu_handler.insert("Look at marker", parent=pose_men, callback=take_look_at_marker_pose_cb)
 
     grasp_men = menu_handler.insert("Grasp here")
     menu_handler.insert("Front", parent=grasp_men, callback=grasp_front_cb)
@@ -59,39 +63,59 @@ def init_menu():
     menu_handler.insert("Front", parent=place_men, callback=place_front_cb)
     menu_handler.insert("Top", parent=place_men, callback=place_top_cb)
 
+
 def take_neutral_pose_cb(feedback):
-    take_pose(TakePoseGoal.NEUTRAL)
+    take_pose(feedback.pose, TakePoseGoal.NEUTRAL)
+
 
 def take_look_low_pose_cb(feedback):
-    take_pose(TakePoseGoal.LOOK_LOW)
+    take_pose(feedback.pose, TakePoseGoal.LOOK_LOW)
+
 
 def take_look_high_pose_cb(feedback):
-    take_pose(TakePoseGoal.LOOK_HIGH)
+    take_pose(feedback.pose, TakePoseGoal.LOOK_HIGH)
+
+
+def take_look_floor_pose_cb(feedback):
+    take_pose(feedback.pose, TakePoseGoal.LOOK_FLOOR)
+
+
+def take_look_at_marker_pose_cb(feedback):
+    take_pose(feedback.pose, TakePoseGoal.GAZE)
+
 
 def grasp_front_cb(feedback):
     grasp_object(feedback.pose, GraspGoal.FRONT)
 
+
 def grasp_top_cb(feedback):
     grasp_object(feedback.pose, GraspGoal.TOP)
+
 
 def place_front_cb(feedback):
     place_object(feedback.pose, PlaceGoal.FRONT)
 
+
 def place_top_cb(feedback):
     place_object(feedback.pose, PlaceGoal.TOP)
 
+
 def marker_moved_cb(feedback):
     marker = server.get(feedback.marker_name)
-    marker.description = str(feedback.pose.position.x) + ", " + str(feedback.pose.position.y) + ", " + str(feedback.pose.position.z)
+    marker.description = str(feedback.pose.position.x) + ", " + str(feedback.pose.position.y) + ", " + str(
+        feedback.pose.position.z)
     print(marker)
     server.applyChanges()
 
-def take_pose(mode):
+
+def take_pose(pose, mode):
     goal = TakePoseGoal()
     goal.pose_mode = mode
+    goal.gaze_point = Vector3(x=pose.position.x, y=pose.position.y, z=pose.position.z)
     take_pose_client.send_goal(goal)
     result = take_pose_client.wait_for_result()
     print("Result:", result)
+
 
 def grasp_object(pose, mode):
     goal = GraspGoal()
@@ -103,17 +127,18 @@ def grasp_object(pose, mode):
     poseS.header.stamp = rospy.Time.now()
     poseS.pose = pose
     giskard_wrapper.add_cylinder(
-                    name="test",
-                    height=0.2,
-                    radius=0.07,
-                    pose=poseS
-                )
+        name="test",
+        height=0.2,
+        radius=0.07,
+        pose=poseS
+    )
 
     goal.goal_pose = poseS
-    goal.object_size.x = 0.07    
+    goal.object_size.x = 0.07
     grasp_client.send_goal(goal)
     result = grasp_client.wait_for_result()
     print("Result:", result)
+
 
 def place_object(pose, mode):
     goal = PlaceGoal()
@@ -130,9 +155,10 @@ def place_object(pose, mode):
     result = place_client.wait_for_result()
     print("Result:", result)
 
+
 if __name__ == '__main__':
     rospy.init_node("int_test_marker_manipulation")
-    
+
     giskard_wrapper = GiskardWrapper()
 
     take_pose_client = actionlib.SimpleActionClient('take_pose_server', TakePoseAction)

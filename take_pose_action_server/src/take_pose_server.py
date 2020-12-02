@@ -25,6 +25,7 @@ class TakePoseServer():
     def execute_cb(self, goal):
         print("Order recieved: take_pose", goal)
         self._result.error_code = self._result.FAILED
+        self._giskard_wrapper.allow_self_collision()
 
         if goal.pose_mode == goal.FREE:
             self._giskard_wrapper.set_joint_goal({
@@ -54,7 +55,7 @@ class TakePoseServer():
              u'head_tilt_joint': -0.22,
              u'arm_lift_joint': 0.43,
              u'arm_flex_joint': -0.5,
-             u'arm_roll_joint': -1.8,
+             u'arm_roll_joint': 0.0,
              u'wrist_flex_joint': -1.57,
              u'wrist_roll_joint': 0.0
             })
@@ -65,7 +66,7 @@ class TakePoseServer():
              u'head_tilt_joint': -0.46,
              u'arm_lift_joint': 0.0,
              u'arm_flex_joint': -0.5,
-             u'arm_roll_joint': -1.8,
+             u'arm_roll_joint': 0.0,
              u'wrist_flex_joint': -1.57,
              u'wrist_roll_joint': 0.0
             })
@@ -76,7 +77,7 @@ class TakePoseServer():
                 u'head_tilt_joint': -0.86,
                 u'arm_lift_joint': 0.0,
                 u'arm_flex_joint': -0.5,
-                u'arm_roll_joint': -1.8,
+                u'arm_roll_joint': 0.0,
                 u'wrist_flex_joint': -1.57,
                 u'wrist_roll_joint': 0.0
             })
@@ -109,6 +110,7 @@ class TakePoseServer():
         if result and result.SUCCESS in result.error_codes:
             self._result.error_code = self._result.SUCCESS
 
+        self._giskard_wrapper.avoid_self_collision()
         self._as.set_succeeded(self._result)
 
 
