@@ -133,7 +133,7 @@ class GraspsObjectServer:
             self._giskard_wrapper.set_cart_goal(self._root, u'base_footprint', p_temp)
             self._giskard_wrapper.plan_and_execute(wait=True)
 
-            self._giskard_wrapper.avoid_all_collisions(distance=0.1)
+            self._giskard_wrapper.avoid_all_collisions(distance=0.05)
             arm_lift_joint = self.get_current_joint_state(u'arm_lift_joint')
             self._giskard_wrapper.set_joint_goal({
                 u'head_pan_joint': 0,
@@ -145,7 +145,7 @@ class GraspsObjectServer:
                 u'wrist_roll_joint': 0.14})
             self._giskard_wrapper.plan_and_execute(wait=True)
             
-            self._giskard_wrapper.avoid_all_collisions(distance=0.1)
+            self._giskard_wrapper.avoid_all_collisions(distance=0.05)
             self._giskard_wrapper.set_joint_goal({
                 u'head_pan_joint': 0,
                 u'head_tilt_joint': 0,
