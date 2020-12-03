@@ -74,9 +74,11 @@ class GraspsObjectServer:
               hsr_transform.transform.rotation.w]
         # grasp_mode
         if goal.grasp_mode == goal.FRONT:
+            pose.pose.position.z += goal.object_size.z / 2.0 + 0.02
             pose.pose.position = self.calculateWayPoint2D(pose.pose.position, hsr_transform.transform.translation, goal.object_size.x / 2)
             q2 = [0.7, 0.0, 0.7, 0.0]  # Quaternion for rotation to grasp from front relative to map for hand_palm_link
         elif goal.grasp_mode == goal.TOP:
+            pose.pose.position.z += goal.object_size.z + 0.02
             q2 = [1, 0, 0, 0]  # Quaternion for rotation to grasp from above relative to map for hand_palm_link           
 
         if goal.grasp_mode != goal.FREE:  
@@ -127,7 +129,7 @@ class GraspsObjectServer:
             p_temp.pose.position = Point(hsr_transform.transform.translation.x, hsr_transform.transform.translation.y, hsr_transform.transform.translation.z)
             p_temp.pose.orientation = hsr_transform.transform.rotation
             self._giskard_wrapper.set_cart_goal(self._root, u'base_footprint', p_temp)
-            self._giskard_wrapper.plan_and_execute(wait = True)
+            self._giskard_wrapper.plan_and_execute(wait=True)
 
             self._giskard_wrapper.avoid_all_collisions(distance=0.1)
             arm_lift_joint = self.get_current_joint_state(u'arm_lift_joint')
