@@ -78,7 +78,8 @@ class PlaceServer():
         pose.header.stamp = rospy.Time.now()
 
         # Move the robot in goal position.
-        self._giskard_wrapper.avoid_all_collisions(distance=0.1)
+        #self._giskard_wrapper.avoid_all_collisions(distance=0.1)
+        self._giskard_wrapper.allow_all_collisions()
         self._giskard_wrapper.set_cart_goal(self._root, u'hand_palm_link', pose)
         self._giskard_wrapper.plan_and_execute()
         giskard_result = self._giskard_wrapper.get_result()
@@ -106,7 +107,8 @@ class PlaceServer():
             self._giskard_wrapper.plan_and_execute(wait=True)
 
             ##TODO: load default pose from json file
-            self._giskard_wrapper.avoid_all_collisions(distance=0.1)
+            #self._giskard_wrapper.avoid_all_collisions(distance=0.1)
+            self._giskard_wrapper.allow_all_collisions()
             self._giskard_wrapper.set_joint_goal({
                 u'head_pan_joint': 0.0,
                 u'head_tilt_joint': 0.0,
