@@ -74,11 +74,13 @@ class GraspsObjectServer:
               hsr_transform.transform.rotation.w]
         # grasp_mode
         if goal.grasp_mode == goal.FRONT:
-            pose.pose.position.z += goal.object_size.z / 2.0 + 0.02
+            pose.pose.position.z += goal.object_size.z / 2.0
+            rospy.loginfo("ACTUAL FRONT GRASPING HEIGHT: "+ str(pose.pose.poseition.z))
             pose.pose.position = self.calculateWayPoint2D(pose.pose.position, hsr_transform.transform.translation, goal.object_size.x / 2)
             q2 = [0.7, 0.0, 0.7, 0.0]  # Quaternion for rotation to grasp from front relative to map for hand_palm_link
         elif goal.grasp_mode == goal.TOP:
-            pose.pose.position.z += goal.object_size.z + 0.02
+            pose.pose.position.z += goal.object_size.z
+            rospy.loginfo("ACTUAL TOP GRASPING HEIGHT: " + str(pose.pose.position.z))
             q2 = [1, 0, 0, 0]  # Quaternion for rotation to grasp from above relative to map for hand_palm_link           
 
         if goal.grasp_mode != goal.FREE:  
