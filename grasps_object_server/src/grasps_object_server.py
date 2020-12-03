@@ -99,7 +99,7 @@ class GraspsObjectServer:
         pose.header.stamp = rospy.Time.now()
         # Move the robot in goal position.        
         #self._giskard_wrapper.avoid_all_collisions(distance=0.3)
-        self._giskard_wrapper.allow_all_collision()
+        self._giskard_wrapper.allow_all_collisions()
         self._giskard_wrapper.allow_collision(body_b=goal.object_frame_id)
 
         self._giskard_wrapper.set_cart_goal(self._root, u'hand_palm_link', pose)
@@ -135,7 +135,7 @@ class GraspsObjectServer:
             self._giskard_wrapper.plan_and_execute(wait=True)
 
             #self._giskard_wrapper.avoid_all_collisions(distance=0.02)
-            self._giskard_wrapper.allow_all_collision()
+            self._giskard_wrapper.allow_all_collisions()
             arm_lift_joint = self.get_current_joint_state(u'arm_lift_joint')
             self._giskard_wrapper.set_joint_goal({
                 u'head_pan_joint': 0,
@@ -148,7 +148,7 @@ class GraspsObjectServer:
             self._giskard_wrapper.plan_and_execute(wait=True)
             
             #self._giskard_wrapper.avoid_all_collisions(distance=0.02)
-            self._giskard_wrapper.allow_all_collision()
+            self._giskard_wrapper.allow_all_collisions()
             self._giskard_wrapper.set_joint_goal({
                 u'head_pan_joint': 0,
                 u'head_tilt_joint': 0,
