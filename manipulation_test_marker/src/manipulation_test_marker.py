@@ -157,7 +157,7 @@ def place_object(pose, mode):
 
 
 if __name__ == '__main__':
-    rospy.init_node("int_test_marker_manipulation")
+    rospy.init_node("manipulation_test_marker")
 
     giskard_wrapper = GiskardWrapper()
 
@@ -169,7 +169,7 @@ if __name__ == '__main__':
     grasp_client.wait_for_server()
     place_client.wait_for_server()
 
-    server = InteractiveMarkerServer("int_test_marker_manipulation")
+    server = InteractiveMarkerServer("manipulation_test_marker")
 
     init_menu()
     int_marker = make_int_marker()
