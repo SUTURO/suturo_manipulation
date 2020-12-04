@@ -11,6 +11,10 @@ from tf.transformations import quaternion_from_euler, quaternion_multiply
 import math
 
 class PlaceServer():
+    # Add to YAML
+    FRONT_ROTATION_QUATERNION = [0.7, 0.0, 0.7, 0.0]
+    TOP_ROTATION_QUATERNION = [1, 0, 0, 0]
+
     _feedback = PlaceFeedback()
     _result = PlaceResult()
     _root = u'odom'
@@ -58,13 +62,12 @@ class PlaceServer():
               hsr_transform.transform.rotation.w]
         # place_mode
         if goal.place_mode == goal.FRONT:
-            q2 = [0.7, 0.0, 0.7, 0.0]  # Quaternion for rotation to grasp from front relative to map for hand_palm_link
+            offset = self.FRONT_ROTATION_QUATERNION  # Quaternion for rotation to grasp from front relative to map for hand_palm_link
         elif goal.place_mode == goal.TOP:
-            q2 = [1, 0, 0, 0]  # Quaternion for rotation to grasp from above relative to map for hand_palm_link
+            offset = self.TOP_ROTATION_QUATERNION # Quaternion for rotation to grasp from above relative to map for hand_palm_link
 
         if goal.place_mode != goal.FREE:
-            q3 = quaternion_multiply(q1, q2)
-            pose.pose.orientation = Quaternion(q3[0], q3[1], q3[2], q3[3])
+            pose.pose.orientation = self._giskard_wrapper.multiply_rotation_quaternions(q1, offset)
 
         if goal.place_mode == goal.FRONT:
             pose_step = PoseStamped()
