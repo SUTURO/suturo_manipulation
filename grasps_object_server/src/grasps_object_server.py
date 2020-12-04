@@ -19,6 +19,10 @@ from giskardpy import tfwrapper
 
 
 class GraspsObjectServer:
+    # Add to YAML
+    FRONT_ROTATION_QUATERNION = [0.7, 0.0, 0.7, 0.0]
+    TOP_ROTATION_QUATERNION = [1, 0, 0, 0]
+
     _feedback = GraspFeedback()
     _result = GraspResult()
     _root = u'odom'
@@ -77,15 +81,14 @@ class GraspsObjectServer:
             pose.pose.position.z += goal.object_size.z / 2.0
             rospy.loginfo("ACTUAL FRONT GRASPING HEIGHT: "+ str(pose))
             pose.pose.position = self.calculateWayPoint2D(pose.pose.position, hsr_transform.transform.translation, goal.object_size.x / 2)
-            q2 = [0.7, 0.0, 0.7, 0.0]  # Quaternion for rotation to grasp from front relative to map for hand_palm_link
+            offset = self.FRONT_ROTATION_QUATERNION # Quaternion for rotation to grasp from front relative to map for hand_palm_link
         elif goal.grasp_mode == goal.TOP:
             pose.pose.position.z += goal.object_size.z
             rospy.loginfo("ACTUAL TOP GRASPING HEIGHT: " + str(pose))
-            q2 = [1, 0, 0, 0]  # Quaternion for rotation to grasp from above relative to map for hand_palm_link           
+            offset = self.TOP_ROTATION_QUATERNION # Quaternion for rotation to grasp from above relative to map for hand_palm_link
 
-        if goal.grasp_mode != goal.FREE:  
-            q3 = quaternion_multiply(q1, q2)
-            pose.pose.orientation = Quaternion(q3[0], q3[1], q3[2], q3[3])
+        if goal.grasp_mode != goal.FREE:
+            pose.pose.orientation = self._giskard_wrapper.multiply_rotation_quaternions(q1, offset)
 
         if goal.grasp_mode == goal.FRONT:
             pose_step = PoseStamped()
