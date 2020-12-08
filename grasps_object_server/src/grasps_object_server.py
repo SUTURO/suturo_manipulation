@@ -77,18 +77,14 @@ class GraspsObjectServer:
         q1 = [hsr_transform.transform.rotation.x, hsr_transform.transform.rotation.y, hsr_transform.transform.rotation.z,
               hsr_transform.transform.rotation.w]
         # grasp_mode
+        offset_dict = {goal.FRONT: self.FRONT_ROTATION_QUATERNION, goal.TOP: self.TOP_ROTATION_QUATERNION}
         if goal.grasp_mode == goal.FRONT:
             pose.pose.position.z += goal.object_size.z / 2.0
             rospy.loginfo("ACTUAL FRONT GRASPING HEIGHT: "+ str(pose))
             pose.pose.position = self.calculateWayPoint2D(pose.pose.position, hsr_transform.transform.translation, goal.object_size.x / 2)
-            offset = self.FRONT_ROTATION_QUATERNION # Quaternion for rotation to grasp from front relative to map for hand_palm_link
         elif goal.grasp_mode == goal.TOP:
             pose.pose.position.z += goal.object_size.z
             rospy.loginfo("ACTUAL TOP GRASPING HEIGHT: " + str(pose))
-            offset = self.TOP_ROTATION_QUATERNION # Quaternion for rotation to grasp from above relative to map for hand_palm_link
-
-        if goal.grasp_mode != goal.FREE:
-            pose.pose.orientation = self._giskard_wrapper.multiply_rotation_quaternions(q1, offset)
 
         if goal.grasp_mode == goal.FRONT:
             pose_step = PoseStamped()
@@ -96,7 +92,7 @@ class GraspsObjectServer:
             pose_step.header.stamp = rospy.Time.now()
             pose_step.pose.position = self.calculateWayPoint2D(pose.pose.position, hsr_transform.transform.translation, 0.1)
             pose_step.pose.orientation = pose.pose.orientation
-            self._giskard_wrapper.set_cart_goal(self._root, u'hand_palm_link', pose_step)
+            self._giskard_wrapper.set_cart_goal(self._root, u'hand_palm_link', pose_step, goal, q1, offset_dict)
             self._giskard_wrapper.plan_and_execute(wait=True)
 
         pose.header.stamp = rospy.Time.now()
@@ -105,7 +101,7 @@ class GraspsObjectServer:
         self._giskard_wrapper.allow_all_collisions()
         self._giskard_wrapper.allow_collision(body_b=goal.object_frame_id)
 
-        self._giskard_wrapper.set_cart_goal(self._root, u'hand_palm_link', pose)
+        self._giskard_wrapper.set_cart_goal(self._root, u'hand_palm_link', pose, goal, q1, offset_dict)
         self._giskard_wrapper.plan_and_execute(wait=True)
 
         result = self._giskard_wrapper.get_result(rospy.Duration(60))
