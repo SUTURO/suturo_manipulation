@@ -100,7 +100,7 @@ class PlaceServer():
             p_temp.pose.position = Point(hsr_transform.transform.translation.x, hsr_transform.transform.translation.y,
                                          hsr_transform.transform.translation.z)
             p_temp.pose.orientation = hsr_transform.transform.rotation
-            self._giskard_wrapper.set_cart_goal(self._root, u'base_footprint', p_temp, pose, goal)
+            self._giskard_wrapper.set_cart_goal(self._root, u'base_footprint', p_temp, goal, q1, offset_dict)
             self._giskard_wrapper.plan_and_execute(wait=True)
 
             ##TODO: load default pose from json file
