@@ -16,6 +16,7 @@ from listener import Listener
 from sensor_msgs.msg import JointState
 from force_checking import ForceSensorCapture
 from giskardpy import tfwrapper
+from giskardpy.utils import calculate_way_point2D
 
 
 class GraspsObjectServer:
@@ -48,16 +49,6 @@ class GraspsObjectServer:
             if msg.name[i] == joint:
                 return  msg.position[i]
 
-    def calculateWayPoint2D(self, target, origin, distance):
-        x = target.x - origin.x
-        y = target.y - origin.y
-
-        alpha = math.atan(y / x)
-        dx = math.cos(alpha) * distance
-        dy = math.sin(alpha) * distance
-
-        return Point(target.x - dx, target.y - dy, target.z)
-
     def execute_cb(self, goal):
 
         print("Recieve Order. grasp", goal)
@@ -77,23 +68,21 @@ class GraspsObjectServer:
         q1 = [hsr_transform.transform.rotation.x, hsr_transform.transform.rotation.y, hsr_transform.transform.rotation.z,
               hsr_transform.transform.rotation.w]
         # grasp_mode
-        offset_dict = {goal.FRONT: self.FRONT_ROTATION_QUATERNION, goal.TOP: self.TOP_ROTATION_QUATERNION}
+        root_tip_orientation = None
+        step = None
+        current_transform = None
         if goal.grasp_mode == goal.FRONT:
             pose.pose.position.z += goal.object_size.z / 2.0
-            rospy.loginfo("ACTUAL FRONT GRASPING HEIGHT: "+ str(pose))
-            pose.pose.position = self.calculateWayPoint2D(pose.pose.position, hsr_transform.transform.translation, goal.object_size.x / 2)
+            rospy.loginfo("ACTUAL FRONT GRASPING HEIGHT: " + str(pose))
+            pose.pose.position = calculate_way_point2D(pose.pose.position, hsr_transform.transform.translation, goal.object_size.x / 2)
+            root_tip_orientation = self.FRONT_ROTATION_QUATERNION
+            step = 0.1
+            current_transform = hsr_transform
+
         elif goal.grasp_mode == goal.TOP:
             pose.pose.position.z += goal.object_size.z
             rospy.loginfo("ACTUAL TOP GRASPING HEIGHT: " + str(pose))
-
-        if goal.grasp_mode == goal.FRONT:
-            pose_step = PoseStamped()
-            pose_step.header.frame_id = "map"
-            pose_step.header.stamp = rospy.Time.now()
-            pose_step.pose.position = self.calculateWayPoint2D(pose.pose.position, hsr_transform.transform.translation, 0.1)
-            pose_step.pose.orientation = pose.pose.orientation
-            self._giskard_wrapper.set_cart_goal(self._root, u'hand_palm_link', pose_step, goal, q1, offset_dict)
-            self._giskard_wrapper.plan_and_execute(wait=True)
+            root_tip_orientation = self.TOP_ROTATION_QUATERNION
 
         pose.header.stamp = rospy.Time.now()
         # Move the robot in goal position.        
@@ -101,7 +90,7 @@ class GraspsObjectServer:
         self._giskard_wrapper.allow_all_collisions()
         self._giskard_wrapper.allow_collision(body_b=goal.object_frame_id)
 
-        self._giskard_wrapper.set_cart_goal(self._root, u'hand_palm_link', pose, goal, q1, offset_dict)
+        self._giskard_wrapper.set_cart_goal_wstep(self._root, u'hand_palm_link', pose, q1, root_tip_orientation, step=step, hsr_transform=current_transform)
         self._giskard_wrapper.plan_and_execute(wait=True)
 
         result = self._giskard_wrapper.get_result(rospy.Duration(60))
@@ -130,7 +119,7 @@ class GraspsObjectServer:
             p_temp.header.stamp = rospy.Time.now()
             p_temp.pose.position = Point(hsr_transform.transform.translation.x, hsr_transform.transform.translation.y, hsr_transform.transform.translation.z)
             p_temp.pose.orientation = hsr_transform.transform.rotation
-            self._giskard_wrapper.set_cart_goal(self._root, u'base_footprint', p_temp, goal, q1)
+            self._giskard_wrapper.set_cart_goal(self._root, u'base_footprint', p_temp, q1, root_tip_orientation)
             self._giskard_wrapper.plan_and_execute(wait=True)
 
             #self._giskard_wrapper.avoid_all_collisions(distance=0.02)
