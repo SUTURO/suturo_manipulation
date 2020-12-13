@@ -61,7 +61,9 @@ class PlaceServer():
         q1 = [hsr_transform.transform.rotation.x, hsr_transform.transform.rotation.y, hsr_transform.transform.rotation.z,
               hsr_transform.transform.rotation.w]
         # place_mode
-        offset_dict = {goal.FRONT: self.FRONT_ROTATION_QUATERNION, goal.TOP: self.TOP_ROTATION_QUATERNION}
+        root_tip_orientation = None
+        if goal.place_mode == goal.TOP:
+            root_tip_orientation = self.TOP_ROTATION_QUATERNION
 
         if goal.place_mode == goal.FRONT:
             pose_step = PoseStamped()
@@ -69,7 +71,8 @@ class PlaceServer():
             pose_step.header.stamp = rospy.Time.now()
             pose_step.pose.position = self.calculateWayPoint2D(pose.pose.position, hsr_transform.transform.translation, 0.1)
             pose_step.pose.orientation = pose.pose.orientation
-            self._giskard_wrapper.set_cart_goal(self._root, u'hand_palm_link', pose_step, goal, q1, offset_dict)
+            root_tip_orientation = self.FRONT_ROTATION_QUATERNION
+            self._giskard_wrapper.set_cart_goal(self._root, u'hand_palm_link', pose_step, q1, root_tip_orientation)
             self._giskard_wrapper.plan_and_execute(wait=True)
 
         pose.header.stamp = rospy.Time.now()
@@ -77,7 +80,7 @@ class PlaceServer():
         # Move the robot in goal position.
         #self._giskard_wrapper.avoid_all_collisions(distance=0.1)
         self._giskard_wrapper.allow_all_collisions()
-        self._giskard_wrapper.set_cart_goal(self._root, u'hand_palm_link', pose, q1, offset_dict)
+        self._giskard_wrapper.set_cart_goal(self._root, u'hand_palm_link', pose, q1, root_tip_orientation)
         self._giskard_wrapper.plan_and_execute()
         giskard_result = self._giskard_wrapper.get_result()
 
@@ -100,7 +103,7 @@ class PlaceServer():
             p_temp.pose.position = Point(hsr_transform.transform.translation.x, hsr_transform.transform.translation.y,
                                          hsr_transform.transform.translation.z)
             p_temp.pose.orientation = hsr_transform.transform.rotation
-            self._giskard_wrapper.set_cart_goal(self._root, u'base_footprint', p_temp, goal, q1, offset_dict)
+            self._giskard_wrapper.set_cart_goal(self._root, u'base_footprint', p_temp, q1, root_tip_orientation)
             self._giskard_wrapper.plan_and_execute(wait=True)
 
             ##TODO: load default pose from json file
