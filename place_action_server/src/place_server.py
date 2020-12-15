@@ -22,53 +22,46 @@ class PlaceServer():
 
     def __init__(self, name):
         self._action_name = name
-        self._as = actionlib.SimpleActionServer(self._action_name, PlaceAction, execute_cb = self.execute_cb, auto_start = False)
+        self._as = actionlib.SimpleActionServer(self._action_name, PlaceAction, execute_cb=self.execute_cb, auto_start=False)
         self._as.start()
         self._giskard_wrapper = GiskardWrapper()
         self._robot = hsrb_interface.Robot()
         self._whole_body = self._robot.get('whole_body')
         self._gripper = self._robot.get('gripper')
-        self._obj_in_gripper_pub = rospy.Publisher("object_in_gripper", ObjectInGripper)
+        self._obj_in_gripper_pub = rospy.Publisher("object_in_gripper", ObjectInGripper, queue_size=10)
         print("PlaceActionServer greats its masters and is waiting for orders")
 
     def execute_cb(self, goal):
         ## Integrate giskard here
         print("Order recieved. place", goal)
         self._result.error_code = self._result.FAILED
-
-        #
         object_frame_id = goal.object_frame_id
-
 
         #TODO: Move gripper with object to goal
         #self._giskard_wrapper.set_cart_goal(self._root, object_frame_id, goal.goal_pose)
         #self._giskard_wrapper.plan_and_execute(wait=False)
         #result = self._giskard_wrapper.get_result(rospy.Duration(30))
-        pose = PoseStamped()
-        pose.header = goal.goal_pose.header
-        pose.pose.position = goal.goal_pose.pose.position
+        place_pose = goal.goal_pose
         hsr_transform = tfwrapper.lookup_transform('map', 'base_footprint')
         # place_mode
-        root_tip_orientation = None
+        base_tip_rotation = None
         step = None
         if goal.place_mode == goal.TOP:
-            root_tip_orientation = self.TOP_ROTATION_QUATERNION
+            base_tip_rotation = self.TOP_ROTATION_QUATERNION
 
         if goal.place_mode == goal.FRONT:
-            root_tip_orientation = self.FRONT_ROTATION_QUATERNION
-            step = 0.1
+            base_tip_rotation = self.FRONT_ROTATION_QUATERNION
 
-        pose.header.stamp = rospy.Time.now()
         # Move the robot in goal position.
-        #self._giskard_wrapper.avoid_all_collisions(distance=0.1)
-        self._giskard_wrapper.allow_all_collisions()
-        self._giskard_wrapper.set_cart_goal_wstep(self._root, u'hand_palm_link', pose, root_tip_orientation, step=step, hsr_transform=hsr_transform)
-        self._giskard_wrapper.plan_and_execute()
-        giskard_result = self._giskard_wrapper.get_result()
+        self._giskard_wrapper.avoid_all_collisions(distance=0.03)
+        giskard_result = self._giskard_wrapper.set_cart_goal_wstep(self._root,
+                                                                   u'hand_palm_link',
+                                                                   place_pose,
+                                                                   base_tip_rotation=base_tip_rotation,
+                                                                   base_transform=hsr_transform)
 
         if giskard_result and giskard_result.SUCCESS in giskard_result.error_codes:
             # Release gripper
-
             self._gripper.command(1.2)
             self._giskard_wrapper.detach_object(object_frame_id)
 
@@ -85,14 +78,13 @@ class PlaceServer():
             p_temp.pose.position = Point(hsr_transform.transform.translation.x, hsr_transform.transform.translation.y,
                                          hsr_transform.transform.translation.z)
             p_temp.pose.orientation = hsr_transform.transform.rotation
-            self._giskard_wrapper.set_cart_goal_wstep(self._root, u'base_footprint', p_temp, root_tip_orientation, hsr_transform=hsr_transform)
-            self._giskard_wrapper.plan_and_execute(wait=True)
+            self._giskard_wrapper.set_cart_goal_wstep(self._root, u'base_footprint', p_temp)
 
             ##TODO: load default pose from json file
-            #self._giskard_wrapper.avoid_all_collisions(distance=0.1)
-            self._giskard_wrapper.allow_all_collisions()
-            self._giskard_wrapper.set_joint_goal(self._giskard_wrapper.set_joint_goal(rospy.get_param(u'/robot_poses/neutral')))
+            self._giskard_wrapper.avoid_all_collisions(distance=0.03)
+            self._giskard_wrapper.set_joint_goal(rospy.get_param(u'/robot_poses/neutral'))
             self._giskard_wrapper.plan_and_execute(True)
+            self._result.error_code = self._result.SUCCESS
 
     #        self._feedback.tf_gripper_to_goal = tfwrapper.lookup_transform(goal.goal_pose.header.frame_id, u'hand_palm_link')
     #        self._as.publish_feedback(self._feedback)
