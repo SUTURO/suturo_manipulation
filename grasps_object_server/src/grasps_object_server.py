@@ -65,19 +65,15 @@ class GraspsObjectServer:
         self._gripper.command(1.2)
 
         hsr_transform = tfwrapper.lookup_transform('map', 'base_footprint')
-        q1 = [hsr_transform.transform.rotation.x, hsr_transform.transform.rotation.y, hsr_transform.transform.rotation.z,
-              hsr_transform.transform.rotation.w]
         # grasp_mode
         root_tip_orientation = None
         step = None
-        current_transform = None
         if goal.grasp_mode == goal.FRONT:
             pose.pose.position.z += goal.object_size.z / 2.0
             rospy.loginfo("ACTUAL FRONT GRASPING HEIGHT: " + str(pose))
             pose.pose.position = calculate_way_point2D(pose.pose.position, hsr_transform.transform.translation, goal.object_size.x / 2)
             root_tip_orientation = self.FRONT_ROTATION_QUATERNION
             step = 0.1
-            current_transform = hsr_transform
 
         elif goal.grasp_mode == goal.TOP:
             pose.pose.position.z += goal.object_size.z
@@ -90,7 +86,7 @@ class GraspsObjectServer:
         self._giskard_wrapper.allow_all_collisions()
         self._giskard_wrapper.allow_collision(body_b=goal.object_frame_id)
 
-        self._giskard_wrapper.set_cart_goal_wstep(self._root, u'hand_palm_link', pose, q1, root_tip_orientation, step=step, hsr_transform=current_transform)
+        self._giskard_wrapper.set_cart_goal_wstep(self._root, u'hand_palm_link', pose, root_tip_orientation, step=step, hsr_transform=hsr_transform)
         self._giskard_wrapper.plan_and_execute(wait=True)
 
         result = self._giskard_wrapper.get_result(rospy.Duration(60))
@@ -119,7 +115,7 @@ class GraspsObjectServer:
             p_temp.header.stamp = rospy.Time.now()
             p_temp.pose.position = Point(hsr_transform.transform.translation.x, hsr_transform.transform.translation.y, hsr_transform.transform.translation.z)
             p_temp.pose.orientation = hsr_transform.transform.rotation
-            self._giskard_wrapper.set_cart_goal(self._root, u'base_footprint', p_temp, q1, root_tip_orientation)
+            self._giskard_wrapper.set_cart_goal_wstep(self._root, u'base_footprint', p_temp, root_tip_orientation, hsr_transform=hsr_transform)
             self._giskard_wrapper.plan_and_execute(wait=True)
 
             #self._giskard_wrapper.avoid_all_collisions(distance=0.02)

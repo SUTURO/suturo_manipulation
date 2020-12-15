@@ -31,16 +31,6 @@ class PlaceServer():
         self._obj_in_gripper_pub = rospy.Publisher("object_in_gripper", ObjectInGripper)
         print("PlaceActionServer greats its masters and is waiting for orders")
 
-    def calculateWayPoint2D(self, target, origin, distance):
-        x = target.x - origin.x
-        y = target.y - origin.y
-
-        alpha = math.atan(y / x)
-        dx = math.cos(alpha) * distance
-        dy = math.sin(alpha) * distance
-
-        return Point(target.x - dx, target.y - dy, target.z)
-
     def execute_cb(self, goal):
         ## Integrate giskard here
         print("Order recieved. place", goal)
@@ -58,29 +48,21 @@ class PlaceServer():
         pose.header = goal.goal_pose.header
         pose.pose.position = goal.goal_pose.pose.position
         hsr_transform = tfwrapper.lookup_transform('map', 'base_footprint')
-        q1 = [hsr_transform.transform.rotation.x, hsr_transform.transform.rotation.y, hsr_transform.transform.rotation.z,
-              hsr_transform.transform.rotation.w]
         # place_mode
         root_tip_orientation = None
+        step = None
         if goal.place_mode == goal.TOP:
             root_tip_orientation = self.TOP_ROTATION_QUATERNION
 
         if goal.place_mode == goal.FRONT:
-            pose_step = PoseStamped()
-            pose_step.header.frame_id = "map"
-            pose_step.header.stamp = rospy.Time.now()
-            pose_step.pose.position = self.calculateWayPoint2D(pose.pose.position, hsr_transform.transform.translation, 0.1)
-            pose_step.pose.orientation = pose.pose.orientation
             root_tip_orientation = self.FRONT_ROTATION_QUATERNION
-            self._giskard_wrapper.set_cart_goal(self._root, u'hand_palm_link', pose_step, q1, root_tip_orientation)
-            self._giskard_wrapper.plan_and_execute(wait=True)
+            step = 0.1
 
         pose.header.stamp = rospy.Time.now()
-
         # Move the robot in goal position.
         #self._giskard_wrapper.avoid_all_collisions(distance=0.1)
         self._giskard_wrapper.allow_all_collisions()
-        self._giskard_wrapper.set_cart_goal(self._root, u'hand_palm_link', pose, q1, root_tip_orientation)
+        self._giskard_wrapper.set_cart_goal_wstep(self._root, u'hand_palm_link', pose, root_tip_orientation, step=step, hsr_transform=hsr_transform)
         self._giskard_wrapper.plan_and_execute()
         giskard_result = self._giskard_wrapper.get_result()
 
@@ -103,7 +85,7 @@ class PlaceServer():
             p_temp.pose.position = Point(hsr_transform.transform.translation.x, hsr_transform.transform.translation.y,
                                          hsr_transform.transform.translation.z)
             p_temp.pose.orientation = hsr_transform.transform.rotation
-            self._giskard_wrapper.set_cart_goal(self._root, u'base_footprint', p_temp, q1, root_tip_orientation)
+            self._giskard_wrapper.set_cart_goal_wstep(self._root, u'base_footprint', p_temp, root_tip_orientation, hsr_transform=hsr_transform)
             self._giskard_wrapper.plan_and_execute(wait=True)
 
             ##TODO: load default pose from json file
