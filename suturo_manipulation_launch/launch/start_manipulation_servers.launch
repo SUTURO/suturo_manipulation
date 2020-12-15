@@ -9,6 +9,8 @@
 	<arg name="load_static_objects" default="true"/>
     <arg name="gui" default="false"/>
 
+	<rosparam ns="/robot_poses" file="$(find suturo_manipulation_launch)/params/poses.yaml" />
+
 	<group if="$(eval sim == true)">
 		<include file="$(find iai_hsr_sim)/launch/ros_control_sim.launch" />
 		<include file="$(find giskardpy)/launch/giskardpy_hsr.launch" >
@@ -46,6 +48,6 @@
 	<node pkg="take_pose_action_server" name="take_pose_server" type="take_pose_server.py" output="screen"
 		if="$(eval run_take_pose_server == true)"/>
 
-	<node pkg="manipulation_test_marker" name="manipulation_test_marker" type="manipulation_test_marker.py" output="screen"
+	<node pkg="manipulation_test_marker" name="manipulation_test_marker" type="manipulation_test_marker.py"
 		if="$(eval run_manipulation_test_marker == true)"/>
 </launch>

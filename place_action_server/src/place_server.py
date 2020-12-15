@@ -91,15 +91,7 @@ class PlaceServer():
             ##TODO: load default pose from json file
             #self._giskard_wrapper.avoid_all_collisions(distance=0.1)
             self._giskard_wrapper.allow_all_collisions()
-            self._giskard_wrapper.set_joint_goal({
-                u'head_pan_joint': 0.0,
-                u'head_tilt_joint': 0.0,
-                u'arm_lift_joint': 0.0,
-                u'arm_flex_joint': 0.0,
-                u'arm_roll_joint': 1.4,
-                u'wrist_flex_joint': -1.5,
-                u'wrist_roll_joint': 0.14
-            })
+            self._giskard_wrapper.set_joint_goal(self._giskard_wrapper.set_joint_goal(rospy.get_param(u'/robot_poses/neutral')))
             self._giskard_wrapper.plan_and_execute(True)
 
     #        self._feedback.tf_gripper_to_goal = tfwrapper.lookup_transform(goal.goal_pose.header.frame_id, u'hand_palm_link')
