@@ -39,48 +39,16 @@ class TakePoseServer():
             })
             self._giskard_wrapper.plan_and_execute(wait=True)
         elif goal.pose_mode == goal.NEUTRAL:
-            self._giskard_wrapper.set_joint_goal({
-             u'head_pan_joint': 0.0,
-             u'head_tilt_joint': 0.0,
-             u'arm_lift_joint': 0.0,
-             u'arm_flex_joint': 0.0,
-             u'arm_roll_joint': 1.4,
-             u'wrist_flex_joint': -1.5,
-             u'wrist_roll_joint': 0.14
-            })
+            self._giskard_wrapper.set_joint_goal(rospy.get_param(u'/robot_poses/neutral'))
             self._giskard_wrapper.plan_and_execute(wait=True)
         elif goal.pose_mode == goal.LOOK_HIGH:
-            self._giskard_wrapper.set_joint_goal({
-             u'head_pan_joint': -1.54,
-             u'head_tilt_joint': -0.22,
-             u'arm_lift_joint': 0.43,
-             u'arm_flex_joint': -0.5,
-             u'arm_roll_joint': 0.0,
-             u'wrist_flex_joint': -1.57,
-             u'wrist_roll_joint': 0.0
-            })
+            self._giskard_wrapper.set_joint_goal(rospy.get_param(u'/robot_poses/look_high'))
             self._giskard_wrapper.plan_and_execute(wait=True)
         elif goal.pose_mode == goal.LOOK_LOW:
-            self._giskard_wrapper.set_joint_goal({
-             u'head_pan_joint': -1.54,
-             u'head_tilt_joint': -0.46,
-             u'arm_lift_joint': 0.0,
-             u'arm_flex_joint': -0.5,
-             u'arm_roll_joint': 0.0,
-             u'wrist_flex_joint': -1.57,
-             u'wrist_roll_joint': 0.0
-            })
+            self._giskard_wrapper.set_joint_goal(rospy.get_param(u'/robot_poses/look_low'))
             self._giskard_wrapper.plan_and_execute(wait=True)
         elif goal.pose_mode == goal.LOOK_FLOOR:
-            self._giskard_wrapper.set_joint_goal({
-                u'head_pan_joint': -1.54,
-                u'head_tilt_joint': -0.86,
-                u'arm_lift_joint': 0.0,
-                u'arm_flex_joint': -0.5,
-                u'arm_roll_joint': 0.0,
-                u'wrist_flex_joint': -1.57,
-                u'wrist_roll_joint': 0.0
-            })
+            self._giskard_wrapper.set_joint_goal(rospy.get_param(u'/robot_poses/look_floor'))
             self._giskard_wrapper.plan_and_execute(wait=True)
         elif goal.pose_mode == goal.GAZE:
             camera_height = goal.gaze_point.z - 0.4 
