@@ -1,0 +1,49 @@
+neutral: {
+  head_pan_joint: 0.0,
+  head_tilt_joint: 0.0,
+  arm_lift_joint: 0.0,
+  arm_flex_joint: 0.0,
+  arm_roll_joint: 1.4,
+  wrist_flex_joint: -1.5,
+  wrist_roll_joint: 0.14
+}
+
+look_high: {
+  head_pan_joint: -1.54,
+  head_tilt_joint: -0.22,
+  arm_lift_joint: 0.43,
+  arm_flex_joint: -0.5,
+  arm_roll_joint: 0.0,
+  wrist_flex_joint: -1.57,
+  wrist_roll_joint: 0.0
+}
+
+look_low: {
+  head_pan_joint: -1.54,
+  head_tilt_joint: -0.46,
+  arm_lift_joint: 0.0,
+  arm_flex_joint: -0.5,
+  arm_roll_joint: 0.0,
+  wrist_flex_joint: -1.57,
+  wrist_roll_joint: 0.0
+}
+
+look_floor: {
+  head_pan_joint: -1.54,
+  head_tilt_joint: -0.86,
+  arm_lift_joint: 0.0,
+  arm_flex_joint: -0.5,
+  arm_roll_joint: 0.0,
+  wrist_flex_joint: -1.57,
+  wrist_roll_joint: 0.0
+}
+
+transport: {
+  head_pan_joint: 0.0,
+  head_tilt_joint: 0.0,
+  arm_lift_joint: 0.0,
+  arm_flex_joint: 0.0,
+  arm_roll_joint: 1.4,
+  wrist_flex_joint: -1.57,
+  wrist_roll_joint: 0.14
+}
