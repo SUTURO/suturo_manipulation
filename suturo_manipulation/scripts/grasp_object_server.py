@@ -64,11 +64,7 @@ class GraspsObjectServer:
             robot_pose.header.stamp = rospy.Time.now()  # Might not be needed but is cleaner this way
             success &= self._manipulator.move_to_goal(root_link=self._root,
                                                       tip_link=u'base_footprint',
-                                                      goal_pose=robot_pose,
-                                                      robot_pose=None,
-                                                      mode=None,
-                                                      step=None,
-                                                      collision_whitelist=None)
+                                                      goal_pose=robot_pose)
         success &= self._manipulator.take_robot_pose(rospy.get_param(u'/manipulation/robot_poses/transport'))
         if success:
             self._result.error_code = self._result.SUCCESS
