@@ -25,8 +25,8 @@ def make_int_marker():
     int_marker.pose.position.z = 1
     int_marker.pose.orientation.w = 1
     int_marker.name = "manipulation_test_marker"
-    int_marker.description = str(int_marker.pose.position.x) + ", " + str(int_marker.pose.position.y) + ", " + str(
-        int_marker.pose.position.z)
+    int_marker.description = "{}, {}, {}".format(int_marker.pose.position.x, int_marker.pose.position.y,
+                                                 int_marker.pose.position.z)
 
     marker = Marker()
     marker.type = Marker.CUBE
@@ -102,8 +102,8 @@ def place_top_cb(feedback):
 
 def marker_moved_cb(feedback):
     marker = server.get(feedback.marker_name)
-    marker.description = str(feedback.pose.position.x) + ", " + str(feedback.pose.position.y) + ", " + str(
-        feedback.pose.position.z)
+    marker.description = "{}, {}, {}".format(feedback.pose.position.x, feedback.pose.position.y,
+                                             feedback.pose.position.z)
     server.applyChanges()
 
 
@@ -113,9 +113,10 @@ def take_pose(pose, mode):
     goal.gaze_point = Vector3(x=pose.position.x, y=pose.position.y, z=pose.position.z)
     start = rospy.Time.now()
     take_pose_client.send_goal(goal)
-    result = take_pose_client.wait_for_result()
-    print("Result: ", result)
-    print("Execution time: {:.2f}s".format((rospy.Time.now() - start).to_sec()))
+    take_pose_client.wait_for_result()
+    result = take_pose_client.get_result()
+    rospy.loginfo("take_pose result: {}".format(result.error_code))
+    rospy.loginfo("Execution time: {:.2f}s".format((rospy.Time.now() - start).to_sec()))
 
 
 def grasp_object(pose, mode):
@@ -123,24 +124,25 @@ def grasp_object(pose, mode):
     goal.grasp_mode = mode
     goal.object_frame_id = "test"
 
-    poseS = PoseStamped()
-    poseS.header.frame_id = "map"
-    poseS.header.stamp = rospy.Time.now()
-    poseS.pose = pose
+    pose_grasp = PoseStamped()
+    pose_grasp.header.frame_id = "map"
+    pose_grasp.header.stamp = rospy.Time.now()
+    pose_grasp.pose = pose
     giskard_wrapper.add_cylinder(
         name="test",
         height=0.2,
         radius=0.07,
-        pose=poseS
+        pose=pose_grasp
     )
 
-    goal.goal_pose = poseS
+    goal.goal_pose = pose_grasp
     goal.object_size.x = 0.07
     start = rospy.Time.now()
     grasp_client.send_goal(goal)
-    result = grasp_client.wait_for_result()
-    print("Result:", result)
-    print("Execution time: {:.2f}s".format((rospy.Time.now() - start).to_sec()))
+    grasp_client.wait_for_result()
+    result = grasp_client.get_result()
+    rospy.loginfo("grasp_object result: {}".format(result.error_code))
+    rospy.loginfo("Execution time: {:.2f}s".format((rospy.Time.now() - start).to_sec()))
 
 
 def place_object(pose, mode):
@@ -148,39 +150,36 @@ def place_object(pose, mode):
     goal.place_mode = mode
     goal.object_frame_id = "test"
 
-    poseS = PoseStamped()
-    poseS.header.frame_id = "map"
-    poseS.header.stamp = rospy.Time.now()
-    poseS.pose = pose
+    place_pose = PoseStamped()
+    place_pose.header.frame_id = "map"
+    place_pose.header.stamp = rospy.Time.now()
+    place_pose.pose = pose
 
-    goal.goal_pose = poseS
+    goal.goal_pose = place_pose
     start = rospy.Time.now()
     place_client.send_goal(goal)
-    result = place_client.wait_for_result()
-    print("Result:", result)
-    print("Execution time: {:.2f}s".format((rospy.Time.now() - start).to_sec()))
+    place_client.wait_for_result()
+    result = place_client.get_result()
+    rospy.loginfo("place_object result: {}".format(result.error_code))
+    rospy.loginfo("Execution time: {:.2f}s".format((rospy.Time.now() - start).to_sec()))
 
 
 if __name__ == '__main__':
     rospy.init_node("manipulation_test_marker")
-
     giskard_wrapper = GiskardWrapper()
-
+    # connect to servers
     take_pose_client = actionlib.SimpleActionClient('take_pose_server', TakePoseAction)
-    grasp_client = actionlib.SimpleActionClient('grasps_server', GraspAction)
+    grasp_client = actionlib.SimpleActionClient('grasp_server', GraspAction)
     place_client = actionlib.SimpleActionClient('place_server', PlaceAction)
-
     take_pose_client.wait_for_server()
     grasp_client.wait_for_server()
     place_client.wait_for_server()
-
+    # create interactive marker
     server = InteractiveMarkerServer("manipulation_test_marker")
-
     init_menu()
-    int_marker = make_int_marker()
-    server.insert(int_marker, marker_moved_cb)
-
-    menu_handler.apply(server, int_marker.name)
+    manipulation_test_marker = make_int_marker()
+    server.insert(manipulation_test_marker, marker_moved_cb)
+    menu_handler.apply(server, manipulation_test_marker.name)
     server.applyChanges()
-
+    # spin node
     rospy.spin()

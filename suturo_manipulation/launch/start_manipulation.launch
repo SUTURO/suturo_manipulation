@@ -9,7 +9,7 @@
 	<arg name="load_static_objects" default="true"/>
     <arg name="gui" default="false"/>
 
-	<rosparam ns="/robot_poses" file="$(find suturo_manipulation)/params/poses.yaml" />
+	<rosparam ns="/manipulation" file="$(find suturo_manipulation)/params/hsr_params.yaml" />
 
 	<group if="$(eval sim == true)">
 		<include file="$(find iai_hsr_sim)/launch/ros_control_sim.launch" />
@@ -39,10 +39,10 @@
 	<node pkg="suturo_manipulation" name="move_gripper_server" type="move_gripper_server.py" output="screen"
 		if="$(eval run_move_gripper_server == true)"/>
 
-	<node pkg="suturo_manipulation" name="grasps_server" type="grasps_object_server.py" output="screen"
+	<node pkg="suturo_manipulation" name="grasp_server" type="grasp_object_server.py" output="screen"
 		if="$(eval run_grasps_server == true)"/>
 
-	<node pkg="suturo_manipulation" name="place_server" type="place_server.py" output="screen"
+	<node pkg="suturo_manipulation" name="place_server" type="place_object_server.py" output="screen"
 		if="$(eval run_place_server == true)"/>
 
 	<node pkg="suturo_manipulation" name="take_pose_server" type="take_pose_server.py" output="screen"
