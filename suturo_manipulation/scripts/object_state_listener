@@ -8,17 +8,28 @@ from knowledge_msgs.msg import ObjectStateArray, ObjectState
 class ObjectStateListener:
 
     def __init__(self):
+        """
+        Forwards changes in the object state to the giskard world
+        """
         self._giskard_wrapper = GiskardWrapper()
 
-
     def delete_object(self, object_state_array):
-        for object in object_state_array.object_states:            
+        """
+        Removes the given objects from the world
+        :param object_state_array:
+        :return:
+        """
+        for object in object_state_array.object_states:
             names = object.object_id.split('#')
             name = names[len(names) - 1]
             self._giskard_wrapper.remove_object(name)
 
-
     def add_object(self, object_state_array):
+        """
+        Adds or updates the given objects
+        :param object_state_array:
+        :return:
+        """
         for object in object_state_array.object_states:
             names = object.object_id.split('#')
             name = names[len(names) - 1]
@@ -42,24 +53,22 @@ class ObjectStateListener:
                     pose=object.pose
                 )
             else:
-                print("Unknown shape: ", object.shape)
-
+                rospy.logwarn("Unknown shape: ", object.shape)
 
     def object_state_callback(self, object_state_array):
         print("received object_state_array")
         if object_state_array.action == ObjectStateArray.ADD:
-            self.delete_object(object_state_array) # Hack to update objects
+            self.delete_object(object_state_array)  # Hack to update objects
             self.add_object(object_state_array)
         elif object_state_array.action == ObjectStateArray.DELETE:
             self.delete_object(object_state_array)
         else:
-            rospy.logout("Unknown action:", object_state_array.action)
+            rospy.logwarn("Unknown action:", object_state_array.action)
 
 
 if __name__ == '__main__':
-    print("Hello DO I EVEN START")
     rospy.init_node('object_state_listenter')
     object_state_listener = ObjectStateListener()
     rospy.Subscriber('~object_state', ObjectStateArray, object_state_listener.object_state_callback)
-    print('ObjectStateListener is ready')
+    rospy.loginfo("{} is ready".format(rospy.get_name()))
     rospy.spin()

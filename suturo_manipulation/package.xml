@@ -27,10 +27,9 @@
   <depend>visualization_msgs</depend>
   <depend>geometry_msgs</depend>
   <depend>knowledge_msgs</depend>
-
   <!-- The export tag contains other, unspecified, tags -->
   <export>
     <!-- Other tools can request additional information be placed here -->
-
+    <rosdoc config="rosdoc.yaml"/>
   </export>
 </package>
