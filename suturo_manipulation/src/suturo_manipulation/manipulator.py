@@ -60,7 +60,6 @@ class Manipulator:
         :return: True on success
         """
         self.giskard_wrapper_.interrupt()
-        mode_rotation = None
         if robot_pose and mode and self.mode_rotation_ and mode in self.mode_rotation_:
             goal_pose.pose.orientation = Quaternion(*quaternion_multiply(to_tf_quaternion(robot_pose.pose.orientation),
                                                                          self.mode_rotation_[mode]))
