@@ -1,0 +1,19 @@
+- git:
+    local-name: suturo_manipulation
+    uri: https://github.com/SUTURO/suturo_manipulation.git
+    version: master
+
+- git:
+    local-name: giskardpy
+    uri: https://github.com/SUTURO/giskardpy.git
+    version: master
+
+- git:
+    local-name: qpOASES
+    uri: https://github.com/SemRoCo/qpOASES.git
+    version: master
+
+- git:
+    local-name: iai_hsr_sim
+    uri: https://github.com/code-iai/iai_hsr_sim.git
+    version: master
