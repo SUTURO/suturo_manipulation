@@ -80,5 +80,5 @@ class Gripper:
         self._gripper_controller.send_goal(goal)
         self._gripper_controller.wait_for_result()
         result = self._gripper_controller.get_result()
-        rospy.loginfo("set_gripper_postion: exited with error code: ".format(result.error_code))
+        rospy.loginfo("set_gripper_postion: exited with error code: {}".format(result.error_code))
         return result.error_code

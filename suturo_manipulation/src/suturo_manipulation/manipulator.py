@@ -74,6 +74,8 @@ class Manipulator:
             self.set_collision(self.collision_distance_, collision_whitelist)
             self.giskard_wrapper_.set_cart_goal(root_link, tip_link, step_pose)
             self.giskard_wrapper_.plan_and_execute(wait=True)
+        rospy.loginfo("goal_pose: {}".format(goal_pose))
+        goal_pose.header.stamp = rospy.Time.now()
         self.set_collision(self.collision_distance_, collision_whitelist)
         self.giskard_wrapper_.set_cart_goal(root_link, tip_link, goal_pose)
         self.giskard_wrapper_.plan_and_execute(wait=True)
