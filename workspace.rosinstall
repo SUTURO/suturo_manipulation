@@ -11,7 +11,7 @@
 - git:
     local-name: qpOASES
     uri: https://github.com/SemRoCo/qpOASES.git
-    version: master
+    version: 3.2.1
 
 - git:
     local-name: iai_hsr_sim
