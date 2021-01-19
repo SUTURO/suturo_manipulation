@@ -1,0 +1,35 @@
+<?xml version="1.0"?>
+<package format="2">
+  <name>suturo_manipulation</name>
+  <version>0.0.0</version>
+  <description>Manipulation package for the SUTURO project</description>
+
+  <maintainer email="stelter2@uni-bremen.de">Marc Stelter</maintainer>
+
+  <license>TODO</license>
+
+  <!-- Url tags are optional, but multiple are allowed, one per tag -->
+  <!-- Optional attribute type can be: website, bugtracker, or repository -->
+  <!-- Example: -->
+  <!-- <url type="website">http://wiki.ros.org/launch</url> -->
+
+  <!-- Author tags are optional, multiple are allowed, one per tag -->
+  <!-- Authors do not have to be maintainers, but could be -->
+  <!-- Example: -->
+  <!-- <author email="jane.doe@example.com">Jane Doe</author> -->
+
+  <buildtool_depend>catkin</buildtool_depend>
+  <depend>actionlib</depend>
+  <depend>giskardpy</depend>
+  <depend>rospy</depend>
+  <depend>manipulation_action_msgs</depend>
+  <depend>interactive_markers</depend>
+  <depend>visualization_msgs</depend>
+  <depend>geometry_msgs</depend>
+  <depend>knowledge_msgs</depend>
+  <!-- The export tag contains other, unspecified, tags -->
+  <export>
+    <!-- Other tools can request additional information be placed here -->
+    <rosdoc config="rosdoc.yaml"/>
+  </export>
+</package>
