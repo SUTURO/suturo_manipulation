@@ -41,6 +41,13 @@ class GraspsObjectServer:
         # Set initial result value.
         success = True
         self._result.error_code = self._result.FAILED
+
+        collision_whitelist = []
+        if goal.object_frame_id in self._giskard_wrapper.get_object_names().object_names:
+            collision_whitelist.append(goal.object_frame_id)
+        else:
+            rospy.logwarn("unknown object: {}".format(goal.object_frame_id))
+
         # get current robot_pose
         robot_pose = tfwrapper.lookup_pose('map', 'base_footprint')
 
@@ -53,13 +60,14 @@ class GraspsObjectServer:
                                                   robot_pose=robot_pose,
                                                   mode=goal.grasp_mode,
                                                   step=0.1,
-                                                  collision_whitelist=[goal.object_frame_id])
+                                                  collision_whitelist=collision_whitelist)
         if success:
             self._gripper.close_gripper_force(0.8)
             success &= self._gripper.object_in_gripper()
             if success:
                 # Attach object
-                self._giskard_wrapper.attach_object(goal.object_frame_id, u'hand_palm_link')
+                if goal.object_frame_id in self._giskard_wrapper.get_object_names().object_names:
+                    self._giskard_wrapper.attach_object(goal.object_frame_id, u'hand_palm_link')
                 self._gripper.publish_object_in_gripper(goal.object_frame_id, goal.goal_pose, ObjectInGripper.GRASPED)
             robot_pose.header.stamp = rospy.Time.now()  # Might not be needed but is cleaner this way
             success &= self._manipulator.move_to_goal(root_link=self._root,

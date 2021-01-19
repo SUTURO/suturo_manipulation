@@ -42,6 +42,10 @@ class PlaceServer:
         # Set initial result value.
         success = True
         self._result.error_code = self._result.FAILED
+
+        if goal.object_frame_id not in self._giskard_wrapper.get_attached_objects().object_names:
+            rospy.logwarn("object not attached to gripper: {}".format(goal.object_frame_id))
+
         # get current robot_pose
         robot_pose = tfwrapper.lookup_pose('map', 'base_footprint')
 
@@ -50,11 +54,11 @@ class PlaceServer:
                                                   goal_pose=goal.goal_pose,
                                                   robot_pose=robot_pose,
                                                   mode=goal.place_mode,
-                                                  step=0.1,
-                                                  collision_whitelist=None)
+                                                  step=0.1)
         if success:
             self._gripper.set_gripper_joint_position(1.2)
-            self._giskard_wrapper.detach_object(goal.object_frame_id)
+            if goal.object_frame_id in self._giskard_wrapper.get_attached_objects().object_names:
+                self._giskard_wrapper.detach_object(goal.object_frame_id)
             self._gripper.publish_object_in_gripper(goal.object_frame_id, goal.goal_pose, ObjectInGripper.PLACED)
         robot_pose.header.stamp = rospy.Time.now()  # Might not be needed but is cleaner this way
         success &= self._manipulator.move_to_goal(root_link=self._root,
