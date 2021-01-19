@@ -96,3 +96,16 @@ class Manipulator:
         self.giskard_wrapper_.plan_and_execute(wait=True)
         result = self.giskard_wrapper_.get_result()
         return result and result.SUCCESS in result.error_codes
+
+    def open(self, object_name, object_link_name):
+        """
+        Lets the robot open the given object
+        :type object_name str
+        :param object_name
+        :type object_link_name str
+        :param object_link_name handle to grasp
+        """
+        self.set_collision(self.collision_distance_)
+        self.giskard_wrapper_.set_open_goal(u'hand_r_distal_link', object_name, object_link_name)
+        result = self.giskard_wrapper_.get_result()
+        return result and result.SUCCESS in result.error_codes
