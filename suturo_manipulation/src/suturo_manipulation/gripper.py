@@ -4,7 +4,7 @@ import actionlib
 from tmc_control_msgs.msg import GripperApplyEffortAction, GripperApplyEffortGoal
 from control_msgs.msg import FollowJointTrajectoryAction, FollowJointTrajectoryGoal
 from trajectory_msgs.msg import JointTrajectoryPoint
-from manipulation_action_msgs.msg import ObjectInGripper
+from manipulation_msgs.msg import ObjectInGripper
 from giskardpy.python_interface import GiskardWrapper
 
 

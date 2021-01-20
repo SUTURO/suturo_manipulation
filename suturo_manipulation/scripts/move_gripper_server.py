@@ -2,7 +2,7 @@
 
 import rospy
 import actionlib
-from manipulation_action_msgs.msg import MoveGripperAction, MoveGripperFeedback, MoveGripperResult
+from manipulation_msgs.msg import MoveGripperAction, MoveGripperFeedback, MoveGripperResult
 from giskardpy.python_interface import GiskardWrapper
 
 

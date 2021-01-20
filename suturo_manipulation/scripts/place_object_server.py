@@ -2,7 +2,7 @@
 
 import rospy
 import actionlib
-from manipulation_action_msgs.msg import PlaceAction, PlaceGoal, PlaceFeedback, PlaceResult, ObjectInGripper
+from manipulation_msgs.msg import PlaceAction, PlaceGoal, PlaceFeedback, PlaceResult, ObjectInGripper
 from giskardpy.python_interface import GiskardWrapper
 from giskardpy import tfwrapper
 from suturo_manipulation.gripper import Gripper

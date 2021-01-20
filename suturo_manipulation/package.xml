@@ -22,7 +22,7 @@
   <depend>actionlib</depend>
   <depend>giskardpy</depend>
   <depend>rospy</depend>
-  <depend>manipulation_action_msgs</depend>
+  <depend>manipulation_msgs</depend>
   <depend>interactive_markers</depend>
   <depend>visualization_msgs</depend>
   <depend>geometry_msgs</depend>

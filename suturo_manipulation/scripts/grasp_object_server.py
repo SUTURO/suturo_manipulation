@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 import rospy
 import actionlib
-from manipulation_action_msgs.msg import GraspAction, GraspGoal, GraspFeedback, GraspResult, ObjectInGripper
+from manipulation_msgs.msg import GraspAction, GraspGoal, GraspFeedback, GraspResult, ObjectInGripper
 from giskardpy import tfwrapper
 from suturo_manipulation.gripper import Gripper
 from suturo_manipulation.manipulator import Manipulator

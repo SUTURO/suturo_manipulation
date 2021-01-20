@@ -3,7 +3,7 @@
 import hsrb_interface
 import rospy
 import actionlib
-from manipulation_action_msgs.msg import TakePoseAction, TakePoseFeedback, TakePoseResult
+from manipulation_msgs.msg import TakePoseAction, TakePoseFeedback, TakePoseResult
 from giskardpy.python_interface import GiskardWrapper
 
 
