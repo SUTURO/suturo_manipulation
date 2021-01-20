@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 import rospy
 import actionlib
-from manipulation_action_msgs.msg import OpenAction, OpenGoal, OpenFeedback, OpenResult
+from manipulation_msgs.msg import OpenAction, OpenGoal, OpenFeedback, OpenResult
 from giskardpy import tfwrapper
 from suturo_manipulation.gripper import Gripper
 from suturo_manipulation.manipulator import Manipulator

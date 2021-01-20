@@ -4,7 +4,7 @@ import actionlib
 from geometry_msgs.msg import PoseStamped, Vector3
 from interactive_markers.interactive_marker_server import *
 from interactive_markers.menu_handler import *
-from manipulation_action_msgs.msg import TakePoseAction, TakePoseGoal, GraspAction, GraspGoal, PlaceAction, PlaceGoal
+from manipulation_msgs.msg import TakePoseAction, TakePoseGoal, GraspAction, GraspGoal, PlaceAction, PlaceGoal
 from visualization_msgs.msg import *
 
 from giskardpy.python_interface import GiskardWrapper
