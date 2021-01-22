@@ -8,7 +8,7 @@ from suturo_manipulation.manipulator import Manipulator
 from giskardpy.python_interface import GiskardWrapper
 
 
-class OpenObjectServer:
+class OpenServer:
     _feedback = OpenFeedback()
     _result = OpenResult()
     _root = u'odom'
@@ -31,10 +31,10 @@ class OpenObjectServer:
         self._result.error_code = self._result.FAILED
 
         collision_whitelist = []
-        if (goal.object_name and goal.object_link_name) not in self._giskard_wrapper.get_object_names().object_names:
-            rospy.logerr("unknown object: {} or unknown object_link: {}".format(goal.object_name, goal.object_link_name))
-            self._as.set_succeeded(self._result)
-            return
+#        if (goal.object_name and goal.object_link_name) not in self._giskard_wrapper.get_object_names().object_names:
+#            rospy.logerr("unknown object: {} or unknown object_link: {}".format(goal.object_name, goal.object_link_name))
+#            self._as.set_succeeded(self._result)
+#            return
 
         # get current robot_pose
         robot_pose = tfwrapper.lookup_pose('map', 'base_footprint')
@@ -53,6 +53,6 @@ class OpenObjectServer:
 
 
 if __name__ == '__main__':
-    rospy.init_node('open_object_server')
-    server = OpenObjectServer(rospy.get_name())
+    rospy.init_node('open_server')
+    server = OpenServer(rospy.get_name())
     rospy.spin()

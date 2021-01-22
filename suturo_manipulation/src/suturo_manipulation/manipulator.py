@@ -106,6 +106,7 @@ class Manipulator:
         :param object_link_name handle to grasp
         """
         self.set_collision(self.collision_distance_)
-        self.giskard_wrapper_.set_open_goal(u'hand_r_distal_link', object_name, object_link_name)
+        self.giskard_wrapper_.set_open_goal(u'hand_palm_link', object_name, object_link_name)
+        self.giskard_wrapper_.plan_and_execute(wait=True)
         result = self.giskard_wrapper_.get_result()
         return result and result.SUCCESS in result.error_codes
