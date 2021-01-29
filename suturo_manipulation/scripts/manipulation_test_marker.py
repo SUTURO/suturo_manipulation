@@ -4,7 +4,8 @@ import actionlib
 from geometry_msgs.msg import PoseStamped, Vector3
 from interactive_markers.interactive_marker_server import *
 from interactive_markers.menu_handler import *
-from manipulation_msgs.msg import TakePoseAction, TakePoseGoal, GraspAction, GraspGoal, PlaceAction, PlaceGoal
+from manipulation_msgs.msg import TakePoseAction, TakePoseGoal, GraspAction, GraspGoal, PlaceAction, PlaceGoal, \
+    MakePlanAction, MakePlanGoal
 from visualization_msgs.msg import *
 
 from giskardpy.python_interface import GiskardWrapper
@@ -63,6 +64,14 @@ def init_menu():
     menu_handler.insert("Front", parent=place_men, callback=place_front_cb)
     menu_handler.insert("Top", parent=place_men, callback=place_top_cb)
 
+    plan_men = menu_handler.insert("Plan here")
+    plan_grasp_men = menu_handler.insert("Grasp", parent=plan_men)
+    menu_handler.insert("Front", parent=plan_grasp_men, callback=plan_grasp_front_cb)
+    menu_handler.insert("Top", parent=plan_grasp_men, callback=plan_grasp_top_cb)
+    plan_place_men = menu_handler.insert("Place", parent=plan_men)
+    menu_handler.insert("Front", parent=plan_place_men, callback=plan_place_front_cb)
+    menu_handler.insert("Top", parent=plan_place_men, callback=plan_place_top_cb)
+
 
 def take_neutral_pose_cb(feedback):
     take_pose(feedback.pose, TakePoseGoal.NEUTRAL)
@@ -100,11 +109,45 @@ def place_top_cb(feedback):
     place_object(feedback.pose, PlaceGoal.TOP)
 
 
+def plan_grasp_front_cb(feedback):
+    make_plan(feedback.pose, MakePlanGoal.FRONT, MakePlanGoal.GRASP)
+
+
+def plan_grasp_top_cb(feedback):
+    make_plan(feedback.pose, MakePlanGoal.TOP, MakePlanGoal.GRASP)
+
+
+def plan_place_front_cb(feedback):
+    make_plan(feedback.pose, MakePlanGoal.FRONT, MakePlanGoal.PLACE)
+
+
+def plan_place_top_cb(feedback):
+    make_plan(feedback.pose, MakePlanGoal.TOP, MakePlanGoal.PLACE)
+
+
 def marker_moved_cb(feedback):
     marker = server.get(feedback.marker_name)
     marker.description = "{}, {}, {}".format(feedback.pose.position.x, feedback.pose.position.y,
                                              feedback.pose.position.z)
     server.applyChanges()
+
+
+def make_plan(goal_pose, gripper_mode, action_mode):
+    goal = MakePlanGoal()
+    goal.gripper_mode = gripper_mode
+    goal.action_mode = action_mode
+    goal.object_size = Vector3(x=0.05, y=0.05, z=0.2)
+    pose = PoseStamped()
+    pose.header.frame_id = "map"
+    pose.header.stamp = rospy.Time.now()
+    pose.pose = goal_pose
+    goal.goal_pose = pose
+    start = rospy.Time.now()
+    make_plan_client.send_goal(goal)
+    make_plan_client.wait_for_result()
+    result = make_plan_client.get_result()
+    rospy.loginfo("Make plan result: {}".format(result.error_code))
+    rospy.loginfo("Execution time: {:.2f}s".format((rospy.Time.now() - start).to_sec()))
 
 
 def take_pose(pose, mode):
@@ -171,9 +214,11 @@ if __name__ == '__main__':
     take_pose_client = actionlib.SimpleActionClient('take_pose_server', TakePoseAction)
     grasp_client = actionlib.SimpleActionClient('grasp_server', GraspAction)
     place_client = actionlib.SimpleActionClient('place_server', PlaceAction)
+    make_plan_client = actionlib.SimpleActionClient('make_plan_server', MakePlanAction)
     take_pose_client.wait_for_server()
     grasp_client.wait_for_server()
     place_client.wait_for_server()
+    make_plan_client.wait_for_server()
     # create interactive marker
     server = InteractiveMarkerServer("manipulation_test_marker")
     init_menu()
