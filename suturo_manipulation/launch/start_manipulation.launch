@@ -4,6 +4,7 @@
 	<arg name="run_grasps_server" default="true"/>
 	<arg name="run_take_pose_server" default="true"/>
 	<arg name="run_place_server" default="true"/>
+	<arg name="run_make_plan_server" default="true"/>
 	<arg name="run_object_state_listener" default="true"/>
 	<arg name="run_manipulation_test_marker" default="true"/>
 	<arg name="load_static_objects" default="true"/>
@@ -44,6 +45,9 @@
 
 	<node pkg="suturo_manipulation" name="place_server" type="place_object_server.py" output="screen"
 		if="$(eval run_place_server == true)"/>
+
+	<node pkg="suturo_manipulation" name="make_plan_server" type="make_plan_server.py" output="screen"
+		if="$(eval run_make_plan_server == true)"/>
 
 	<node pkg="suturo_manipulation" name="take_pose_server" type="take_pose_server.py" output="screen"
 		if="$(eval run_take_pose_server == true)"/>
