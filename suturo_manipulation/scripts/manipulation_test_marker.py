@@ -110,11 +110,11 @@ def place_top_cb(feedback):
 
 
 def open_door_1_cb(feedback):
-    open(u'door_1_center', u'door_1_center')
+    open(u'door_1_handle_outside', u'door_1_handle_outside')
 
 
 def open_door_2_cb(feedback):
-    open(u'door_2_center', u'door_2_center')
+    open(u'door_2_handle_inside', u'door_2_handle_inside')
 
 
 def print_object_names_cb(feedback):
