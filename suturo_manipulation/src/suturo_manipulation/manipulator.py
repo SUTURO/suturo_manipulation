@@ -3,7 +3,7 @@
 import rospy
 from giskardpy.python_interface import GiskardWrapper
 from giskardpy.utils import to_tf_quaternion, calculate_waypoint2D
-from geometry_msgs.msg import Quaternion, PoseStamped
+from geometry_msgs.msg import Quaternion, PoseStamped, PointStamped, Vector3Stamped
 from tf.transformations import quaternion_multiply
 
 
@@ -105,8 +105,8 @@ class Manipulator:
         :type object_link_name str
         :param object_link_name handle to grasp
         """
-        self.set_collision(self.collision_distance_)
-        self.giskard_wrapper_.set_open_goal(u'hand_palm_link', object_name, object_link_name)
+        self.giskard_wrapper_.allow_all_collisions()
+        self.giskard_wrapper_.set_open_goal(u'hand_palm_link', object_name, object_link_name, u'odom')
         self.giskard_wrapper_.plan_and_execute(wait=True)
         result = self.giskard_wrapper_.get_result()
         return result and result.SUCCESS in result.error_codes
