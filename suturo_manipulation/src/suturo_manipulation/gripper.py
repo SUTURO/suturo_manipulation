@@ -6,6 +6,7 @@ from control_msgs.msg import FollowJointTrajectoryAction, FollowJointTrajectoryG
 from trajectory_msgs.msg import JointTrajectoryPoint
 from manipulation_msgs.msg import ObjectInGripper
 from giskardpy.python_interface import GiskardWrapper
+from giskardpy.utils import normalize_quaternion_msg
 
 
 class Gripper:
@@ -20,7 +21,7 @@ class Gripper:
         self._obj_in_gripper_pub = rospy.Publisher("object_in_gripper", ObjectInGripper, queue_size=10)
         self._giskard_wrapper = GiskardWrapper()
 
-    def publish_object_in_gripper(self, object_frame_id, pose, mode):
+    def publish_object_in_gripper(self, object_frame_id, pose_stamped, mode):
         """
         publishes the object in gripper state
         :param object_frame_id: name of the object
@@ -28,9 +29,11 @@ class Gripper:
         :param mode: placed or grasped
         :return:
         """
+        orientation = normalize_quaternion_msg(pose_stamped.pose.orientation)
         obj_in_gri = ObjectInGripper()
         obj_in_gri.object_frame_id = object_frame_id
-        obj_in_gri.goal_pose = pose
+        obj_in_gri.goal_pose = pose_stamped
+        obj_in_gri.goal_pose.pose.orientation = orientation
         obj_in_gri.mode = mode
         self._obj_in_gripper_pub.publish(obj_in_gri)
 
