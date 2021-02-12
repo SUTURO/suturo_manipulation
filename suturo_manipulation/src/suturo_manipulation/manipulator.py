@@ -97,16 +97,37 @@ class Manipulator:
         result = self.giskard_wrapper_.get_result()
         return result and result.SUCCESS in result.error_codes
 
-    def open(self, object_name, object_link_name):
+    def grasp_bar(self, root_link, tip_link, object_name, object_link_name, tip_grasp_axis, bar_center, bar_axis, bar_length):
         """
-        Lets the robot open the given object
+        Lets the robot grasp the bar of an object (in this case the handles)
         :type object_name str
-        :param object_name
+        :param object_name the name of the object to grasp
         :type object_link_name str
         :param object_link_name handle to grasp
+        :type bar_length float
+        :param bar_length length of the bar to grasp
+        :type bar_axis Vector3Stamped
+        :param bar_axis the axis to grasp the bar
+        """
+
+
+        self.giskard_wrapper_.allow_all_collisions()
+        self.giskard_wrapper_.grasp_bar(root_link, tip_link, tip_grasp_axis, bar_center, bar_axis, bar_length)
+        self.giskard_wrapper_.plan_and_execute(wait=True)
+        result = self.giskard_wrapper_.get_result()
+        return result and result.SUCCESS in result.error_codes
+
+    def open(self, tip_link, object_link_name, angle_goal):
+        """
+        Lets the robot open the given object
+        :type tip_link str
+        :param tip_link the name of the gripper
+        :type object_link_name str
+        :param object_link_name handle to grasp
+        :type angle_
         """
         self.giskard_wrapper_.allow_all_collisions()
-        self.giskard_wrapper_.set_open_goal(u'hand_palm_link', object_name, object_link_name, u'odom')
+        self.giskard_wrapper_.set_open_goal(tip_link, object_link_name, angle_goal)
         self.giskard_wrapper_.plan_and_execute(wait=True)
         result = self.giskard_wrapper_.get_result()
         return result and result.SUCCESS in result.error_codes

@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 import rospy
 import actionlib
+from geometry_msgs.msg import Vector3Stamped, PointStamped
 from manipulation_msgs.msg import OpenAction, OpenGoal, OpenFeedback, OpenResult
 from giskardpy import tfwrapper
 from suturo_manipulation.gripper import Gripper
@@ -17,6 +18,8 @@ class OpenServer:
         self._action_name = name
         self._as = actionlib.SimpleActionServer(self._action_name, OpenAction, execute_cb=self.execute_cb,
                                                 auto_start=False)
+        self._gripper = Gripper(apply_force_action_server=u'/hsrb/gripper_controller/apply_force',
+                                follow_joint_trajectory_server=u'/hsrb/gripper_controller/follow_joint_trajectory')
         self._manipulator = Manipulator()
         self._giskard_wrapper = GiskardWrapper()
         self._as.start()
@@ -39,18 +42,46 @@ class OpenServer:
         # get current robot_pose
         robot_pose = tfwrapper.lookup_pose('map', 'base_footprint')
 
-        # open
-        success &= self._manipulator.open(goal.object_name, goal.object_link_name)
+        # open gripper
+        self._gripper.set_gripper_joint_position(1.2)
+
+        # move to handle of the object
+        bar_axis, bar_center, tip_grasp_axis = self.get_grasp_dimension(goal.object_link_name, u'hand_gripper_tool_frame')
+        success &= self._manipulator.grasp_bar(u'odom', u'hand_gripper_tool_frame', goal.object_name, goal.object_link_name, tip_grasp_axis, bar_center, bar_axis, 0.075)
+
+        # closing the gripper
+        self._gripper.set_gripper_joint_position(-0.1)
+
+        # opens the door
+        success &= self._manipulator.open(u'hand_gripper_tool_frame', goal.object_link_name, 1.5)
+
+        # opens the gripper again
+        self._gripper.set_gripper_joint_position(1.2)
+
         # return to initial pose
-        if success:
-            success &= self._manipulator.move_to_goal(root_link=self._root,
-                                                      tip_link=u'base_footprint',
-                                                      goal_pose=robot_pose)
-        success &= self._manipulator.take_robot_pose(rospy.get_param(u'/manipulation/robot_poses/transport'))
+        #if success:
+            #success &= self._manipulator.move_to_goal(root_link=self._root,
+            #                                          tip_link=u'base_footprint',
+            #                                          goal_pose=robot_pose)
+        #success &= self._manipulator.take_robot_pose(rospy.get_param(u'/manipulation/robot_poses/transport'))
         if success:
             self._result.error_code = self._result.SUCCESS
         self._as.set_succeeded(self._result)
 
+    def get_grasp_dimension(self, object_link_name, tip_link):
+        handle_frame_id = u'iai_kitchen/' + object_link_name
+        bar_axis = Vector3Stamped()
+        bar_axis.header.frame_id = handle_frame_id
+        bar_axis.vector.x = 1
+
+        bar_center = PointStamped()
+        bar_center.header.frame_id = handle_frame_id
+
+        tip_grasp_axis = Vector3Stamped()
+        tip_grasp_axis.vector.x = 1
+        tip_grasp_axis.header.frame_id = tip_link
+
+        return bar_axis, bar_center, tip_grasp_axis
 
 if __name__ == '__main__':
     rospy.init_node('open_server')
