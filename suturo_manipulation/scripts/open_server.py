@@ -34,36 +34,37 @@ class OpenServer:
         self._result.error_code = self._result.FAILED
 
         collision_whitelist = []
-#        if (goal.object_name and goal.object_link_name) not in self._giskard_wrapper.get_object_names().object_names:
-#            rospy.logerr("unknown object: {} or unknown object_link: {}".format(goal.object_name, goal.object_link_name))
-#            self._as.set_succeeded(self._result)
-#            return
 
         # get current robot_pose
         robot_pose = tfwrapper.lookup_pose('map', 'base_footprint')
-
         # open gripper
         self._gripper.set_gripper_joint_position(1.2)
-
         # move to handle of the object
         bar_axis, bar_center, tip_grasp_axis = self.get_grasp_dimension(goal.object_link_name, u'hand_gripper_tool_frame')
-        success &= self._manipulator.grasp_bar(u'odom', u'hand_gripper_tool_frame', goal.object_name, goal.object_link_name, tip_grasp_axis, bar_center, bar_axis, 0.075)
-
+        success &= self._manipulator.grasp_bar(u'odom', u'hand_gripper_tool_frame', goal.object_name,
+                                               goal.object_link_name, tip_grasp_axis, bar_center, bar_axis, 0.085)
         # closing the gripper
         self._gripper.set_gripper_joint_position(-0.1)
-
         # opens the door
-        success &= self._manipulator.open(u'hand_gripper_tool_frame', goal.object_link_name, 1.5)
-
+        success &= self._manipulator.open(u'hand_gripper_tool_frame', goal.object_link_name, 0.7)
+        robot_pose_grasping = tfwrapper.lookup_pose('map', 'base_footprint')
+        rospy.logerr(str(robot_pose_grasping))
+        robot_pose_grasping.pose.position.y += 0.04
+        self._manipulator.move_to_goal(root_link=self._root,
+                                       tip_link=u'base_footprint',
+                                       goal_pose=robot_pose_grasping)
+        rospy.logerr("HIIIIII")
+        success &= self._manipulator.open(u'hand_gripper_tool_frame', goal.object_link_name, 0.8)
         # opens the gripper again
         self._gripper.set_gripper_joint_position(1.2)
 
         # return to initial pose
-        #if success:
-            #success &= self._manipulator.move_to_goal(root_link=self._root,
-            #                                          tip_link=u'base_footprint',
-            #                                          goal_pose=robot_pose)
-        #success &= self._manipulator.take_robot_pose(rospy.get_param(u'/manipulation/robot_poses/transport'))
+        if success:
+            success &= self._manipulator.take_robot_pose(rospy.get_param(u'/manipulation/robot_poses/transport'))
+            self._gripper.close_gripper_force()
+            success &= self._manipulator.move_to_goal(root_link=self._root,
+                                                      tip_link=u'base_footprint',
+                                                      goal_pose=robot_pose)
         if success:
             self._result.error_code = self._result.SUCCESS
         self._as.set_succeeded(self._result)
