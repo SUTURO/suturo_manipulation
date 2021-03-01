@@ -57,8 +57,8 @@ class PlaceServer:
                                                   step=0.1)
         if success:
             self._gripper.set_gripper_joint_position(1.2)
-            if goal.object_frame_id in self._giskard_wrapper.get_attached_objects().object_names:
-                self._giskard_wrapper.detach_object(goal.object_frame_id)
+            #if goal.object_frame_id in self._giskard_wrapper.get_attached_objects().object_names:
+            #    self._giskard_wrapper.detach_object(goal.object_frame_id)
             self._gripper.publish_object_in_gripper(goal.object_frame_id, goal.goal_pose, ObjectInGripper.PLACED)
         robot_pose.header.stamp = rospy.Time.now()  # Might not be needed but is cleaner this way
         success &= self._manipulator.move_to_goal(root_link=self._root,
