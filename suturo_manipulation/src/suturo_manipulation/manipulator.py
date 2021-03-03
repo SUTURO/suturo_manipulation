@@ -112,6 +112,7 @@ class Manipulator:
 
 
         self.giskard_wrapper_.allow_all_collisions()
+        #self.set_collision(self.collision_distance_)
         self.giskard_wrapper_.grasp_bar(root_link, tip_link, tip_grasp_axis, bar_center, bar_axis, bar_length)
         self.giskard_wrapper_.plan_and_execute(wait=True)
         result = self.giskard_wrapper_.get_result()
@@ -127,6 +128,7 @@ class Manipulator:
         :type angle_
         """
         self.giskard_wrapper_.allow_all_collisions()
+        #self.set_collision(self.collision_distance_)
         self.giskard_wrapper_.set_open_goal(tip_link, object_link_name, angle_goal)
         self.giskard_wrapper_.plan_and_execute(wait=True)
         result = self.giskard_wrapper_.get_result()
