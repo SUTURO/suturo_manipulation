@@ -1,4 +1,5 @@
 #!/usr/bin/env python
+import math
 import rospy
 import actionlib
 from geometry_msgs.msg import Vector3Stamped, PointStamped
@@ -7,6 +8,7 @@ from giskardpy import tfwrapper
 from suturo_manipulation.gripper import Gripper
 from suturo_manipulation.manipulator import Manipulator
 from giskardpy.python_interface import GiskardWrapper
+from tf.transformations import euler_from_quaternion
 
 
 class OpenServer:
@@ -20,7 +22,7 @@ class OpenServer:
                                                 auto_start=False)
         self._gripper = Gripper(apply_force_action_server=u'/hsrb/gripper_controller/apply_force',
                                 follow_joint_trajectory_server=u'/hsrb/gripper_controller/follow_joint_trajectory')
-        self._manipulator = Manipulator()
+        self._manipulator = Manipulator(collision_distance=0.01)
         self._giskard_wrapper = GiskardWrapper()
         self._as.start()
         rospy.loginfo("{} is ready and waiting for orders.".format(self._action_name))
@@ -47,13 +49,13 @@ class OpenServer:
         self._gripper.set_gripper_joint_position(-0.1)
         # opens the door
         success &= self._manipulator.open(u'hand_gripper_tool_frame', goal.object_link_name, 0.7)
-        robot_pose_grasping = tfwrapper.lookup_pose('map', 'base_footprint')
+        robot_pose_grasping = self.add_rotation_offset(tfwrapper.lookup_pose('map', 'base_footprint'), 0.08)
         rospy.logerr(str(robot_pose_grasping))
-        robot_pose_grasping.pose.position.y += 0.04
+
         self._manipulator.move_to_goal(root_link=self._root,
                                        tip_link=u'base_footprint',
                                        goal_pose=robot_pose_grasping)
-        rospy.logerr("HIIIIII")
+
         success &= self._manipulator.open(u'hand_gripper_tool_frame', goal.object_link_name, 0.8)
         # opens the gripper again
         self._gripper.set_gripper_joint_position(1.2)
@@ -68,6 +70,15 @@ class OpenServer:
         if success:
             self._result.error_code = self._result.SUCCESS
         self._as.set_succeeded(self._result)
+
+    def add_rotation_offset(self, pose, offset):
+        pose_orientation = pose.pose.orientation
+        pitch, roll, yaw = euler_from_quaternion(
+                [pose_orientation.x, pose_orientation.y, pose_orientation.z, pose_orientation.w])
+        pose.pose.position.y += math.sin(yaw) * offset
+        pose.pose.position.x += math.cos(yaw) * offset
+
+        return pose
 
     def get_grasp_dimension(self, object_link_name, tip_link):
         handle_frame_id = u'iai_kitchen/' + object_link_name
