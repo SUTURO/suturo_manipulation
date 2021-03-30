@@ -5,6 +5,12 @@ from giskardpy.python_interface import GiskardWrapper
 from knowledge_msgs.msg import ObjectStateArray, ObjectState
 
 
+def get_name(object_state):
+    names = object_state.object_id.split('#')
+    name = names[len(names) - 1]
+    return name
+
+
 class ObjectStateListener:
 
     def __init__(self):
@@ -13,17 +19,33 @@ class ObjectStateListener:
         """
         self._giskard_wrapper = GiskardWrapper()
 
+    def object_in_manipulation_state(self, object_state):
+        """
+        Checks whether in object is currently handled by the robot
+        :type object_state: ObjectState
+        :rtype: bool
+        """
+        name = get_name(object_state)
+        if name in self._giskard_wrapper.get_attached_objects().object_names:
+            rospy.logwarn("{} is believed to be attached to the robot. ObjectState is ignored: {}".format(name, object))
+            return True
+        if object_state.pose.header.frame_id in self._giskard_wrapper.get_robot_links():
+            #TODO: Might change this to attach instead
+            rospy.logwarn("{} is a robot link. ObjectState is ignored: {}".format(object_state.pose.header.frame_id, object))
+            return True
+        return False
+
     def delete_object(self, object_state):
         """
         Removes the given objects from the world
         :type object_state: ObjectState
         :return:
         """
-        names = object_state.object_id.split('#')
-        name = names[len(names) - 1]
-        if name in self._giskard_wrapper.get_attached_objects().object_names:
-            rospy.logwarn("{} is believed to be attached to the robot. ObjectState is ignored: {}".format(name, object))
+        name = get_name(object_state)
+        # Safety Check
+        if self.object_in_manipulation_state(object_state):
             return
+
         if name in self._giskard_wrapper.get_object_names().object_names:
             self._giskard_wrapper.remove_object(name)
 
@@ -33,15 +55,15 @@ class ObjectStateListener:
         :type object_state: ObjectState
         :return:
         """
-        names = object_state.object_id.split('#')
-        name = names[len(names) - 1]
-        if name in self._giskard_wrapper.get_attached_objects().object_names:
-            rospy.logwarn("{} is believed to be attached to the robot. ObjectState is ignored: {}".format(name, object))
+        name = get_name(object_state)
+        # Safety Check
+        if self.object_in_manipulation_state(object_state):
             return
+
         if object_state.shape == ObjectState.CUBE:
             self._giskard_wrapper.add_box(
                 name=name,
-                size=(object_state.size.x, object_state.size.y, object_state.size.z),
+                size=[object_state.size.x, object_state.size.y, object_state.size.z],
                 pose=object_state.pose
             )
         elif object_state.shape == ObjectState.CYLINDER:
