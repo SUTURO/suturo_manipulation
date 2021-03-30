@@ -72,6 +72,12 @@ def init_menu():
     menu_handler.insert("Front", parent=plan_place_men, callback=plan_place_front_cb)
     menu_handler.insert("Top", parent=plan_place_men, callback=plan_place_top_cb)
 
+    utility_men = menu_handler.insert("Utility")
+    menu_handler.insert("Get All Object", parent=utility_men, callback=get_all_objects_cb)
+    menu_handler.insert("Get Attached Object", parent=utility_men, callback=get_attached_objects_cb)
+    menu_handler.insert("Get Robot Links", parent=utility_men, callback=get_robot_links_cb)
+
+
 
 def take_neutral_pose_cb(feedback):
     take_pose(feedback.pose, TakePoseGoal.NEUTRAL)
@@ -130,6 +136,17 @@ def marker_moved_cb(feedback):
     marker.description = "{}, {}, {}".format(feedback.pose.position.x, feedback.pose.position.y,
                                              feedback.pose.position.z)
     server.applyChanges()
+
+
+def get_all_objects_cb(feedback):
+    rospy.loginfo("All Objects: {}".format(giskard_wrapper.get_object_names().object_names))
+
+
+def get_attached_objects_cb(feedback):
+    rospy.loginfo("Attached Objects: {}".format(giskard_wrapper.get_attached_objects().object_names))
+
+def get_robot_links_cb(feedback):
+    rospy.loginfo("Robot Links: {}".format(giskard_wrapper.get_robot_links()))
 
 
 def make_plan(goal_pose, gripper_mode, action_mode):
