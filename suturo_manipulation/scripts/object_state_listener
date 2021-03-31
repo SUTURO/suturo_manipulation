@@ -5,6 +5,12 @@ from giskardpy.python_interface import GiskardWrapper
 from knowledge_msgs.msg import ObjectStateArray, ObjectState
 
 
+def get_name(object_state):
+    names = object_state.object_id.split('#')
+    name = names[len(names) - 1]
+    return name
+
+
 class ObjectStateListener:
 
     def __init__(self):
@@ -13,55 +19,78 @@ class ObjectStateListener:
         """
         self._giskard_wrapper = GiskardWrapper()
 
-    def delete_object(self, object_state_array):
+    def object_in_manipulation_state(self, object_state):
+        """
+        Checks whether in object is currently handled by the robot
+        :type object_state: ObjectState
+        :rtype: bool
+        """
+        name = get_name(object_state)
+        if name in self._giskard_wrapper.get_attached_objects().object_names:
+            rospy.logwarn("{} is believed to be attached to the robot. ObjectState is ignored: {}".format(name, object))
+            return True
+        if object_state.pose.header.frame_id in self._giskard_wrapper.get_robot_links():
+            #TODO: Might change this to attach instead
+            rospy.logwarn("{} is a robot link. ObjectState is ignored: {}".format(object_state.pose.header.frame_id, object))
+            return True
+        return False
+
+    def delete_object(self, object_state):
         """
         Removes the given objects from the world
-        :param object_state_array:
+        :type object_state: ObjectState
         :return:
         """
-        for object in object_state_array.object_states:
-            names = object.object_id.split('#')
-            name = names[len(names) - 1]
+        name = get_name(object_state)
+        # Safety Check
+        if self.object_in_manipulation_state(object_state):
+            return
+
+        if name in self._giskard_wrapper.get_object_names().object_names:
             self._giskard_wrapper.remove_object(name)
 
-    def add_object(self, object_state_array):
+    def add_object(self, object_state):
         """
-        Adds or updates the given objects
-        :param object_state_array:
+        Add the given objects to the world
+        :type object_state: ObjectState
         :return:
         """
-        for object in object_state_array.object_states:
-            names = object.object_id.split('#')
-            name = names[len(names) - 1]
-            if object.shape == ObjectState.CUBE:
-                self._giskard_wrapper.add_box(
-                    name=name,
-                    size=(object.size.x, object.size.y, object.size.z),
-                    pose=object.pose
-                )
-            elif object.shape == ObjectState.CYLINDER:
-                self._giskard_wrapper.add_cylinder(
-                    name=name,
-                    height=object.size.y,
-                    radius=object.size.x,
-                    pose=object.pose
-                )
-            elif object.shape == ObjectState.SPHERE:
-                self._giskard_wrapper.add_sphere(
-                    name=name,
-                    size=object.size.x,
-                    pose=object.pose
-                )
-            else:
-                rospy.logwarn("Unknown shape: ", object.shape)
+        name = get_name(object_state)
+        # Safety Check
+        if self.object_in_manipulation_state(object_state):
+            return
+
+        if object_state.shape == ObjectState.CUBE:
+            self._giskard_wrapper.add_box(
+                name=name,
+                size=[object_state.size.x, object_state.size.y, object_state.size.z],
+                pose=object_state.pose
+            )
+        elif object_state.shape == ObjectState.CYLINDER:
+            self._giskard_wrapper.add_cylinder(
+                name=name,
+                height=object_state.size.y,
+                radius=object_state.size.x,
+                pose=object_state.pose
+            )
+        elif object_state.shape == ObjectState.SPHERE:
+            self._giskard_wrapper.add_sphere(
+                name=name,
+                size=object_state.size.x,
+                pose=object_state.pose
+            )
+        else:
+            rospy.logwarn("Unknown shape: ", object_state.shape)
 
     def object_state_callback(self, object_state_array):
         print("received object_state_array")
         if object_state_array.action == ObjectStateArray.ADD:
-            self.delete_object(object_state_array)  # Hack to update objects
-            self.add_object(object_state_array)
+            for object_state in object_state_array.object_states:
+                self.delete_object(object_state)  # Hack to update objects
+                self.add_object(object_state)
         elif object_state_array.action == ObjectStateArray.DELETE:
-            self.delete_object(object_state_array)
+            for object_state in object_state_array.object_states:
+                self.delete_object(object_state)
         else:
             rospy.logwarn("Unknown action:", object_state_array.action)
 
