@@ -1,10 +1,11 @@
 #!/usr/bin/env python
 
 import rospy
+import numpy as np
 from giskardpy.python_interface import GiskardWrapper
 from giskardpy.utils import to_tf_quaternion, calculate_waypoint2D
 from geometry_msgs.msg import Quaternion, PoseStamped, PointStamped, Vector3Stamped
-from tf.transformations import quaternion_multiply
+from tf.transformations import quaternion_multiply, quaternion_from_matrix
 
 
 class Manipulator:
@@ -113,7 +114,14 @@ class Manipulator:
 
         self.giskard_wrapper_.allow_all_collisions()
         #self.set_collision(self.collision_distance_)
-        self.giskard_wrapper_.grasp_bar(root_link, tip_link, tip_grasp_axis, bar_center, bar_axis, bar_length)
+        goal_pose = PoseStamped()
+        goal_pose.header.frame_id = object_link_name
+        rotation_matrix = np.array([[0,-1,0,0],
+                                    [0,0,-1,0],
+                                    [ 1,0,0,0],
+                                    [0,0,0, 1]])
+        goal_pose.pose.orientation = Quaternion(*quaternion_from_matrix(rotation_matrix))
+        self.giskard_wrapper_.set_cart_goal(root_link, tip_link, goal_pose)
         self.giskard_wrapper_.plan_and_execute(wait=True)
         result = self.giskard_wrapper_.get_result()
         return result and result.SUCCESS in result.error_codes
