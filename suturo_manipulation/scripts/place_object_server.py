@@ -60,10 +60,17 @@ class PlaceServer:
             if goal.object_frame_id in self._giskard_wrapper.get_attached_objects().object_names:
                 self._giskard_wrapper.detach_object(goal.object_frame_id)
             self._gripper.publish_object_in_gripper(goal.object_frame_id, goal.goal_pose, ObjectInGripper.PLACED)
+
+        collision_whitelist = []
+        if goal.object_frame_id in self._giskard_wrapper.get_object_names().object_names:
+            collision_whitelist.append(goal.object_frame_id)
+        else:
+            rospy.logwarn("unknown object: {}".format(goal.object_frame_id))
         robot_pose.header.stamp = rospy.Time.now()  # Might not be needed but is cleaner this way
         success &= self._manipulator.move_to_goal(root_link=self._root,
                                                   tip_link=u'base_footprint',
-                                                  goal_pose=robot_pose)
+                                                  goal_pose=robot_pose,
+                                                  collision_whitelist=collision_whitelist)
         success &= self._manipulator.take_robot_pose(rospy.get_param(u'/manipulation/robot_poses/neutral'))
         if success:
             self._result.error_code = self._result.SUCCESS
