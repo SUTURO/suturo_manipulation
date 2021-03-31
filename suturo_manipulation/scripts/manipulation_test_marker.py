@@ -17,6 +17,7 @@ take_pose_client = None
 grasp_client = None
 place_client = None
 giskard_wrapper = None
+test_object_name = "test_object"
 
 
 def make_int_marker():
@@ -72,11 +73,16 @@ def init_menu():
     menu_handler.insert("Front", parent=plan_place_men, callback=plan_place_front_cb)
     menu_handler.insert("Top", parent=plan_place_men, callback=plan_place_top_cb)
 
+    test_object_men = menu_handler.insert("Test Object")
+    menu_handler.insert("Spawn Object", parent=test_object_men, callback=spawn_test_object_cb)
+    menu_handler.insert("Remove Object", parent=test_object_men, callback=remove_test_object_cb)
+    menu_handler.insert("Attach Object", parent=test_object_men, callback=attach_test_object_cb)
+    menu_handler.insert("Detach Object", parent=test_object_men, callback=detach_test_object_cb)
+
     utility_men = menu_handler.insert("Utility")
     menu_handler.insert("Get All Object", parent=utility_men, callback=get_all_objects_cb)
     menu_handler.insert("Get Attached Object", parent=utility_men, callback=get_attached_objects_cb)
     menu_handler.insert("Get Robot Links", parent=utility_men, callback=get_robot_links_cb)
-
 
 
 def take_neutral_pose_cb(feedback):
@@ -145,9 +151,25 @@ def get_all_objects_cb(feedback):
 def get_attached_objects_cb(feedback):
     rospy.loginfo("Attached Objects: {}".format(giskard_wrapper.get_attached_objects().object_names))
 
+
 def get_robot_links_cb(feedback):
     rospy.loginfo("Robot Links: {}".format(giskard_wrapper.get_robot_links()))
 
+
+def spawn_test_object_cb(feedback):
+    spawn_test_object(feedback.pose)
+
+
+def remove_test_object_cb(feedback):
+    remove_test_object()
+
+
+def attach_test_object_cb(feedback):
+    attach_test_object()
+
+
+def detach_test_object_cb(feedback):
+    detach_test_object()
 
 def make_plan(goal_pose, gripper_mode, action_mode):
     goal = MakePlanGoal()
@@ -182,18 +204,12 @@ def take_pose(pose, mode):
 def grasp_object(pose, mode):
     goal = GraspGoal()
     goal.grasp_mode = mode
-    goal.object_frame_id = "test"
+    goal.object_frame_id = test_object_name
 
     pose_grasp = PoseStamped()
     pose_grasp.header.frame_id = "map"
     pose_grasp.header.stamp = rospy.Time.now()
     pose_grasp.pose = pose
-#    giskard_wrapper.add_cylinder(
-#        name="test",
-#        height=0.2,
-#        radius=0.07,
-#        pose=pose_grasp
-#    )
 
     goal.goal_pose = pose_grasp
     goal.object_size.x = 0.07
@@ -208,7 +224,7 @@ def grasp_object(pose, mode):
 def place_object(pose, mode):
     goal = PlaceGoal()
     goal.place_mode = mode
-    goal.object_frame_id = "test"
+    goal.object_frame_id = test_object_name
 
     place_pose = PoseStamped()
     place_pose.header.frame_id = "map"
@@ -222,6 +238,30 @@ def place_object(pose, mode):
     result = place_client.get_result()
     rospy.loginfo("place_object result: {}".format(result.error_code))
     rospy.loginfo("Execution time: {:.2f}s".format((rospy.Time.now() - start).to_sec()))
+
+
+def spawn_test_object(pose):
+    remove_test_object()
+    pose_S = PoseStamped()
+    pose_S.header.frame_id = "map"
+    pose_S.header.stamp = rospy.Time.now()
+    pose_S.pose = pose
+    giskard_wrapper.add_cylinder(name=test_object_name, height=0.2, radius=0.07, pose=pose_S)
+
+
+def remove_test_object():
+    if test_object_name in giskard_wrapper.get_object_names().object_names:
+        giskard_wrapper.remove_object(test_object_name)
+
+
+def attach_test_object():
+    if test_object_name in giskard_wrapper.get_object_names().object_names:
+        giskard_wrapper.attach_object(test_object_name, "hand_palm_link")
+
+
+def detach_test_object():
+    if test_object_name in giskard_wrapper.get_attached_objects().object_names:
+        giskard_wrapper.detach_object(test_object_name)
 
 
 if __name__ == '__main__':
