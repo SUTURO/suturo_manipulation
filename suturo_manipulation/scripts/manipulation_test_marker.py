@@ -68,6 +68,7 @@ def init_menu():
     open_men = menu_handler.insert("Open...")
     menu_handler.insert("door_1", parent=open_men, callback=open_door_1_cb)
     menu_handler.insert("door_2", parent=open_men, callback=open_door_2_cb)
+    menu_handler.insert("schelve_1", parent=open_men, callback=open_shelve_1_cb)
 
     giskard_men = menu_handler.insert("Giskard")
     menu_handler.insert("object_names", parent=giskard_men, callback=print_object_names_cb)
@@ -107,6 +108,10 @@ def place_front_cb(feedback):
 
 def place_top_cb(feedback):
     place_object(feedback.pose, PlaceGoal.TOP)
+
+
+def open_shelve_1_cb(feedback):
+    open(u'iai_kitchen/openable_shelf_1_door_left_link_handle', u'iai_kitchen/openable_shelf_1_door_left_link_handle')
 
 
 def open_door_1_cb(feedback):
