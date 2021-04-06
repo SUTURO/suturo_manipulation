@@ -98,7 +98,7 @@ class Manipulator:
         result = self.giskard_wrapper_.get_result()
         return result and result.SUCCESS in result.error_codes
 
-    def grasp_bar(self, root_link, tip_link, object_name, object_link_name, tip_grasp_axis, bar_center, bar_axis, bar_length):
+    def grasp_bar(self, root_link, tip_link, object_name, object_link_name, goal_pose):
         """
         Lets the robot grasp the bar of an object (in this case the handles)
         :type object_name str
@@ -112,15 +112,8 @@ class Manipulator:
         """
 
 
-        self.giskard_wrapper_.allow_all_collisions()
+        self.set_collision(-1)
         #self.set_collision(self.collision_distance_)
-        goal_pose = PoseStamped()
-        goal_pose.header.frame_id = object_link_name
-        rotation_matrix = np.array([[0,-1,0,0],
-                                    [0,0,-1,0],
-                                    [ 1,0,0,0],
-                                    [0,0,0, 1]])
-        goal_pose.pose.orientation = Quaternion(*quaternion_from_matrix(rotation_matrix))
         self.giskard_wrapper_.set_cart_goal(root_link, tip_link, goal_pose)
         self.giskard_wrapper_.plan_and_execute(wait=True)
         result = self.giskard_wrapper_.get_result()
@@ -135,7 +128,7 @@ class Manipulator:
         :param object_link_name handle to grasp
         :type angle_
         """
-        self.giskard_wrapper_.allow_all_collisions()
+        self.set_collision(-1)
         #self.set_collision(self.collision_distance_)
         self.giskard_wrapper_.set_open_goal(tip_link, object_link_name, angle_goal)
         self.giskard_wrapper_.plan_and_execute(wait=True)
