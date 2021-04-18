@@ -2,13 +2,14 @@
 import math
 import rospy
 import actionlib
-from geometry_msgs.msg import Vector3Stamped, PointStamped
+import numpy as np
+from geometry_msgs.msg import Quaternion, Vector3Stamped, PointStamped, PoseStamped
 from manipulation_msgs.msg import OpenAction, OpenGoal, OpenFeedback, OpenResult
 from giskardpy import tfwrapper
 from suturo_manipulation.gripper import Gripper
 from suturo_manipulation.manipulator import Manipulator
 from giskardpy.python_interface import GiskardWrapper
-from tf.transformations import euler_from_quaternion
+from tf.transformations import euler_from_quaternion, quaternion_from_matrix
 
 
 class OpenServer:
@@ -42,21 +43,22 @@ class OpenServer:
         # open gripper
         self._gripper.set_gripper_joint_position(1.2)
         # move to handle of the object
-        bar_axis, bar_center, tip_grasp_axis = self.get_grasp_dimension(goal.object_link_name, u'hand_gripper_tool_frame')
-        success &= self._manipulator.grasp_bar(u'odom', u'hand_gripper_tool_frame', goal.object_name,
-                                               goal.object_link_name, tip_grasp_axis, bar_center, bar_axis, 0.085)
+        bar_axis, bar_center, tip_grasp_axis = self.get_grasp_dimension(goal.object_name, u'hand_gripper_tool_frame')
+        goal_pose = self.calculate_goal_pose(goal.object_link_name)
+        success &= self._manipulator.grasp_bar(u'odom', u'hand_gripper_tool_frame', goal.object_link_name,
+                                               goal.object_link_name, goal_pose)
         # closing the gripper
-        self._gripper.set_gripper_joint_position(-0.1)
+        self._gripper.close_gripper_force(0.8)
         # opens the door
-        success &= self._manipulator.open(u'hand_gripper_tool_frame', goal.object_link_name, 0.7)
-        robot_pose_grasping = self.add_rotation_offset(tfwrapper.lookup_pose('map', 'base_footprint'), 0.08)
-        rospy.logerr(str(robot_pose_grasping))
+        success &= self._manipulator.open(u'hand_gripper_tool_frame', goal.object_name, 1.4)
+        #robot_pose_grasping = self.add_rotation_offset(tfwrapper.lookup_pose('map', 'base_footprint'), 0.08)
+        #rospy.logerr(str(robot_pose_grasping))
 
-        self._manipulator.move_to_goal(root_link=self._root,
-                                       tip_link=u'base_footprint',
-                                       goal_pose=robot_pose_grasping)
+        #self._manipulator.move_to_goal(root_link=self._root,
+                                       #tip_link=u'base_footprint',
+                                       #goal_pose=robot_pose_grasping)
 
-        success &= self._manipulator.open(u'hand_gripper_tool_frame', goal.object_link_name, 0.8)
+        #success &= self._manipulator.open(u'hand_gripper_tool_frame', goal.object_name, 0.8)
         # opens the gripper again
         self._gripper.set_gripper_joint_position(1.2)
 
@@ -70,6 +72,23 @@ class OpenServer:
         if success:
             self._result.error_code = self._result.SUCCESS
         self._as.set_succeeded(self._result)
+
+    def calculate_goal_pose(self, object_name):
+        goal_pose = PoseStamped()
+        goal_pose.header.frame_id = object_name
+        rotation_matrix = np.eye(4)
+        if 'shelf' in object_name:
+            rotation_matrix = np.array([[0, -1, 0, 0],
+                                        [0, 0, -1, 0],
+                                        [1, 0, 0, 0],
+                                        [0, 0, 0, 1]])
+        elif 'door' in object_name:
+            rotation_matrix = np.array([[1, 0, 0, 0],
+                                        [0, 0, -1, 0],
+                                        [0, 1, 0, 0],
+                                        [0, 0, 0, 1]])
+        goal_pose.pose.orientation = Quaternion(*quaternion_from_matrix(rotation_matrix))
+        return goal_pose
 
     def add_rotation_offset(self, pose, offset):
         pose_orientation = pose.pose.orientation
