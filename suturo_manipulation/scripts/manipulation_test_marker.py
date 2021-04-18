@@ -111,11 +111,11 @@ def place_top_cb(feedback):
 
 
 def open_shelve_1_cb(feedback):
-    open(u'iai_kitchen/openable_shelf_1_door_left_link_handle', u'iai_kitchen/openable_shelf_1_door_left_link_handle')
+    open(u'hsr_shelf_openable_door_left_link_handle', u'iai_kitchen/hsr_shelf_openable_door_left_link_handle')
 
 
 def open_door_1_cb(feedback):
-    open(u'door_1_handle_outside', u'door_1_handle_outside')
+    open(u'door_1_handle_outside', u'iai_kitchen/door_1_handle_outside')
 
 
 def open_door_2_cb(feedback):
