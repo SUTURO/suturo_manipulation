@@ -33,9 +33,18 @@
 		<remap from="~object_state" to="/object_state"/>
 	</node>
 
-	<node pkg="suturo_manipulation" type="giskard_load_static_objects.py" name="load_static_objects" if="$(eval load_static_objects == true)">
+	<!--node pkg="suturo_manipulation" type="giskard_load_static_objects.py" name="load_static_objects" if="$(eval load_static_objects == true)">
 		<param name="environment_frame" value="iai_kitchen/world"/>
-	</node>
+	</node-->
+
+    <node pkg="giskardpy" type="add_urdf.py" name="add_kitchen">
+		<param name="name" value="iai_kitchen"/>
+		<param name="param" value="hsrb_lab"/>
+		<param name="js" value="kitchen/joint_states"/>
+
+		<param name="root_frame" value="iai_kitchen/urdf_main"/>
+		<param name="frame_id" value="map" />
+    </node>
 
 	<node pkg="suturo_manipulation" name="move_gripper_server" type="move_gripper_server.py" output="screen"
 		if="$(eval run_move_gripper_server == true)"/>
