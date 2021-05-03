@@ -45,7 +45,7 @@ class Gripper:
         """
         joint_states = self._giskard_wrapper.get_joint_states(u'/hsrb/joint_states')
         if joint_states.has_key(u'hand_motor_joint'):
-            result = joint_states[u'hand_motor_joint'] > -0.8
+            result = joint_states[u'hand_motor_joint'] > -0.3
             rospy.loginfo("object_in_gripper: {}".format(result))
             return result
         else:

@@ -1,6 +1,7 @@
 #! /usr/bin/env python
 
 import actionlib
+import rospy
 from geometry_msgs.msg import PoseStamped, Vector3
 from interactive_markers.interactive_marker_server import *
 from interactive_markers.menu_handler import *
@@ -10,6 +11,8 @@ from visualization_msgs.msg import *
 
 from giskardpy.python_interface import GiskardWrapper
 
+from suturo_manipulation.gripper import Gripper
+
 server = None
 menu_handler = MenuHandler()
 
@@ -17,6 +20,7 @@ take_pose_client = None
 grasp_client = None
 place_client = None
 giskard_wrapper = None
+gripper = None
 test_object_name = "test_object"
 
 
@@ -56,6 +60,7 @@ def init_menu():
     menu_handler.insert("Look high", parent=pose_men, callback=take_look_high_pose_cb)
     menu_handler.insert("Look floor", parent=pose_men, callback=take_look_floor_pose_cb)
     menu_handler.insert("Look at marker", parent=pose_men, callback=take_look_at_marker_pose_cb)
+    menu_handler.insert("Give Take", parent=pose_men, callback=take_give_take_pose_cb)
 
     grasp_men = menu_handler.insert("Grasp here")
     menu_handler.insert("Front", parent=grasp_men, callback=grasp_front_cb)
@@ -72,6 +77,12 @@ def init_menu():
     plan_place_men = menu_handler.insert("Place", parent=plan_men)
     menu_handler.insert("Front", parent=plan_place_men, callback=plan_place_front_cb)
     menu_handler.insert("Top", parent=plan_place_men, callback=plan_place_top_cb)
+
+    gripper_men = menu_handler.insert("Gripper")
+    menu_handler.insert("Open", parent=gripper_men, callback=open_gripper_cb)
+    menu_handler.insert("Close", parent=gripper_men, callback=close_gripper_cb)
+    menu_handler.insert("Close with force", parent=gripper_men, callback=close_gripper_force_cb)
+    menu_handler.insert("Get joint state", parent=gripper_men, callback=get_gripper_joint_state_cb)
 
     test_object_men = menu_handler.insert("Test Object")
     menu_handler.insert("Spawn Object", parent=test_object_men, callback=spawn_test_object_cb)
@@ -103,6 +114,10 @@ def take_look_floor_pose_cb(feedback):
 
 def take_look_at_marker_pose_cb(feedback):
     take_pose(feedback.pose, TakePoseGoal.GAZE)
+
+
+def take_give_take_pose_cb(feedback):
+    take_pose(feedback.pose, TakePoseGoal.GIVE_TAKE)
 
 
 def grasp_front_cb(feedback):
@@ -170,6 +185,23 @@ def attach_test_object_cb(feedback):
 
 def detach_test_object_cb(feedback):
     detach_test_object()
+
+
+def open_gripper_cb(feedback):
+    open_gripper()
+
+
+def close_gripper_cb(feedback):
+    close_gripper()
+
+
+def close_gripper_force_cb(feedback):
+    close_gripper_force()
+
+
+def get_gripper_joint_state_cb(feedback):
+    get_gripper_joint_state()
+
 
 def make_plan(goal_pose, gripper_mode, action_mode):
     goal = MakePlanGoal()
@@ -240,6 +272,27 @@ def place_object(pose, mode):
     rospy.loginfo("Execution time: {:.2f}s".format((rospy.Time.now() - start).to_sec()))
 
 
+def get_gripper_joint_state():
+    joint_states = giskard_wrapper.get_joint_states(u'/hsrb/joint_states')
+    if joint_states.has_key(u'hand_motor_joint'):
+        result = joint_states[u'hand_motor_joint']
+        rospy.loginfo("Gripper hand_motor_joint: {}".format(result))
+    else:
+        rospy.loginfo("Unable to get Gripper hand_motor_joint state.")
+
+
+def open_gripper():
+    gripper.set_gripper_joint_position(1.2)
+
+
+def close_gripper():
+    gripper.set_gripper_joint_position(-0.8)
+
+
+def close_gripper_force():
+    gripper.close_gripper_force()
+
+
 def spawn_test_object(pose):
     remove_test_object()
     pose_S = PoseStamped()
@@ -267,6 +320,8 @@ def detach_test_object():
 if __name__ == '__main__':
     rospy.init_node("manipulation_test_marker")
     giskard_wrapper = GiskardWrapper()
+    gripper = Gripper(apply_force_action_server=u'/hsrb/gripper_controller/apply_force',
+                      follow_joint_trajectory_server=u'/hsrb/gripper_controller/follow_joint_trajectory')
     # connect to servers
     take_pose_client = actionlib.SimpleActionClient('take_pose_server', TakePoseAction)
     grasp_client = actionlib.SimpleActionClient('grasp_server', GraspAction)
