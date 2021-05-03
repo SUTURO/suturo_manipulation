@@ -29,6 +29,7 @@ class Gripper:
         :param mode: placed or grasped
         :return:
         """
+        rospy.loginfo("Publishing: object_in_gripper: Name: {}; Pose: {}; Mode: {}".format(object_frame_id, pose_stamped, mode))
         orientation = normalize_quaternion_msg(pose_stamped.pose.orientation)
         obj_in_gri = ObjectInGripper()
         obj_in_gri.object_frame_id = object_frame_id
@@ -57,13 +58,16 @@ class Gripper:
         :param force: force to grasp with should be between 0.2 and 0.8 (N)
         :return: applied effort
         """
+        rospy.loginfo("Closing gripper with force: {}".format(force))
         f = max(min(0.8, force), 0.2)
         goal = GripperApplyEffortGoal()
         goal.effort = f
         self._gripper_apply_force_client.send_goal(goal)
-        self._gripper_apply_force_client.wait_for_result()
-        result = self._gripper_apply_force_client.get_result()
-        rospy.loginfo("close_gripper: force {}".format(result.effort))
+        if self._gripper_apply_force_client.wait_for_result(rospy.Duration(secs=5)):
+            result = self._gripper_apply_force_client.get_result()
+            rospy.loginfo("close_gripper: force {}".format(result.effort))
+        else:
+            rospy.logwarn("Close Gripper Server timed out.")
 
     def set_gripper_joint_position(self, position):
         """
