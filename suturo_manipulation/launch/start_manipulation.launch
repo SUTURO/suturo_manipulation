@@ -55,12 +55,15 @@
 	<node pkg="suturo_manipulation" name="manipulation_test_marker" type="manipulation_test_marker.py" output="screen"
 		if="$(eval run_manipulation_test_marker == true)"/>
 
+	<node pkg="suturo_manipulation" name="base_scan_limiter" type="base_scan_opening_limiter.py" output="screen"
+		if="$(eval run_manipulation_test_marker == true)"/>
+
 	<node pkg="giskardpy" type="add_urdf.py" name="add_kitchen">
 		<param name="name" value="iai_kitchen"/>
 		<param name="param" value="hsrb_lab"/>
 		<param name="js" value="kitchen/joint_states"/>
 
-		<param name="root_frame" value="iai_kitchen/world"/>
+		<param name="root_frame" value="iai_kitchen/urdf_main"/>
 		<param name="frame_id" value="map" />
 	  </node>
 </launch>
