@@ -7,7 +7,7 @@ from std_srvs.srv import SetBool, SetBoolResponse
 from sensor_msgs.msg import LaserScan
 
 class BaseScanLimiterServer:
-    IGNORE_AREA = 30
+    IGNORE_AREA = 25
     limit_area = False
     laser_scan_publisher = rospy.Publisher('hsrb/base_scan', LaserScan)
 
