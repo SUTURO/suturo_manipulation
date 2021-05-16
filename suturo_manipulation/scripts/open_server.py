@@ -49,16 +49,12 @@ class OpenServer:
                                                goal.object_link_name, goal_pose)
         # closing the gripper
         self._gripper.close_gripper_force(0.8)
+
+        goal_angle = 1.4
+        if 'shelf' in goal.object_name:
+            goal_angle = -1.4
         # opens the door
-        success &= self._manipulator.open(u'hand_gripper_tool_frame', goal.object_name, 1.4)
-        #robot_pose_grasping = self.add_rotation_offset(tfwrapper.lookup_pose('map', 'base_footprint'), 0.08)
-        #rospy.logerr(str(robot_pose_grasping))
-
-        #self._manipulator.move_to_goal(root_link=self._root,
-                                       #tip_link=u'base_footprint',
-                                       #goal_pose=robot_pose_grasping)
-
-        #success &= self._manipulator.open(u'hand_gripper_tool_frame', goal.object_name, 0.8)
+        success &= self._manipulator.open(u'hand_gripper_tool_frame', goal.object_name, goal_angle)
         # opens the gripper again
         self._gripper.set_gripper_joint_position(1.2)
 
@@ -89,15 +85,6 @@ class OpenServer:
                                         [0, 0, 0, 1]])
         goal_pose.pose.orientation = Quaternion(*quaternion_from_matrix(rotation_matrix))
         return goal_pose
-
-    def add_rotation_offset(self, pose, offset):
-        pose_orientation = pose.pose.orientation
-        pitch, roll, yaw = euler_from_quaternion(
-                [pose_orientation.x, pose_orientation.y, pose_orientation.z, pose_orientation.w])
-        pose.pose.position.y += math.sin(yaw) * offset
-        pose.pose.position.x += math.cos(yaw) * offset
-
-        return pose
 
     def get_grasp_dimension(self, object_link_name, tip_link):
         handle_frame_id = u'iai_kitchen/' + object_link_name
