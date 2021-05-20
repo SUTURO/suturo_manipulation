@@ -43,18 +43,19 @@ class OpenServer:
         # open gripper
         self._gripper.set_gripper_joint_position(1.2)
         # move to handle of the object
-        bar_axis, bar_center, tip_grasp_axis = self.get_grasp_dimension(goal.object_name, u'hand_gripper_tool_frame')
         goal_pose = self.calculate_goal_pose(goal.object_link_name)
         success &= self._manipulator.grasp_bar(u'odom', u'hand_gripper_tool_frame', goal.object_link_name,
                                                goal.object_link_name, goal_pose)
         # closing the gripper
         self._gripper.close_gripper_force(0.8)
 
-        goal_angle = 1.4
+        goal_angle = 1.5
+        limit_base_scan = True
         if 'shelf' in goal.object_name:
-            goal_angle = -1.4
+            goal_angle = -1.5
+            limit_base_scan = False
         # opens the door
-        success &= self._manipulator.open(u'hand_gripper_tool_frame', goal.object_name, goal_angle)
+        success &= self._manipulator.open(u'hand_gripper_tool_frame', goal.object_name, goal_angle, limit_base_scan)
         # opens the gripper again
         self._gripper.set_gripper_joint_position(1.2)
 
@@ -85,21 +86,6 @@ class OpenServer:
                                         [0, 0, 0, 1]])
         goal_pose.pose.orientation = Quaternion(*quaternion_from_matrix(rotation_matrix))
         return goal_pose
-
-    def get_grasp_dimension(self, object_link_name, tip_link):
-        handle_frame_id = u'iai_kitchen/' + object_link_name
-        bar_axis = Vector3Stamped()
-        bar_axis.header.frame_id = handle_frame_id
-        bar_axis.vector.x = 1
-
-        bar_center = PointStamped()
-        bar_center.header.frame_id = handle_frame_id
-
-        tip_grasp_axis = Vector3Stamped()
-        tip_grasp_axis.vector.x = 1
-        tip_grasp_axis.header.frame_id = tip_link
-
-        return bar_axis, bar_center, tip_grasp_axis
 
 if __name__ == '__main__':
     rospy.init_node('open_server')
