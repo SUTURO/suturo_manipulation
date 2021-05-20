@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 
 import rospy
-import numpy as np
+from std_srvs.srv import SetBool
 from giskardpy.python_interface import GiskardWrapper
 from giskardpy.utils import to_tf_quaternion, calculate_waypoint2D
 from geometry_msgs.msg import Quaternion, PoseStamped, PointStamped, Vector3Stamped
@@ -119,18 +119,31 @@ class Manipulator:
         result = self.giskard_wrapper_.get_result()
         return result and result.SUCCESS in result.error_codes
 
-    def open(self, tip_link, object_link_name, angle_goal):
+    def open(self, tip_link, object_link_name, angle_goal, use_limitation):
         """
         Lets the robot open the given object
         :type tip_link str
         :param tip_link the name of the gripper
         :type object_link_name str
         :param object_link_name handle to grasp
-        :type angle_
+        :type angle_goal float
+        :param angle_goal the angle goal in relation to the current status
+        :type use_limitation bool
+        :param use_limitation indicator, if the limitation should be used
         """
+        self.change_base_scan_limitation(use_limitation)
         self.set_collision(-1)
-        #self.set_collision(self.collision_distance_)
         self.giskard_wrapper_.set_open_goal(tip_link, object_link_name, angle_goal)
         self.giskard_wrapper_.plan_and_execute(wait=True)
         result = self.giskard_wrapper_.get_result()
+        self.change_base_scan_limitation(False)
         return result and result.SUCCESS in result.error_codes
+
+    def change_base_scan_limitation(self, indicator):
+        rospy.wait_for_service('/base_scan_limitation')
+        try:
+            base_scan_limitation = rospy.ServiceProxy('/base_scan_limitation', SetBool)
+            response = base_scan_limitation(indicator)
+            return response.success
+        except rospy.ServiceProxy as e:
+            print("base scan limitation failed: %e"%e)
