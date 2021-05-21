@@ -80,7 +80,7 @@ class Manipulator:
         self.giskard_wrapper_.set_cart_goal(root_link, tip_link, goal_pose)
         self.giskard_wrapper_.plan_and_execute(wait=True)
         result = self.giskard_wrapper_.get_result()
-        rospy.loginfo("Giskard result: {}".format(result))
+        rospy.loginfo("Giskard result: {}".format(result.error_codes))
         return result and result.SUCCESS in result.error_codes
 
     def take_robot_pose(self, robot_pose):

@@ -94,6 +94,7 @@ def init_menu():
     menu_handler.insert("Get All Object", parent=utility_men, callback=get_all_objects_cb)
     menu_handler.insert("Get Attached Object", parent=utility_men, callback=get_attached_objects_cb)
     menu_handler.insert("Get Robot Links", parent=utility_men, callback=get_robot_links_cb)
+    menu_handler.insert("Clear world", parent=utility_men, callback=clear_world_cb)
 
 
 def take_neutral_pose_cb(feedback):
@@ -201,6 +202,10 @@ def close_gripper_force_cb(feedback):
 
 def get_gripper_joint_state_cb(feedback):
     get_gripper_joint_state()
+
+
+def clear_world_cb(feedback):
+    clear_world()
 
 
 def make_plan(goal_pose, gripper_mode, action_mode):
@@ -315,6 +320,11 @@ def attach_test_object():
 def detach_test_object():
     if test_object_name in giskard_wrapper.get_attached_objects().object_names:
         giskard_wrapper.detach_object(test_object_name)
+
+
+def clear_world():
+    result = giskard_wrapper.clear_world()
+    rospy.loginfo("Clear world: {}".format(result.error_codes))
 
 
 if __name__ == '__main__':
