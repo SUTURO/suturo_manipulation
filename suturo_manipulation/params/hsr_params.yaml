@@ -61,3 +61,12 @@ robot_poses:
     arm_roll_joint: 1.4
     wrist_flex_joint: -1.57
     wrist_roll_joint: 0.14
+
+  give_take:
+    head_pan_joint: 0.0
+    head_tilt_joint: 0.0
+    arm_lift_joint: 0.0
+    arm_flex_joint: 0.0
+    arm_roll_joint: 0.0
+    wrist_flex_joint: -1.57
+    wrist_roll_joint: 0.14

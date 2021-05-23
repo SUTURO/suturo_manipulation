@@ -5,9 +5,10 @@
 	<arg name="run_take_pose_server" default="true"/>
 	<arg name="run_place_server" default="true"/>
 	<arg name="run_open_server" default="true"/>
+	<arg name="run_make_plan_server" default="true"/>
 	<arg name="run_object_state_listener" default="true"/>
 	<arg name="run_manipulation_test_marker" default="true"/>
-	<arg name="load_static_objects" default="false"/>
+	<arg name="load_static_objects" default="true"/>
     <arg name="gui" default="false"/>
 
 	<rosparam ns="/manipulation" file="$(find suturo_manipulation)/params/hsr_params.yaml" />
@@ -33,9 +34,18 @@
 		<remap from="~object_state" to="/object_state"/>
 	</node>
 
-	<node pkg="suturo_manipulation" type="giskard_load_static_objects.py" name="load_static_objects" if="$(eval load_static_objects == true)">
+	<!--node pkg="suturo_manipulation" type="giskard_load_static_objects.py" name="load_static_objects" if="$(eval load_static_objects == true)">
 		<param name="environment_frame" value="iai_kitchen/world"/>
-	</node>
+	</node-->
+
+    <node pkg="giskardpy" type="add_urdf.py" name="add_kitchen">
+		<param name="name" value="iai_kitchen"/>
+		<param name="param" value="hsrb_lab"/>
+		<param name="js" value="kitchen/joint_states"/>
+
+		<param name="root_frame" value="iai_kitchen/urdf_main"/>
+		<param name="frame_id" value="map" />
+    </node>
 
 	<node pkg="suturo_manipulation" name="move_gripper_server" type="move_gripper_server.py" output="screen"
 		if="$(eval run_move_gripper_server == true)"/>
@@ -45,6 +55,9 @@
 
 	<node pkg="suturo_manipulation" name="place_server" type="place_object_server.py" output="screen"
 		if="$(eval run_place_server == true)"/>
+
+	<node pkg="suturo_manipulation" name="make_plan_server" type="make_plan_server.py" output="screen"
+		if="$(eval run_make_plan_server == true)"/>
 
 	<node pkg="suturo_manipulation" name="take_pose_server" type="take_pose_server.py" output="screen"
 		if="$(eval run_take_pose_server == true)"/>
@@ -58,12 +71,4 @@
 	<node pkg="suturo_manipulation" name="base_scan_limiter" type="base_scan_opening_limiter.py" output="screen"
 		if="$(eval run_manipulation_test_marker == true)"/>
 
-	<node pkg="giskardpy" type="add_urdf.py" name="add_kitchen">
-		<param name="name" value="iai_kitchen"/>
-		<param name="param" value="hsrb_lab"/>
-		<param name="js" value="kitchen/joint_states"/>
-
-		<param name="root_frame" value="iai_kitchen/urdf_main"/>
-		<param name="frame_id" value="map" />
-	  </node>
 </launch>

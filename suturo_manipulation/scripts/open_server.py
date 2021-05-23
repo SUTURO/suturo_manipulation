@@ -3,8 +3,8 @@ import math
 import rospy
 import actionlib
 import numpy as np
-from geometry_msgs.msg import Quaternion, Vector3Stamped, PointStamped, PoseStamped
-from manipulation_msgs.msg import OpenAction, OpenGoal, OpenFeedback, OpenResult
+from geometry_msgs.msg import Quaternion, PoseStamped
+from manipulation_msgs.msg import OpenAction, OpenFeedback, OpenResult
 from giskardpy import tfwrapper
 from suturo_manipulation.gripper import Gripper
 from suturo_manipulation.manipulator import Manipulator
@@ -47,12 +47,12 @@ class OpenServer:
         success &= self._manipulator.grasp_bar(u'odom', u'hand_gripper_tool_frame', goal.object_link_name,
                                                goal.object_link_name, goal_pose)
         # closing the gripper
-        self._gripper.close_gripper_force(0.8)
+        self._gripper.set_gripper_joint_position(-0.1)
 
-        goal_angle = 1.5
+        goal_angle = 1.4
         limit_base_scan = True
         if 'shelf' in goal.object_name:
-            goal_angle = -1.5
+            goal_angle = -1.4
             limit_base_scan = False
         # opens the door
         success &= self._manipulator.open(u'hand_gripper_tool_frame', goal.object_name, goal_angle, limit_base_scan)

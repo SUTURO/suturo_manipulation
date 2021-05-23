@@ -69,10 +69,10 @@ class GraspsObjectServer:
                 if goal.object_frame_id in self._giskard_wrapper.get_object_names().object_names:
                     self._giskard_wrapper.attach_object(goal.object_frame_id, u'hand_palm_link')
                 self._gripper.publish_object_in_gripper(goal.object_frame_id, goal.goal_pose, ObjectInGripper.GRASPED)
-            robot_pose.header.stamp = rospy.Time.now()  # Might not be needed but is cleaner this way
-            success &= self._manipulator.move_to_goal(root_link=self._root,
-                                                      tip_link=u'base_footprint',
-                                                      goal_pose=robot_pose)
+        robot_pose.header.stamp = rospy.Time.now()  # Might not be needed but is cleaner this way
+        success &= self._manipulator.move_to_goal(root_link=self._root,
+                                                  tip_link=u'base_footprint',
+                                                  goal_pose=robot_pose)
         success &= self._manipulator.take_robot_pose(rospy.get_param(u'/manipulation/robot_poses/transport'))
         if success:
             self._result.error_code = self._result.SUCCESS
