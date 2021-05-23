@@ -15,6 +15,6 @@ giskard_wrapper.remove_object('gripper_dummy')
 giskard_wrapper.remove_object('lab')
 p = tfwrapper.lookup_pose('map', kitchen_frame)
 
-giskard_wrapper.attach_box(name='gripper_dummy', size=[0.05, 0.1, 0.1], frame_id="hand_palm_link",
-                           position=[0.05, 0, 0.05], orientation=[0, 0, 0, 1])
+#giskard_wrapper.attach_box(name='gripper_dummy', size=[0.05, 0.1, 0.1], frame_id="hand_palm_link",
+#                           position=[0.05, 0, 0.05], orientation=[0, 0, 0, 1])
 giskard_wrapper.add_urdf(name='lab', urdf=_urdf, js_topic='/kitchen/joint_states', pose=p)
