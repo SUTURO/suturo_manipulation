@@ -68,7 +68,4 @@
 	<node pkg="suturo_manipulation" name="manipulation_test_marker" type="manipulation_test_marker.py" output="screen"
 		if="$(eval run_manipulation_test_marker == true)"/>
 
-	<node pkg="suturo_manipulation" name="base_scan_limiter" type="base_scan_opening_limiter.py" output="screen"
-		if="$(eval run_manipulation_test_marker == true)"/>
-
 </launch>
