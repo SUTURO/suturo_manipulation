@@ -67,6 +67,9 @@ class TakePoseServer:
             self._giskard_wrapper.plan_and_execute(wait=True)
             v3 = hsrb_interface.geometry.Vector3(x=goal.gaze_point.x, y=goal.gaze_point.y, z=goal.gaze_point.z)
             self._whole_body.gaze_point(point=v3, ref_frame_id='map')
+        elif goal.pose_mode == goal.GIVE_TAKE:
+            self._giskard_wrapper.set_joint_goal(rospy.get_param(u'/manipulation/robot_poses/give_take'))
+            self._giskard_wrapper.plan_and_execute(wait=True)
         result = self._giskard_wrapper.get_result(rospy.Duration(60))
         if result and result.SUCCESS in result.error_codes:
             self._result.error_code = self._result.SUCCESS

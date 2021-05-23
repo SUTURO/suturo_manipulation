@@ -6,6 +6,7 @@ from control_msgs.msg import FollowJointTrajectoryAction, FollowJointTrajectoryG
 from trajectory_msgs.msg import JointTrajectoryPoint
 from manipulation_msgs.msg import ObjectInGripper
 from giskardpy.python_interface import GiskardWrapper
+from giskardpy.utils import normalize_quaternion_msg
 
 
 class Gripper:
@@ -20,7 +21,7 @@ class Gripper:
         self._obj_in_gripper_pub = rospy.Publisher("object_in_gripper", ObjectInGripper, queue_size=10)
         self._giskard_wrapper = GiskardWrapper()
 
-    def publish_object_in_gripper(self, object_frame_id, pose, mode):
+    def publish_object_in_gripper(self, object_frame_id, pose_stamped, mode):
         """
         publishes the object in gripper state
         :param object_frame_id: name of the object
@@ -28,9 +29,12 @@ class Gripper:
         :param mode: placed or grasped
         :return:
         """
+        rospy.loginfo("Publishing: object_in_gripper: Name: {}; Pose: {}; Mode: {}".format(object_frame_id, pose_stamped, mode))
+        orientation = normalize_quaternion_msg(pose_stamped.pose.orientation)
         obj_in_gri = ObjectInGripper()
         obj_in_gri.object_frame_id = object_frame_id
-        obj_in_gri.goal_pose = pose
+        obj_in_gri.goal_pose = pose_stamped
+        obj_in_gri.goal_pose.pose.orientation = orientation
         obj_in_gri.mode = mode
         self._obj_in_gripper_pub.publish(obj_in_gri)
 
@@ -41,7 +45,7 @@ class Gripper:
         """
         joint_states = self._giskard_wrapper.get_joint_states(u'/hsrb/joint_states')
         if joint_states.has_key(u'hand_motor_joint'):
-            result = joint_states[u'hand_motor_joint'] > -0.8
+            result = joint_states[u'hand_motor_joint'] > -0.3
             rospy.loginfo("object_in_gripper: {}".format(result))
             return result
         else:
@@ -54,13 +58,16 @@ class Gripper:
         :param force: force to grasp with should be between 0.2 and 0.8 (N)
         :return: applied effort
         """
+        rospy.loginfo("Closing gripper with force: {}".format(force))
         f = max(min(0.8, force), 0.2)
         goal = GripperApplyEffortGoal()
         goal.effort = f
         self._gripper_apply_force_client.send_goal(goal)
-        self._gripper_apply_force_client.wait_for_result()
-        result = self._gripper_apply_force_client.get_result()
-        rospy.loginfo("close_gripper: force {}".format(result.effort))
+        if self._gripper_apply_force_client.wait_for_result(rospy.Duration(secs=5)):
+            result = self._gripper_apply_force_client.get_result()
+            rospy.loginfo("close_gripper: force {}".format(result.effort))
+        else:
+            rospy.logwarn("Close Gripper Server timed out.")
 
     def set_gripper_joint_position(self, position):
         """
