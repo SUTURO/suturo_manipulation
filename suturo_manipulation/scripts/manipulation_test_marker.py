@@ -5,8 +5,7 @@ import rospy
 from geometry_msgs.msg import PoseStamped, Vector3
 from interactive_markers.interactive_marker_server import *
 from interactive_markers.menu_handler import *
-from manipulation_msgs.msg import TakePoseAction, TakePoseGoal, GraspAction, GraspGoal, PlaceAction, PlaceGoal, \
-    MakePlanAction, MakePlanGoal
+from manipulation_msgs.msg import TakePoseAction, TakePoseGoal, GraspAction, GraspGoal, PlaceAction, PlaceGoal, OpenAction, OpenGoal, MakePlanAction, MakePlanGoal
 from visualization_msgs.msg import *
 
 from giskardpy.python_interface import GiskardWrapper
@@ -19,6 +18,7 @@ menu_handler = MenuHandler()
 take_pose_client = None
 grasp_client = None
 place_client = None
+open_client = None
 giskard_wrapper = None
 gripper = None
 test_object_name = "test_object"
@@ -69,6 +69,14 @@ def init_menu():
     place_men = menu_handler.insert("Place here")
     menu_handler.insert("Front", parent=place_men, callback=place_front_cb)
     menu_handler.insert("Top", parent=place_men, callback=place_top_cb)
+
+    open_men = menu_handler.insert("Open...")
+    menu_handler.insert("door_1", parent=open_men, callback=open_door_1_cb)
+    menu_handler.insert("door_2", parent=open_men, callback=open_door_2_cb)
+    menu_handler.insert("schelve_1", parent=open_men, callback=open_shelve_1_cb)
+
+    giskard_men = menu_handler.insert("Giskard")
+    menu_handler.insert("object_names", parent=giskard_men, callback=print_object_names_cb)
 
     plan_men = menu_handler.insert("Plan here")
     plan_grasp_men = menu_handler.insert("Grasp", parent=plan_men)
@@ -135,7 +143,22 @@ def place_front_cb(feedback):
 
 def place_top_cb(feedback):
     place_object(feedback.pose, PlaceGoal.TOP)
+    
 
+def open_shelve_1_cb(feedback):
+    open(u'kitchen:outside:door_handle_outside', u'iai_kitchen/kitchen:outside:door_handle_outside')
+
+
+def open_door_1_cb(feedback):
+    open(u'kitchen:outside:door_handle_outside', u'iai_kitchen/kitchen:outside:door_handle_outside')
+
+
+def open_door_2_cb(feedback):
+    open(u'door_2_handle_inside', u'door_2_handle_inside')
+
+
+def print_object_names_cb(feedback):
+    rospy.loginfo("object_names: {}".format(giskard_wrapper.get_object_names().object_names))
 
 def plan_grasp_front_cb(feedback):
     make_plan(feedback.pose, MakePlanGoal.FRONT, MakePlanGoal.GRASP)
@@ -152,13 +175,23 @@ def plan_place_front_cb(feedback):
 def plan_place_top_cb(feedback):
     make_plan(feedback.pose, MakePlanGoal.TOP, MakePlanGoal.PLACE)
 
-
+    
 def marker_moved_cb(feedback):
     marker = server.get(feedback.marker_name)
     marker.description = "{}, {}, {}".format(feedback.pose.position.x, feedback.pose.position.y,
                                              feedback.pose.position.z)
     server.applyChanges()
 
+def open(object_name, object_link_name):
+    goal = OpenGoal()
+    goal.object_name = object_name
+    goal.object_link_name = object_link_name
+    start = rospy.Time.now()
+    open_client.send_goal(goal)
+    open_client.wait_for_result()
+    result = open_client.get_result()
+    rospy.loginfo("open result: {}".format(result.error_code))
+    rospy.loginfo("Execution time: {:.2f}s".format((rospy.Time.now() - start).to_sec()))
 
 def get_all_objects_cb(feedback):
     rospy.loginfo("All Objects: {}".format(giskard_wrapper.get_object_names().object_names))
@@ -336,11 +369,19 @@ if __name__ == '__main__':
     take_pose_client = actionlib.SimpleActionClient('take_pose_server', TakePoseAction)
     grasp_client = actionlib.SimpleActionClient('grasp_server', GraspAction)
     place_client = actionlib.SimpleActionClient('place_server', PlaceAction)
+
+    open_client = actionlib.SimpleActionClient('open_server', OpenAction)
+    take_pose_client.wait_for_server()
+    grasp_client.wait_for_server()
+    place_client.wait_for_server()
+    open_client.wait_for_server()
+
     make_plan_client = actionlib.SimpleActionClient('make_plan_server', MakePlanAction)
     take_pose_client.wait_for_server()
     grasp_client.wait_for_server()
     place_client.wait_for_server()
     make_plan_client.wait_for_server()
+
     # create interactive marker
     server = InteractiveMarkerServer("manipulation_test_marker")
     init_menu()

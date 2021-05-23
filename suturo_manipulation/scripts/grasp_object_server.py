@@ -62,7 +62,7 @@ class GraspsObjectServer:
                                                   step=0.1,
                                                   collision_whitelist=collision_whitelist)
         if success:
-            self._gripper.close_gripper_force(0.8)
+            self._gripper.set_gripper_joint_position(0)
             success &= self._gripper.object_in_gripper()
             if success:
                 # Attach object

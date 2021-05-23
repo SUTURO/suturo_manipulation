@@ -1,10 +1,11 @@
 #!/usr/bin/env python
 
 import rospy
+from std_srvs.srv import SetBool
 from giskardpy.python_interface import GiskardWrapper
 from giskardpy.utils import to_tf_quaternion, calculate_waypoint2D
-from geometry_msgs.msg import Quaternion, PoseStamped
-from tf.transformations import quaternion_multiply
+from geometry_msgs.msg import Quaternion, PoseStamped, PointStamped, Vector3Stamped
+from tf.transformations import quaternion_multiply, quaternion_from_matrix
 
 
 class Manipulator:
@@ -97,15 +98,52 @@ class Manipulator:
         result = self.giskard_wrapper_.get_result()
         return result and result.SUCCESS in result.error_codes
 
-    def open(self, object_name, object_link_name):
+    def grasp_bar(self, root_link, tip_link, object_name, object_link_name, goal_pose):
         """
-        Lets the robot open the given object
+        Lets the robot grasp the bar of an object (in this case the handles)
         :type object_name str
-        :param object_name
+        :param object_name the name of the object to grasp
         :type object_link_name str
         :param object_link_name handle to grasp
+        :type bar_length float
+        :param bar_length length of the bar to grasp
+        :type bar_axis Vector3Stamped
+        :param bar_axis the axis to grasp the bar
         """
-        self.set_collision(self.collision_distance_)
-        self.giskard_wrapper_.set_open_goal(u'hand_r_distal_link', object_name, object_link_name)
+
+
+        self.set_collision(-1)
+        #self.set_collision(self.collision_distance_)
+        self.giskard_wrapper_.set_cart_goal(root_link, tip_link, goal_pose)
+        self.giskard_wrapper_.plan_and_execute(wait=True)
         result = self.giskard_wrapper_.get_result()
         return result and result.SUCCESS in result.error_codes
+
+    def open(self, tip_link, object_link_name, angle_goal, use_limitation):
+        """
+        Lets the robot open the given object
+        :type tip_link str
+        :param tip_link the name of the gripper
+        :type object_link_name str
+        :param object_link_name handle to grasp
+        :type angle_goal float
+        :param angle_goal the angle goal in relation to the current status
+        :type use_limitation bool
+        :param use_limitation indicator, if the limitation should be used
+        """
+        self.change_base_scan_limitation(use_limitation)
+        self.set_collision(-1)
+        self.giskard_wrapper_.set_open_goal(tip_link, object_link_name, angle_goal)
+        self.giskard_wrapper_.plan_and_execute(wait=True)
+        result = self.giskard_wrapper_.get_result()
+        self.change_base_scan_limitation(False)
+        return result and result.SUCCESS in result.error_codes
+
+    def change_base_scan_limitation(self, indicator):
+        rospy.wait_for_service('/base_scan_limitation')
+        try:
+            base_scan_limitation = rospy.ServiceProxy('/base_scan_limitation', SetBool)
+            response = base_scan_limitation(indicator)
+            return response.success
+        except rospy.ServiceProxy as e:
+            print("base scan limitation failed: %e"%e)
