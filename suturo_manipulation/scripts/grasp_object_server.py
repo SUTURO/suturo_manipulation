@@ -21,8 +21,6 @@ class GraspsObjectServer:
                                 follow_joint_trajectory_server=u'/hsrb/gripper_controller/follow_joint_trajectory')
         self._manipulator = Manipulator(mode_rotation=self.get_mode_rotation())
         self._giskard_wrapper = GiskardWrapper()
-        if tfwrapper.tfBuffer is None:
-            tfwrapper.init()
         self._as.start()
         if tfwrapper.tfBuffer is None:
             tfwrapper.init()
