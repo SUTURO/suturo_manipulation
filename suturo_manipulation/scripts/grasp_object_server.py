@@ -21,6 +21,8 @@ class GraspsObjectServer:
                                 follow_joint_trajectory_server=u'/hsrb/gripper_controller/follow_joint_trajectory')
         self._manipulator = Manipulator(mode_rotation=self.get_mode_rotation())
         self._giskard_wrapper = GiskardWrapper()
+        if tfwrapper.tfBuffer is None:
+            tfwrapper.init()
         self._as.start()
         rospy.loginfo("{} is ready and waiting for orders.".format(self._action_name))
 
@@ -50,7 +52,6 @@ class GraspsObjectServer:
 
         # get current robot_pose
         robot_pose = tfwrapper.lookup_pose('map', 'base_footprint')
-
         # open gripper
         self._gripper.set_gripper_joint_position(1.2)
 
