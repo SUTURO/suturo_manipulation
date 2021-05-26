@@ -133,7 +133,7 @@ class Manipulator:
         """
         self.change_base_scan_limitation(use_limitation)
         self.set_collision(-1)
-        self.giskard_wrapper_.set_open_goal(tip_link, object_link_name, angle_goal)
+        self.giskard_wrapper_.set_open_goal(tip_link, object_link_name.split('/')[1], angle_goal)
         self.giskard_wrapper_.plan_and_execute(wait=True)
         result = self.giskard_wrapper_.get_result()
         self.change_base_scan_limitation(False)

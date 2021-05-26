@@ -146,11 +146,11 @@ def place_top_cb(feedback):
     
 
 def open_shelve_1_cb(feedback):
-    open(u'kitchen:outside:door_handle_outside', u'iai_kitchen/kitchen:outside:door_handle_outside')
+    open(u'iai_kitchen/kitchen:outside:door_handle_outside', u'iai_kitchen/kitchen:outside:door_handle_outside')
 
 
 def open_door_1_cb(feedback):
-    open(u'kitchen:outside:door_handle_outside', u'iai_kitchen/kitchen:outside:door_handle_outside')
+    open(u'iai_kitchen/kitchen:outside:door_handle_outside', u'iai_kitchen/kitchen:outside:door_handle_outside')
 
 
 def open_door_2_cb(feedback):
