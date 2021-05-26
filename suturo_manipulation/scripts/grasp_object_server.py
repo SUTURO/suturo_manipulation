@@ -22,6 +22,8 @@ class GraspsObjectServer:
         self._manipulator = Manipulator(mode_rotation=self.get_mode_rotation())
         self._giskard_wrapper = GiskardWrapper()
         self._as.start()
+        if tfwrapper.tfBuffer is None:
+            tfwrapper.init()
         rospy.loginfo("{} is ready and waiting for orders.".format(self._action_name))
 
     def get_mode_rotation(self):
@@ -55,14 +57,14 @@ class GraspsObjectServer:
         self._gripper.set_gripper_joint_position(1.2)
 
         success &= self._manipulator.move_to_goal(root_link=self._root,
-                                                  tip_link=u'hand_palm_link',
+                                                  tip_link=u'hand_gripper_tool_frame',
                                                   goal_pose=goal.goal_pose,
                                                   robot_pose=robot_pose,
                                                   mode=goal.grasp_mode,
                                                   step=0.1,
                                                   collision_whitelist=collision_whitelist)
         if success:
-            self._gripper.set_gripper_joint_position(0)
+            self._gripper.close_gripper_force(0.8)
             success &= self._gripper.object_in_gripper()
             if success:
                 # Attach object

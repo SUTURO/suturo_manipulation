@@ -50,7 +50,7 @@ class PlaceServer:
         robot_pose = tfwrapper.lookup_pose('map', 'base_footprint')
 
         success &= self._manipulator.move_to_goal(root_link=self._root,
-                                                  tip_link=u'hand_palm_link',
+                                                  tip_link=u'hand_gripper_tool_frame',
                                                   goal_pose=goal.goal_pose,
                                                   robot_pose=robot_pose,
                                                   mode=goal.place_mode,
