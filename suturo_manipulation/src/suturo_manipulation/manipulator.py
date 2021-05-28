@@ -131,12 +131,29 @@ class Manipulator:
         :type use_limitation bool
         :param use_limitation indicator, if the limitation should be used
         """
-        self.change_base_scan_limitation(use_limitation)
+        if use_limitation:
+            limit_right_side = True
+            if angle_goal > 0:
+                limit_right_side = False
+            self.change_base_scan_limitation(limit_right_side)
         self.set_collision(-1)
+        updates = {
+            u'rosparam': {
+                u'general_options': {
+                    u'joint_weights': {
+                        u'arm_roll_joint': 10000
+                    }
+                }
+            }
+        }
+        self.giskard_wrapper_.update_god_map(updates)
+        #limit_arm_roll_joint = {'arm_roll_joint': 70}
+        #self.giskard_wrapper_.avoid_joint_limits(joints_dict=limit_arm_roll_joint)
         self.giskard_wrapper_.set_open_goal(tip_link, object_link_name.split('/')[1], angle_goal)
         self.giskard_wrapper_.plan_and_execute(wait=True)
         result = self.giskard_wrapper_.get_result()
-        self.change_base_scan_limitation(False)
+        if use_limitation:
+            self.change_base_scan_limitation(False)
         return result and result.SUCCESS in result.error_codes
 
     def change_base_scan_limitation(self, indicator):
@@ -144,6 +161,7 @@ class Manipulator:
         try:
             base_scan_limitation = rospy.ServiceProxy('/base_scan_limitation', SetBool)
             response = base_scan_limitation(indicator)
+            rospy.logerr(response.message)
             return response.success
         except rospy.ServiceProxy as e:
             print("base scan limitation failed: %e"%e)
