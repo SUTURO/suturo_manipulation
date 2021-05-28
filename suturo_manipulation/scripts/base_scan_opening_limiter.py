@@ -7,9 +7,10 @@ from std_srvs.srv import SetBool, SetBoolResponse
 from sensor_msgs.msg import LaserScan
 
 class BaseScanLimiterServer:
-    IGNORE_AREA = 50
+    IGNORE_AREA = 55
     limit_area = False
     laser_scan_publisher = rospy.Publisher('hsrb/base_scan', LaserScan)
+    limit_right_side = True
 
     def __init__(self, name):
         self._action_name = name
@@ -21,16 +22,25 @@ class BaseScanLimiterServer:
         if self.limit_area:
             sensor_ranges = np.array(msg.ranges)
             sensor_middle = len(sensor_ranges) / 2
-            sensor_ranges[(sensor_middle - (self.IGNORE_AREA * 3)):sensor_middle + (self.IGNORE_AREA * 3)] =\
-                [float('inf')] * (self.IGNORE_AREA * 2 * 3)
+            limit_right_length = 0
+            limit_left_length = 0
+            if self.limit_right_side:
+                limit_right_length = self.IGNORE_AREA * 3
+                limit_left_length = 120
+            else:
+                limit_left_length = self.IGNORE_AREA * 3
+                limit_right_length = 120
+            sensor_ranges[(sensor_middle - limit_left_length):(sensor_middle + limit_right_length)] =\
+                [float('inf')] * (limit_left_length + limit_right_length)
             msg.ranges = tuple(sensor_ranges)
         self.laser_scan_publisher.publish(msg)
 
     def enable_limitation(self, request):
-        self.limit_area = request.data
+        self.limit_area = not self.limit_area
+        self.limit_right_side = request.data
         return SetBoolResponse(
             success = True,
-            message = "base_scan_limitation_set"
+            message = "Limitation is set to: {0}, side: {1}".format(str(self.limit_area), str(self.limit_right_side))
         )
 
 if __name__ == '__main__':
