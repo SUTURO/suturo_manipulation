@@ -98,20 +98,16 @@ class Manipulator:
         result = self.giskard_wrapper_.get_result()
         return result and result.SUCCESS in result.error_codes
 
-    def grasp_bar(self, root_link, tip_link, object_name, object_link_name, goal_pose):
+    def grasp_bar(self, root_link, tip_link, goal_pose):
         """
         Lets the robot grasp the bar of an object (in this case the handles)
-        :type object_name str
-        :param object_name the name of the object to grasp
-        :type object_link_name str
-        :param object_link_name handle to grasp
-        :type bar_length float
-        :param bar_length length of the bar to grasp
-        :type bar_axis Vector3Stamped
-        :param bar_axis the axis to grasp the bar
+        :type root_link str
+        :param root_link The base/root link of the robot
+        :type tip_link str
+        :param tip_link The tip link of the robot(gripper)
+        :type goal_pose PoseStamped
+        :param goal_pose The goal of the grasp bar action
         """
-
-
         self.set_collision(-1)
         #self.set_collision(self.collision_distance_)
         self.giskard_wrapper_.set_cart_goal(root_link, tip_link, goal_pose)
@@ -131,24 +127,18 @@ class Manipulator:
         :type use_limitation bool
         :param use_limitation indicator, if the limitation should be used
         """
-        if use_limitation:
-            limit_right_side = True
-            if angle_goal > 0:
-                limit_right_side = False
-            self.change_base_scan_limitation(limit_right_side)
+        self.change_base_scan_limitation(use_limitation)
         self.set_collision(-1)
         updates = {
             u'rosparam': {
                 u'general_options': {
                     u'joint_weights': {
-                        u'arm_roll_joint': 10000
+                        u'arm_roll_joint': 1000
                     }
                 }
             }
         }
         self.giskard_wrapper_.update_god_map(updates)
-        #limit_arm_roll_joint = {'arm_roll_joint': 70}
-        #self.giskard_wrapper_.avoid_joint_limits(joints_dict=limit_arm_roll_joint)
         self.giskard_wrapper_.set_open_goal(tip_link, object_link_name.split('/')[1], angle_goal)
         self.giskard_wrapper_.plan_and_execute(wait=True)
         result = self.giskard_wrapper_.get_result()
@@ -161,7 +151,6 @@ class Manipulator:
         try:
             base_scan_limitation = rospy.ServiceProxy('/base_scan_limitation', SetBool)
             response = base_scan_limitation(indicator)
-            rospy.logerr(response.message)
             return response.success
         except rospy.ServiceProxy as e:
             print("base scan limitation failed: %e"%e)
