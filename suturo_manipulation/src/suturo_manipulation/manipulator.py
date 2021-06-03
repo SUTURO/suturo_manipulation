@@ -133,6 +133,7 @@ class Manipulator:
             u'rosparam': {
                 u'general_options': {
                     u'joint_weights': {
+                        u'arm_lift_joint': 1000,
                         u'arm_roll_joint': 1000
                     }
                 }
