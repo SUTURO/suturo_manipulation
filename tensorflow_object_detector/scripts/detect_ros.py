@@ -7,6 +7,7 @@ import os
 import sys
 import cv2
 import numpy as np
+import time
 try:
     import tensorflow as tf
 except ImportError:
@@ -68,11 +69,13 @@ config = tf.compat.v1.ConfigProto()
 class Detector:
 
     def __init__(self):
+        self.sess = tf.compat.v1.Session(graph=detection_graph, config=config)
+        time.sleep(3)
         self.image_pub = rospy.Publisher("detector_image",Image, queue_size=1)
         self.object_pub = rospy.Publisher("objects", Detection2DArray, queue_size=1)
         self.bridge = CvBridge()
         self.image_sub = rospy.Subscriber("/hsrb/hand_camera/image_raw", Image, self.image_cb, queue_size=1, buff_size=2**24)
-        self.sess = tf.compat.v1.Session(graph=detection_graph, config=config)
+
 
     def image_cb(self, data):
         objArray = Detection2DArray()
@@ -81,7 +84,6 @@ class Detector:
         except CvBridgeError as e:
             print(e)
         image=cv2.cvtColor(cv_image,cv2.COLOR_BGR2RGB)
-        rospy.logerr("Hi")
         # the array based representation of the image will be used later in order to prepare the
         # result image with boxes and labels on it.
         image_np = np.asarray(image)
