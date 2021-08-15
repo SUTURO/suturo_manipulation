@@ -35,7 +35,7 @@ MODEL_NAME =  'ssd_mobilenet_v1_coco_11_06_2017'
 # By default models are stored in data/models/
 MODEL_PATH = os.path.join(os.path.dirname(sys.path[0]),'data','models' , MODEL_NAME)
 # Path to frozen detection graph. This is the actual model that is used for the object detection.
-PATH_TO_CKPT = MODEL_PATH + '/frozen_inference_graph.pb'
+PATH_TO_CKPT = MODEL_PATH + '/output_inference_graph_1.pb'
 ######### Set the label map file here ###########
 LABEL_NAME = 'mscoco_label_map.pbtxt'
 # By default label maps are stored in data/labels/
@@ -45,8 +45,8 @@ NUM_CLASSES = 90
 
 detection_graph = tf.Graph()
 with detection_graph.as_default():
-    od_graph_def = tf.compat.v1.GraphDef()
-    with tf.compat.v2.io.gfile.GFile(PATH_TO_CKPT, 'rb') as fid:
+    od_graph_def = tf.GraphDef()
+    with tf.gfile.GFile(PATH_TO_CKPT, 'rb') as fid:
         serialized_graph = fid.read()
         od_graph_def.ParseFromString(serialized_graph)
         tf.import_graph_def(od_graph_def, name='')
@@ -61,7 +61,7 @@ categories = label_map_util.convert_label_map_to_categories(label_map, max_num_c
 category_index = label_map_util.create_category_index(categories)
 
 # Setting the GPU options to use fraction of gpu that has been set
-config = tf.compat.v1.ConfigProto()
+config = tf.ConfigProto()
 #config.gpu_options.per_process_gpu_memory_fraction = GPU_FRACTION
 
 # Detection
@@ -69,7 +69,7 @@ config = tf.compat.v1.ConfigProto()
 class Detector:
 
     def __init__(self):
-        self.sess = tf.compat.v1.Session(graph=detection_graph, config=config)
+        self.sess = tf.Session(graph=detection_graph, config=config)
         time.sleep(3)
         self.image_pub = rospy.Publisher("detector_image",Image, queue_size=1)
         self.object_pub = rospy.Publisher("objects", Detection2DArray, queue_size=1)
