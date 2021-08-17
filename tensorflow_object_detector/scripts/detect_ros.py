@@ -69,65 +69,72 @@ config = tf.ConfigProto()
 class Detector:
 
     def __init__(self):
+        self.loop_run_number = 0
         self.sess = tf.Session(graph=detection_graph, config=config)
         time.sleep(3)
-        self.image_pub = rospy.Publisher("detector_image",Image, queue_size=1)
+        self.image_pub = rospy.Publisher("detector_image", Image, queue_size=1)
         self.object_pub = rospy.Publisher("objects", Detection2DArray, queue_size=1)
         self.bridge = CvBridge()
         self.image_sub = rospy.Subscriber("/hsrb/hand_camera/image_raw", Image, self.image_cb, queue_size=1, buff_size=2**24)
 
 
     def image_cb(self, data):
-        objArray = Detection2DArray()
-        try:
-            cv_image = self.bridge.imgmsg_to_cv2(data, "bgr8")
-        except CvBridgeError as e:
-            print(e)
-        image=cv2.cvtColor(cv_image,cv2.COLOR_BGR2RGB)
-        # the array based representation of the image will be used later in order to prepare the
-        # result image with boxes and labels on it.
-        image_np = np.asarray(image)
-        # Expand dimensions since the model expects images to have shape: [1, None, None, 3]
-        image_np_expanded = np.expand_dims(image_np, axis=0)
-        image_tensor = detection_graph.get_tensor_by_name('image_tensor:0')
-        # Each box represents a part of the image where a particular object was detected.
-        boxes = detection_graph.get_tensor_by_name('detection_boxes:0')
-        # Each score represent how level of confidence for each of the objects.
-        # Score is shown on the result image, together with the class label.
-        scores = detection_graph.get_tensor_by_name('detection_scores:0')
-        classes = detection_graph.get_tensor_by_name('detection_classes:0')
-        num_detections = detection_graph.get_tensor_by_name('num_detections:0')
+        # Only use every 5th image
+        if self.loop_run_number == 5:
+            objArray = Detection2DArray()
+            try:
+                cv_image = self.bridge.imgmsg_to_cv2(data, "bgr8")
+            except CvBridgeError as e:
+                print(e)
+            image=cv2.cvtColor(cv_image,cv2.COLOR_BGR2RGB)
+            # the array based representation of the image will be used later in order to prepare the
+            # result image with boxes and labels on it.
+            image_np = np.asarray(image)
+            # Expand dimensions since the model expects images to have shape: [1, None, None, 3]
+            image_np_expanded = np.expand_dims(image_np, axis=0)
+            image_tensor = detection_graph.get_tensor_by_name('image_tensor:0')
+            # Each box represents a part of the image where a particular object was detected.
+            boxes = detection_graph.get_tensor_by_name('detection_boxes:0')
+            # Each score represent how level of confidence for each of the objects.
+            # Score is shown on the result image, together with the class label.
+            scores = detection_graph.get_tensor_by_name('detection_scores:0')
+            classes = detection_graph.get_tensor_by_name('detection_classes:0')
+            num_detections = detection_graph.get_tensor_by_name('num_detections:0')
 
-        (boxes, scores, classes, num_detections) = self.sess.run([boxes, scores, classes, num_detections],
-            feed_dict={image_tensor: image_np_expanded})
+            (boxes, scores, classes, num_detections) = self.sess.run([boxes, scores, classes, num_detections],
+                feed_dict={image_tensor: image_np_expanded})
 
-        objects=vis_util.visualize_boxes_and_labels_on_image_array(
-            image,
-            np.squeeze(boxes),
-            np.squeeze(classes).astype(np.int32),
-            np.squeeze(scores),
-            category_index,
-            use_normalized_coordinates=True,
-            line_thickness=2)
+            objects=vis_util.visualize_boxes_and_labels_on_image_array(
+                image,
+                np.squeeze(boxes),
+                np.squeeze(classes).astype(np.int32),
+                np.squeeze(scores),
+                category_index,
+                use_normalized_coordinates=True,
+                line_thickness=2)
 
-        objArray.detections =[]
-        objArray.header=data.header
-        object_count=1
+            objArray.detections =[]
+            objArray.header=data.header
+            object_count=1
 
-        for i in range(len(objects)):
-            object_count+=1
-            objArray.detections.append(self.object_predict(objects[i],data.header,image_np,cv_image))
+            for i in range(len(objects)):
+                object_count+=1
+                objArray.detections.append(self.object_predict(objects[i],data.header,image_np,cv_image))
 
-        self.object_pub.publish(objArray)
+            self.object_pub.publish(objArray)
 
-        img=cv2.cvtColor(image_np, cv2.COLOR_BGR2RGB)
-        image_out = Image()
-        try:
-            image_out = self.bridge.cv2_to_imgmsg(img,"bgr8")
-        except CvBridgeError as e:
-            print(e)
-        image_out.header = data.header
-        self.image_pub.publish(image_out)
+            img=cv2.cvtColor(image_np, cv2.COLOR_BGR2RGB)
+            image_out = Image()
+            try:
+                image_out = self.bridge.cv2_to_imgmsg(img,"bgr8")
+            except CvBridgeError as e:
+                print(e)
+            image_out.header = data.header
+            self.image_pub.publish(image_out)
+            self.loop_run_number = 0
+        self.loop_run_number += 1
+
+
 
     def object_predict(self,object_data, header, image_np,image):
         image_height,image_width,channels = image.shape
