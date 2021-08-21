@@ -8,8 +8,12 @@ import sys
 import cv2
 import numpy as np
 import time
+
+from geometry_msgs.msg import PoseStamped
+
 try:
     import tensorflow as tf
+    from tf.transformations import euler_from_quaternion, quaternion_matrix
 except ImportError:
     print("unable to import TensorFlow. Is it installed?")
     print("  sudo apt install python-pip")
@@ -22,6 +26,7 @@ from std_msgs.msg import String , Header
 from sensor_msgs.msg import Image
 from cv_bridge import CvBridge, CvBridgeError
 from vision_msgs.msg import Detection2D, Detection2DArray, ObjectHypothesisWithPose
+from giskardpy import tfwrapper, utils
 
 # Object detection module imports
 import object_detection
@@ -35,7 +40,7 @@ MODEL_NAME =  'ssd_mobilenet_v1_coco_11_06_2017'
 # By default models are stored in data/models/
 MODEL_PATH = os.path.join(os.path.dirname(sys.path[0]),'data','models' , MODEL_NAME)
 # Path to frozen detection graph. This is the actual model that is used for the object detection.
-PATH_TO_CKPT = MODEL_PATH + '/output_inference_graph_1.pb'
+PATH_TO_CKPT = MODEL_PATH + '/output_inference_graph.pb'
 ######### Set the label map file here ###########
 LABEL_NAME = 'mscoco_label_map.pbtxt'
 # By default label maps are stored in data/labels/
@@ -75,7 +80,8 @@ class Detector:
         self.image_pub = rospy.Publisher("detector_image", Image, queue_size=1)
         self.object_pub = rospy.Publisher("objects", Detection2DArray, queue_size=1)
         self.bridge = CvBridge()
-        self.image_sub = rospy.Subscriber("/hsrb/hand_camera/image_raw", Image, self.image_cb, queue_size=1, buff_size=2**24)
+        self.image_sub = rospy.Subscriber("/hsrb/hand_camera/image_raw_rotated", Image, self.image_cb, queue_size=1, buff_size=2**24)
+        self.biggest_object = None
 
 
     def image_cb(self, data):
@@ -114,12 +120,22 @@ class Detector:
                 line_thickness=2)
 
             objArray.detections =[]
-            objArray.header=data.header
-            object_count=1
-
+            objArray.header = data.header
+            object_count = 1
+            possible_biggest_object = None
             for i in range(len(objects)):
-                object_count+=1
-                objArray.detections.append(self.object_predict(objects[i],data.header,image_np,cv_image))
+                object_count += 1
+                predicted_object = self.object_predict(objects[i],data.header,image_np,cv_image)
+                objArray.detections.append(predicted_object)
+                if possible_biggest_object is None:
+                    possible_biggest_object = predicted_object
+                elif self.get_bbox_size(possible_biggest_object) <= self.get_bbox_size(predicted_object):
+                    possible_biggest_object = predicted_object
+                self.biggest_object = possible_biggest_object
+
+            # Bigger than specific threshold
+            if self.get_bbox_size(self.biggest_object) > 8000:
+                self.calculate_new_position()
 
             self.object_pub.publish(objArray)
 
@@ -134,6 +150,36 @@ class Detector:
             self.loop_run_number = 0
         self.loop_run_number += 1
 
+    def get_bbox_size(self, predicted_object):
+        return predicted_object.bbox.size_x * predicted_object.bbox.size_y
+
+    def calculate_new_position(self):
+        # hard-coded height and width of the object. Ideally theses sizes are retrieved by knowledge. Pls extend
+        height = 0.23
+        width = 0.06
+        focal_length = 250
+        image_center_x = 320
+        image_center_y = 320
+        new_pose_stamped = PoseStamped()
+        new_pose_stamped.header.frame_id = "hand_camera_frame"
+        new_pose_stamped.pose.position.y = self.relative_difference_xy(image_center_x,
+                                                                       self.biggest_object.bbox.center.x,
+                                                                       self.biggest_object.bbox.size_x, width)
+        new_pose_stamped.pose.position.x = self.relative_difference_xy(image_center_y,
+                                                                       self.biggest_object.bbox.center.y,
+                                                                       self.biggest_object.bbox.size_y, height)
+        new_pose_stamped.pose.orientation.w = self.relative_difference_z(height,
+                                                                         self.biggest_object.bbox.y,
+                                                                         focal_length)
+
+    def relative_difference_xy(self, center_image, center_bbox, size_bbox, size_object):
+        difference_center = center_bbox - center_image
+        relative_difference = (difference_center / size_bbox) * size_object
+        return relative_difference
+
+    def relative_difference_z(self, object_real_height, object_height_in_image, focal_length):
+        object_size_with_focal = object_real_height * focal_length
+        return object_size_with_focal / object_height_in_image
 
 
     def object_predict(self,object_data, header, image_np,image):
