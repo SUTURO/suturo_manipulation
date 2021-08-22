@@ -79,6 +79,7 @@ class Detector:
         time.sleep(3)
         self.image_pub = rospy.Publisher("detector_image", Image, queue_size=1)
         self.object_pub = rospy.Publisher("objects", Detection2DArray, queue_size=1)
+        self.pose_pub = rospy.Publisher("visual_servoing_pose", PoseStamped, queue_size=1)
         self.bridge = CvBridge()
         self.image_sub = rospy.Subscriber("/hsrb/hand_camera/image_raw_rotated", Image, self.image_cb, queue_size=1, buff_size=2**24)
         self.biggest_object = None
@@ -134,8 +135,8 @@ class Detector:
                 self.biggest_object = possible_biggest_object
 
             # Bigger than specific threshold
-            if self.get_bbox_size(self.biggest_object) > 8000:
-                self.calculate_new_position()
+            if self.get_bbox_size(self.biggest_object) > 5000:
+                self.calculate_new_position_and_publish()
 
             self.object_pub.publish(objArray)
 
@@ -153,7 +154,7 @@ class Detector:
     def get_bbox_size(self, predicted_object):
         return predicted_object.bbox.size_x * predicted_object.bbox.size_y
 
-    def calculate_new_position(self):
+    def calculate_new_position_and_publish(self):
         # hard-coded height and width of the object. Ideally theses sizes are retrieved by knowledge. Pls extend
         height = 0.23
         width = 0.06
@@ -162,24 +163,28 @@ class Detector:
         image_center_y = 320
         new_pose_stamped = PoseStamped()
         new_pose_stamped.header.frame_id = "hand_camera_frame"
-        new_pose_stamped.pose.position.y = self.relative_difference_xy(image_center_x,
+        new_pose_stamped.pose.position.x = self.relative_difference_xy(image_center_x,
                                                                        self.biggest_object.bbox.center.x,
                                                                        self.biggest_object.bbox.size_x, width)
-        new_pose_stamped.pose.position.x = self.relative_difference_xy(image_center_y,
+        new_pose_stamped.pose.position.y = self.relative_difference_xy(image_center_y,
                                                                        self.biggest_object.bbox.center.y,
                                                                        self.biggest_object.bbox.size_y, height)
-        new_pose_stamped.pose.orientation.w = self.relative_difference_z(height,
-                                                                         self.biggest_object.bbox.y,
-                                                                         focal_length)
+        new_pose_stamped.pose.position.z = self.relative_difference_z(width,
+                                                                      self.biggest_object.bbox.size_x,
+                                                                      focal_length)
+        rospy.loginfo(new_pose_stamped)
+        new_pose_stamped.pose.orientation.w = 1
+        self.pose_pub.publish(new_pose_stamped)
+
 
     def relative_difference_xy(self, center_image, center_bbox, size_bbox, size_object):
         difference_center = center_bbox - center_image
         relative_difference = (difference_center / size_bbox) * size_object
         return relative_difference
 
-    def relative_difference_z(self, object_real_height, object_height_in_image, focal_length):
-        object_size_with_focal = object_real_height * focal_length
-        return object_size_with_focal / object_height_in_image
+    def relative_difference_z(self, object_real_width, object_width_in_image, focal_length):
+        object_size_with_focal = object_real_width * focal_length
+        return object_size_with_focal / object_width_in_image
 
 
     def object_predict(self,object_data, header, image_np,image):
