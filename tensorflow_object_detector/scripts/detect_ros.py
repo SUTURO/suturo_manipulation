@@ -10,6 +10,7 @@ import numpy as np
 import time
 
 from geometry_msgs.msg import PoseStamped
+from std_srvs.srv import SetBool, SetBoolResponse
 
 try:
     import tensorflow as tf
@@ -32,6 +33,7 @@ from giskardpy import tfwrapper, utils
 import object_detection
 from object_detection.utils import label_map_util
 from object_detection.utils import visualization_utils as vis_util
+from scipy import ndimage
 
 # SET FRACTION OF GPU YOU WANT TO USE HERE
 GPU_FRACTION = 0.4
@@ -79,77 +81,88 @@ class Detector:
         time.sleep(3)
         self.image_pub = rospy.Publisher("detector_image", Image, queue_size=1)
         self.object_pub = rospy.Publisher("objects", Detection2DArray, queue_size=1)
-        self.pose_pub = rospy.Publisher("visual_servoing_pose", PoseStamped, queue_size=1)
+        self.pose_pub = rospy.Publisher("/visual_servoing/goal_update", PoseStamped, queue_size=1)
         self.bridge = CvBridge()
         self.image_sub = rospy.Subscriber("/hsrb/hand_camera/image_raw_rotated", Image, self.image_cb, queue_size=1, buff_size=2**24)
+        self.use_visual_servoing_service = rospy.Service('/use_visual_servoing', SetBool, self.enable_visual_servoing)
         self.biggest_object = None
-
+        self.using_visual_servoing = True
 
     def image_cb(self, data):
-        # Only use every 5th image
-        if self.loop_run_number == 5:
-            objArray = Detection2DArray()
-            try:
-                cv_image = self.bridge.imgmsg_to_cv2(data, "bgr8")
-            except CvBridgeError as e:
-                print(e)
-            image=cv2.cvtColor(cv_image,cv2.COLOR_BGR2RGB)
-            # the array based representation of the image will be used later in order to prepare the
-            # result image with boxes and labels on it.
-            image_np = np.asarray(image)
-            # Expand dimensions since the model expects images to have shape: [1, None, None, 3]
-            image_np_expanded = np.expand_dims(image_np, axis=0)
-            image_tensor = detection_graph.get_tensor_by_name('image_tensor:0')
-            # Each box represents a part of the image where a particular object was detected.
-            boxes = detection_graph.get_tensor_by_name('detection_boxes:0')
-            # Each score represent how level of confidence for each of the objects.
-            # Score is shown on the result image, together with the class label.
-            scores = detection_graph.get_tensor_by_name('detection_scores:0')
-            classes = detection_graph.get_tensor_by_name('detection_classes:0')
-            num_detections = detection_graph.get_tensor_by_name('num_detections:0')
+        # Check if visual servoing is used
+        if self.using_visual_servoing:
+            # Only use every 5th image
+            if self.loop_run_number == 5:
+                objArray = Detection2DArray()
+                try:
+                    cv_image = self.bridge.imgmsg_to_cv2(data, "bgr8")
+                except CvBridgeError as e:
+                    print(e)
+                image = cv2.cvtColor(cv_image, cv2.COLOR_BGR2RGB)
+                #image_rotated = self.rotate_image(image, 90)
+                # the array based representation of the image will be used later in order to prepare the
+                # result image with boxes and labels on it.
+                image_np = np.asarray(image)
+                # Expand dimensions since the model expects images to have shape: [1, None, None, 3]
+                image_np_expanded = np.expand_dims(image_np, axis=0)
+                image_tensor = detection_graph.get_tensor_by_name('image_tensor:0')
+                # Each box represents a part of the image where a particular object was detected.
+                boxes = detection_graph.get_tensor_by_name('detection_boxes:0')
+                # Each score represent how level of confidence for each of the objects.
+                # Score is shown on the result image, together with the class label.
+                scores = detection_graph.get_tensor_by_name('detection_scores:0')
+                classes = detection_graph.get_tensor_by_name('detection_classes:0')
+                num_detections = detection_graph.get_tensor_by_name('num_detections:0')
 
-            (boxes, scores, classes, num_detections) = self.sess.run([boxes, scores, classes, num_detections],
-                feed_dict={image_tensor: image_np_expanded})
+                (boxes, scores, classes, num_detections) = self.sess.run([boxes, scores, classes, num_detections],
+                    feed_dict={image_tensor: image_np_expanded})
 
-            objects=vis_util.visualize_boxes_and_labels_on_image_array(
-                image,
-                np.squeeze(boxes),
-                np.squeeze(classes).astype(np.int32),
-                np.squeeze(scores),
-                category_index,
-                use_normalized_coordinates=True,
-                line_thickness=2)
+                objects = vis_util.visualize_boxes_and_labels_on_image_array(
+                    image,
+                    np.squeeze(boxes),
+                    np.squeeze(classes).astype(np.int32),
+                    np.squeeze(scores),
+                    category_index,
+                    use_normalized_coordinates=True,
+                    line_thickness=2)
 
-            objArray.detections =[]
-            objArray.header = data.header
-            object_count = 1
-            possible_biggest_object = None
-            for i in range(len(objects)):
-                object_count += 1
-                predicted_object = self.object_predict(objects[i],data.header,image_np,cv_image)
-                objArray.detections.append(predicted_object)
-                if possible_biggest_object is None:
-                    possible_biggest_object = predicted_object
-                elif self.get_bbox_size(possible_biggest_object) <= self.get_bbox_size(predicted_object):
-                    possible_biggest_object = predicted_object
-                self.biggest_object = possible_biggest_object
+                objArray.detections =[]
+                objArray.header = data.header
+                object_count = 1
+                possible_biggest_object = None
+                for i in range(len(objects)):
+                    object_count += 1
+                    predicted_object = self.object_predict(objects[i], data.header, image_np, cv_image)
+                    objArray.detections.append(predicted_object)
+                    if possible_biggest_object is None:
+                        possible_biggest_object = predicted_object
+                    elif self.get_bbox_size(possible_biggest_object) <= self.get_bbox_size(predicted_object):
+                        possible_biggest_object = predicted_object
+                    self.biggest_object = possible_biggest_object
 
-            # Bigger than specific threshold
-            if self.get_bbox_size(self.biggest_object) > 5000:
-                self.calculate_new_position_and_publish()
+                # Bigger than specific threshold
+                if self.biggest_object:
+                    if self.get_bbox_size(self.biggest_object) > 100:
+                        self.calculate_new_position_and_publish()
 
-            self.object_pub.publish(objArray)
+                self.object_pub.publish(objArray)
 
-            img=cv2.cvtColor(image_np, cv2.COLOR_BGR2RGB)
-            image_out = Image()
-            try:
-                image_out = self.bridge.cv2_to_imgmsg(img,"bgr8")
-            except CvBridgeError as e:
-                print(e)
-            image_out.header = data.header
-            self.image_pub.publish(image_out)
-            self.loop_run_number = 0
-        self.loop_run_number += 1
+                img = cv2.cvtColor(image_np, cv2.COLOR_BGR2RGB)
+                image_out = Image()
+                try:
+                    image_out = self.bridge.cv2_to_imgmsg(img, "bgr8")
+                except CvBridgeError as e:
+                    print(e)
+                image_out.header = data.header
+                self.image_pub.publish(image_out)
+                self.loop_run_number = 0
+            self.loop_run_number += 1
+
+    def rotate_image(self, image, angle):
+        image_center = tuple(np.array(image.shape[1::-1]) / 2)
+        rot_mat = cv2.getRotationMatrix2D(image_center, angle, 1.0)
+        result = cv2.warpAffine(image, rot_mat, image.shape[1::-1], flags=cv2.INTER_LINEAR)
+        return result
 
     def get_bbox_size(self, predicted_object):
         return predicted_object.bbox.size_x * predicted_object.bbox.size_y
@@ -162,7 +175,7 @@ class Detector:
         image_center_x = 320
         image_center_y = 320
         new_pose_stamped = PoseStamped()
-        new_pose_stamped.header.frame_id = "hand_camera_frame"
+        new_pose_stamped.header.frame_id = "hand_camera_frame_rotated"
         new_pose_stamped.pose.position.x = self.relative_difference_xy(image_center_x,
                                                                        self.biggest_object.bbox.center.x,
                                                                        self.biggest_object.bbox.size_x, width)
@@ -172,10 +185,9 @@ class Detector:
         new_pose_stamped.pose.position.z = self.relative_difference_z(width,
                                                                       self.biggest_object.bbox.size_x,
                                                                       focal_length)
-        rospy.loginfo(new_pose_stamped)
         new_pose_stamped.pose.orientation.w = 1
+        new_pose_stamped.header.stamp = rospy.Time.now()
         self.pose_pub.publish(new_pose_stamped)
-
 
     def relative_difference_xy(self, center_image, center_bbox, size_bbox, size_object):
         difference_center = center_bbox - center_image
@@ -185,7 +197,6 @@ class Detector:
     def relative_difference_z(self, object_real_width, object_width_in_image, focal_length):
         object_size_with_focal = object_real_width * focal_length
         return object_size_with_focal / object_width_in_image
-
 
     def object_predict(self,object_data, header, image_np,image):
         image_height,image_width,channels = image.shape
@@ -206,6 +217,13 @@ class Detector:
         obj.bbox.center.y = int((dimensions[0] + dimensions[2])*image_width/2)
 
         return obj
+
+    def enable_visual_servoing(self, request):
+        self.using_visual_servoing = request.data
+        return SetBoolResponse(
+            success=True,
+            message="Visual_Servoing is set to: {0}".format(str(self.using_visual_servoing))
+        )
 
 def main(args):
     rospy.init_node('detector_node')
