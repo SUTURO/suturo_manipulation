@@ -148,6 +148,11 @@ class Manipulator:
         return result and result.SUCCESS in result.error_codes
 
     def change_base_scan_limitation(self, indicator):
+        """
+        Turns the base scan for the opening on/off.
+        :type indicator bool
+        :param indicator sets the side of the limitation (true: right/ false: left).
+        """
         rospy.wait_for_service('/base_scan_limitation')
         try:
             base_scan_limitation = rospy.ServiceProxy('/base_scan_limitation', SetBool)

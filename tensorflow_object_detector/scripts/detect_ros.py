@@ -187,7 +187,8 @@ class Detector:
                                                                       focal_length)
         new_pose_stamped.pose.orientation.w = 1
         new_pose_stamped.header.stamp = rospy.Time.now()
-        self.pose_pub.publish(new_pose_stamped)
+        if new_pose_stamped.pose.position.z > 0.1:
+            self.pose_pub.publish(new_pose_stamped)
 
     def relative_difference_xy(self, center_image, center_bbox, size_bbox, size_object):
         difference_center = center_bbox - center_image
