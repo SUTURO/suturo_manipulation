@@ -23,6 +23,8 @@ class PlaceServer:
                                 follow_joint_trajectory_server=u'/hsrb/gripper_controller/follow_joint_trajectory')
         self._manipulator = Manipulator(mode_rotation=self.get_mode_rotation())
         self._as.start()
+        if tfwrapper.tfBuffer is None:
+            tfwrapper.init()
         rospy.loginfo("{} is ready and waiting for orders.".format(self._action_name))
 
     def get_mode_rotation(self):
@@ -50,7 +52,7 @@ class PlaceServer:
         robot_pose = tfwrapper.lookup_pose('map', 'base_footprint')
 
         success &= self._manipulator.move_to_goal(root_link=self._root,
-                                                  tip_link=u'hand_palm_link',
+                                                  tip_link=u'hand_gripper_tool_frame',
                                                   goal_pose=goal.goal_pose,
                                                   robot_pose=robot_pose,
                                                   mode=goal.place_mode,

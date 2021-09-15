@@ -98,20 +98,16 @@ class Manipulator:
         result = self.giskard_wrapper_.get_result()
         return result and result.SUCCESS in result.error_codes
 
-    def grasp_bar(self, root_link, tip_link, object_name, object_link_name, goal_pose):
+    def grasp_bar(self, root_link, tip_link, goal_pose):
         """
         Lets the robot grasp the bar of an object (in this case the handles)
-        :type object_name str
-        :param object_name the name of the object to grasp
-        :type object_link_name str
-        :param object_link_name handle to grasp
-        :type bar_length float
-        :param bar_length length of the bar to grasp
-        :type bar_axis Vector3Stamped
-        :param bar_axis the axis to grasp the bar
+        :type root_link str
+        :param root_link The base/root link of the robot
+        :type tip_link str
+        :param tip_link The tip link of the robot(gripper)
+        :type goal_pose PoseStamped
+        :param goal_pose The goal of the grasp bar action
         """
-
-
         self.set_collision(-1)
         #self.set_collision(self.collision_distance_)
         self.giskard_wrapper_.set_cart_goal(root_link, tip_link, goal_pose)
@@ -133,10 +129,22 @@ class Manipulator:
         """
         self.change_base_scan_limitation(use_limitation)
         self.set_collision(-1)
-        self.giskard_wrapper_.set_open_goal(tip_link, object_link_name, angle_goal)
+        updates = {
+            u'rosparam': {
+                u'general_options': {
+                    u'joint_weights': {
+                        u'arm_lift_joint': 1000,
+                        u'arm_roll_joint': 1000
+                    }
+                }
+            }
+        }
+        self.giskard_wrapper_.update_god_map(updates)
+        self.giskard_wrapper_.set_open_goal(tip_link, object_link_name.split('/')[1], angle_goal)
         self.giskard_wrapper_.plan_and_execute(wait=True)
         result = self.giskard_wrapper_.get_result()
-        self.change_base_scan_limitation(False)
+        if use_limitation:
+            self.change_base_scan_limitation(False)
         return result and result.SUCCESS in result.error_codes
 
     def change_base_scan_limitation(self, indicator):

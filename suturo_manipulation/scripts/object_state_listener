@@ -6,9 +6,7 @@ from knowledge_msgs.msg import ObjectStateArray, ObjectState
 
 
 def get_name(object_state):
-    names = object_state.object_id.split('#')
-    name = names[len(names) - 1]
-    return name
+    return object_state.frame_name
 
 
 class ObjectStateListener:

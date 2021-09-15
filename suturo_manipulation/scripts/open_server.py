@@ -38,35 +38,30 @@ class OpenServer:
 
         collision_whitelist = []
 
-        # get current robot_pose
-        robot_pose = tfwrapper.lookup_pose('map', 'base_footprint')
         # open gripper
         self._gripper.set_gripper_joint_position(1.2)
         # move to handle of the object
         goal_pose = self.calculate_goal_pose(goal.object_link_name)
-        success &= self._manipulator.grasp_bar(u'odom', u'hand_gripper_tool_frame', goal.object_link_name,
-                                               goal.object_link_name, goal_pose)
+        success &= self._manipulator.grasp_bar(u'odom', u'hand_gripper_tool_frame', goal_pose)
         # closing the gripper
         self._gripper.set_gripper_joint_position(-0.1)
 
-        goal_angle = goal.angle_goal
         limit_base_scan = True
-        # change limitation side, if goal_angle < 0
-        if goal_angle < 0:
+        if 'shelf' in goal.object_name:
             limit_base_scan = False
 
         # opens the door
-        success &= self._manipulator.open(u'hand_gripper_tool_frame', goal.object_name, goal_angle, limit_base_scan)
+        success &= self._manipulator.open(tip_link=u'hand_gripper_tool_frame',
+                                          object_link_name=goal.object_name,
+                                          angle_goal=goal.angle_goal,
+                                          use_limitation=limit_base_scan)
         # opens the gripper again
         self._gripper.set_gripper_joint_position(1.2)
 
-        # return to initial pose
+        # return to initial transport pose
         if success:
             success &= self._manipulator.take_robot_pose(rospy.get_param(u'/manipulation/robot_poses/transport'))
-            self._gripper.close_gripper_force()
-            success &= self._manipulator.move_to_goal(root_link=self._root,
-                                                      tip_link=u'base_footprint',
-                                                      goal_pose=robot_pose)
+
         if success:
             self._result.error_code = self._result.SUCCESS
         self._as.set_succeeded(self._result)
@@ -76,15 +71,9 @@ class OpenServer:
         goal_pose.header.frame_id = object_name
         rotation_matrix = np.eye(4)
         if 'shelf' in object_name:
-            rotation_matrix = np.array([[0, -1, 0, 0],
-                                        [0, 0, -1, 0],
-                                        [1, 0, 0, 0],
-                                        [0, 0, 0, 1]])
+            rotation_matrix = np.array(rospy.get_param(u'/manipulation/gripper_opening_matrices/shelf'))
         elif 'door' in object_name:
-            rotation_matrix = np.array([[1, 0, 0, 0],
-                                        [0, 0, -1, 0],
-                                        [0, 1, 0, 0],
-                                        [0, 0, 0, 1]])
+            rotation_matrix = np.array(rospy.get_param(u'/manipulation/gripper_opening_matrices/door'))
         goal_pose.pose.orientation = Quaternion(*quaternion_from_matrix(rotation_matrix))
         return goal_pose
 
