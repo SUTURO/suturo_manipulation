@@ -49,11 +49,12 @@ class OpenServer:
         # closing the gripper
         self._gripper.set_gripper_joint_position(-0.1)
 
-        goal_angle = 1.4
+        goal_angle = goal.angle_goal
         limit_base_scan = True
-        if 'shelf' in goal.object_name:
-            goal_angle = -1.4
+        # change limitation side, if goal_angle < 0
+        if goal_angle < 0:
             limit_base_scan = False
+
         # opens the door
         success &= self._manipulator.open(u'hand_gripper_tool_frame', goal.object_name, goal_angle, limit_base_scan)
         # opens the gripper again
