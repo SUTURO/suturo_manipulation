@@ -1,6 +1,6 @@
 #!/usr/bin/env python
-## Author: Rohit
-## Date: July, 25, 2017
+## Author: Rohit + Clement
+## Date: 25.07.2017 / 16.09.2021
 # Purpose: Ros node to detect objects using tensorflow
 
 import os
@@ -16,7 +16,7 @@ try:
     import tensorflow as tf
     from tf.transformations import euler_from_quaternion, quaternion_matrix
 except ImportError:
-    print("unable to import TensorFlow. Is it installed?")
+    print("unable to import TensorFlow. Is it installed? (WARNING: INSTALL 1.14.0 version)")
     print("  sudo apt install python-pip")
     print("  sudo pip install tensorflow")
     sys.exit(1)
@@ -86,6 +86,7 @@ class Detector:
         self.image_sub = rospy.Subscriber("/hsrb/hand_camera/image_raw_rotated", Image, self.image_cb, queue_size=1, buff_size=2**24)
         self.use_visual_servoing_service = rospy.Service('/use_visual_servoing', SetBool, self.enable_visual_servoing)
         self.biggest_object = None
+        # WARNING: Set default usage of visual servoing to false. For test purposes it is set to true.
         self.using_visual_servoing = True
 
     def image_cb(self, data):
@@ -99,7 +100,6 @@ class Detector:
                 except CvBridgeError as e:
                     print(e)
                 image = cv2.cvtColor(cv_image, cv2.COLOR_BGR2RGB)
-                #image_rotated = self.rotate_image(image, 90)
                 # the array based representation of the image will be used later in order to prepare the
                 # result image with boxes and labels on it.
                 image_np = np.asarray(image)
