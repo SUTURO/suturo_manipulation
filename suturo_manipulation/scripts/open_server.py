@@ -49,6 +49,7 @@ class OpenServer:
         limit_base_scan = True
         if 'shelf' in goal.object_name:
             limit_base_scan = False
+
         # opens the door
         success &= self._manipulator.open(tip_link=u'hand_gripper_tool_frame',
                                           object_link_name=goal.object_name,
