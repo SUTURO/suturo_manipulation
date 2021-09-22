@@ -25,4 +25,6 @@ After that one can start the visual servoing by the provided launch file:
 
 `roslaunch suturo_bringup visual_servoing_bringup.launch`
 
-Developing for visual servoing requires a `virtualenv` setup, because of the usage of python 3.6+. Follow the instructions in https://github.com/osrf/tensorflow_object_detector to setup the environment
+Developing for visual servoing requires a `virtualenv` setup, because of the usage of python 3.6+. Follow the instructions in https://github.com/osrf/tensorflow_object_detector to setup the environment.
+
+Follow the guides in `suturo_manipulation/tensorflow_object_detector/src/object_detection/g3doc` to train new detection models.
