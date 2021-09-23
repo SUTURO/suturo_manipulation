@@ -10,7 +10,9 @@ from giskardpy.utils import normalize_quaternion_msg
 
 
 class Gripper:
-
+    """
+    Handles the movement of the gripper.
+    """
     def __init__(self, apply_force_action_server, follow_joint_trajectory_server):
         self._gripper_apply_force_client = actionlib.SimpleActionClient(apply_force_action_server,
                                                                         GripperApplyEffortAction)

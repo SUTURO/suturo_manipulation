@@ -17,7 +17,6 @@ class BaseScanLimiterServer:
         laser_scan_subscriber = rospy.Subscriber('/hsrb/base_scan_unlimited', LaserScan, self.laser_scan_callback)
         service_server = rospy.Service('/base_scan_limitation', SetBool, self.enable_limitation)
 
-
     def laser_scan_callback(self, msg):
         if self.limit_area:
             sensor_ranges = np.array(msg.ranges)
@@ -42,6 +41,7 @@ class BaseScanLimiterServer:
             success = True,
             message = "Limitation is set to: {0}, side: {1}".format(str(self.limit_area), str(self.limit_right_side))
         )
+
 
 if __name__ == '__main__':
     rospy.init_node('base_scan_limiter')

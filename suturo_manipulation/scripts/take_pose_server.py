@@ -8,11 +8,19 @@ from giskardpy.python_interface import GiskardWrapper
 
 
 class TakePoseServer:
+    """
+    Action Server, which handles the pose taking.
+    """
     _feedback = TakePoseFeedback()
     _result = TakePoseResult()
     _goal = TakePoseAction()
 
     def __init__(self, name):
+        """
+        Initializes the Server.
+        :param name The server name
+        :type name string
+        """
         self._action_name = name
         self._as = actionlib.SimpleActionServer(self._action_name, TakePoseAction, execute_cb=self.execute_cb,
                                                 auto_start=False)
@@ -23,6 +31,11 @@ class TakePoseServer:
         rospy.loginfo("{} is ready and waiting for orders.".format(self._action_name))
 
     def execute_cb(self, goal):
+        """
+        Executes the pose taking
+        :param goal The goal of this action
+        :type goal TakePoseGoal
+        """
         rospy.loginfo("Take pose: {}".format(goal))
         self._result.error_code = self._result.FAILED
         self._giskard_wrapper.allow_self_collision()

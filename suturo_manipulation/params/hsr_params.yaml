@@ -1,3 +1,4 @@
+# transformation matrix for the gripper orientation
 gripper_opening_matrices:
   door:
     [ [ 1, 0,  0, 0 ],
@@ -11,7 +12,7 @@ gripper_opening_matrices:
       [ 1,  0,  0, 0 ],
       [ 0,  0,  0, 1 ] ]
 
-
+# gripper orientation for top and front
 base_gripper_rotation:
   top:
     - 1.0
@@ -25,7 +26,7 @@ base_gripper_rotation:
     - 0.7
     - 0.0
 
-
+# predefined hsr robot poses
 robot_poses:
   neutral:
     head_pan_joint: 0.0

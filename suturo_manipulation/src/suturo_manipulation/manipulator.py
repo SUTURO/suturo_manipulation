@@ -9,7 +9,9 @@ from tf.transformations import quaternion_multiply, quaternion_from_matrix
 
 
 class Manipulator:
-
+    """
+    Handles the movement and communication with Giskard.
+    """
     def __init__(self, collision_distance=0.05, mode_rotation=None):
         """
         Proxy class working with giskard for manipulating object with a gripper
@@ -139,6 +141,7 @@ class Manipulator:
                 }
             }
         }
+        rospy.logerr(angle_goal)
         self.giskard_wrapper_.update_god_map(updates)
         self.giskard_wrapper_.set_open_goal(tip_link, object_link_name.split('/')[1], angle_goal)
         self.giskard_wrapper_.plan_and_execute(wait=True)
@@ -148,6 +151,11 @@ class Manipulator:
         return result and result.SUCCESS in result.error_codes
 
     def change_base_scan_limitation(self, indicator):
+        """
+        Switches the base scan limitation on/off.
+        :param indicator Switch off left (false) or right (true) side
+        :type indicator bool
+        """
         rospy.wait_for_service('/base_scan_limitation')
         try:
             base_scan_limitation = rospy.ServiceProxy('/base_scan_limitation', SetBool)

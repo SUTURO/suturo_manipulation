@@ -10,11 +10,19 @@ from suturo_manipulation.manipulator import Manipulator
 
 
 class PlaceServer:
+    """
+    Action Server, which handles the placement of objects.
+    """
     _feedback = PlaceFeedback()
     _result = PlaceResult()
     _root = u'odom'
 
     def __init__(self, name):
+        """
+        Initializes the Server.
+        :param name The server name
+        :type name string
+        """
         self._action_name = name
         self._as = actionlib.SimpleActionServer(self._action_name, PlaceAction, execute_cb=self.execute_cb,
                                                 auto_start=False)
@@ -28,6 +36,9 @@ class PlaceServer:
         rospy.loginfo("{} is ready and waiting for orders.".format(self._action_name))
 
     def get_mode_rotation(self):
+        """
+        Loads the gripper rotation modes from the ROS parameter server.
+        """
         mode_rotation = {}
         front_rotation = rospy.get_param(u'/manipulation/base_gripper_rotation/front', default=None)
         top_rotation = rospy.get_param(u'/manipulation/base_gripper_rotation/top', default=None)
@@ -38,6 +49,11 @@ class PlaceServer:
         return mode_rotation
 
     def execute_cb(self, goal):
+        """
+        Executes the placement of objects
+        :param goal The goal of this action
+        :type goal PlaceGoal
+        """
         # uncomment to disable collision avoidance
         # self._manipulator.set_collision(None)
         rospy.loginfo("Placing: {}".format(goal))

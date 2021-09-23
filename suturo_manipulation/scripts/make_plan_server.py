@@ -11,8 +11,15 @@ from giskardpy.utils import to_tf_quaternion
 
 
 class MakePlanServer:
-
+    """
+    Action server, which can make plans for manipulation without executing
+    """
     def __init__(self, name):
+        """
+        Initializes the Server.
+        :param name The server name
+        :type name string
+        """
         self._action_name = name
         self.dummy_object_ = u'dummy_plan_object'
         self.gripper_frame_ = u'hand_palm_link'
@@ -25,6 +32,9 @@ class MakePlanServer:
         rospy.loginfo("{} is ready and waiting for orders.".format(self._action_name))
 
     def get_mode_rotation(self):
+        """
+        Loads the gripper rotation modes from the ROS parameter server.
+        """
         mode_rotation = {}
         front_rotation = rospy.get_param(u'/manipulation/base_gripper_rotation/front', default=None)
         top_rotation = rospy.get_param(u'/manipulation/base_gripper_rotation/top', default=None)
@@ -35,6 +45,11 @@ class MakePlanServer:
         return mode_rotation
 
     def execute_cb(self, goal):
+        """
+        Executes the plan making
+        :param goal The goal of this action
+        :type goal MakePlanGoal
+        """
         rospy.loginfo("Making plan: {}".format(goal))
         self._result = MakePlanResult()
         self._result.error_code = self._result.FAILED
@@ -72,7 +87,7 @@ class MakePlanServer:
         if self.dummy_object_ in self._giskard_wrapper.get_attached_objects().object_names:
             self._giskard_wrapper.detach_object(self.dummy_object_)
             self._giskard_wrapper.remove_object(self.dummy_object_)
-        # Clean up collission excemption for goal_object
+        # Clean up collision excemption for goal_object
         self._giskard_wrapper.avoid_all_collisions()
 
         if result.SUCCESS in result.error_codes:

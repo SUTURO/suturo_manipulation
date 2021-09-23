@@ -25,6 +25,9 @@ test_object_name = "test_object"
 
 
 def make_int_marker():
+    """
+    Initiates the test marker.
+    """
     int_marker = InteractiveMarker()
     int_marker.header.frame_id = "map"
     int_marker.scale = 0.5
@@ -54,6 +57,9 @@ def make_int_marker():
 
 
 def init_menu():
+    """
+    Initiates the menu.
+    """
     pose_men = menu_handler.insert("Take pose")
     menu_handler.insert("Neutral", parent=pose_men, callback=take_neutral_pose_cb)
     menu_handler.insert("Look low", parent=pose_men, callback=take_look_low_pose_cb)
@@ -106,73 +112,163 @@ def init_menu():
 
 
 def take_neutral_pose_cb(feedback):
+    """
+    Simulates: Take neutral pose.
+    :param feedback
+    :type feedback PoseStamped
+    """
     take_pose(feedback.pose, TakePoseGoal.NEUTRAL)
 
 
 def take_look_low_pose_cb(feedback):
+    """
+    Simulates: Take look low pose.
+    :param feedback
+    :type feedback PoseStamped
+    """
     take_pose(feedback.pose, TakePoseGoal.LOOK_LOW)
 
 
 def take_look_high_pose_cb(feedback):
+    """
+    Simulates: Take look high pose.
+    :param feedback
+    :type feedback PoseStamped
+    """
     take_pose(feedback.pose, TakePoseGoal.LOOK_HIGH)
 
 
 def take_look_floor_pose_cb(feedback):
+    """
+    Simulates: Take look floor pose.
+    :param feedback
+    :type feedback PoseStamped
+    """
     take_pose(feedback.pose, TakePoseGoal.LOOK_FLOOR)
 
 
 def take_look_at_marker_pose_cb(feedback):
+    """
+    Simulates: Take look at marker pose.
+    :param feedback
+    :type feedback PoseStamped
+    """
     take_pose(feedback.pose, TakePoseGoal.GAZE)
 
 
 def take_give_take_pose_cb(feedback):
+    """
+    Simulates: Take take-give-take-pose pose.
+    :param feedback
+    :type feedback PoseStamped
+    """
     take_pose(feedback.pose, TakePoseGoal.GIVE_TAKE)
 
 
 def grasp_front_cb(feedback):
+    """
+    Simulates: Grasp front.
+    :param feedback
+    :type feedback PoseStamped
+    """
     grasp_object(feedback.pose, GraspGoal.FRONT)
 
 
 def grasp_top_cb(feedback):
+    """
+    Simulates: Grasp top.
+    :param feedback
+    :type feedback PoseStamped
+    """
     grasp_object(feedback.pose, GraspGoal.TOP)
 
 
 def place_front_cb(feedback):
+    """
+    Simulates: Place front
+    :param feedback
+    :type feedback PoseStamped
+    """
     place_object(feedback.pose, PlaceGoal.FRONT)
 
 
 def place_top_cb(feedback):
+    """
+    Simulates: Place top.
+    :param feedback
+    :type feedback PoseStamped
+    """
     place_object(feedback.pose, PlaceGoal.TOP)
     
 
 def open_shelve_1_cb(feedback):
+    """
+    Simulates: Open shelf 1.
+    :param feedback
+    :type feedback PoseStamped
+    """
     open(u'iai_kitchen/hsr_shelf_openable:shelf:shelf_door_left:shelf_link_handle', u'iai_kitchen/hsr_shelf_openable:shelf:shelf_door_left:shelf_link_handle')
 
 
 def open_door_1_cb(feedback):
+    """
+    Simulates: Open door 1.
+    :param feedback
+    :type feedback PoseStamped
+    """
     open(u'iai_kitchen/kitchen:outside:door_handle_outside', u'iai_kitchen/kitchen:outside:door_handle_outside')
 
 
 def open_door_2_cb(feedback):
+    """
+    Simulates: Open door 2.
+    :param feedback
+    :type feedback PoseStamped
+    """
     open(u'door_2_handle_inside', u'door_2_handle_inside')
 
 
 def print_object_names_cb(feedback):
+    """
+    Simulates: print object names.
+    :param feedback
+    :type feedback PoseStamped
+    """
     rospy.loginfo("object_names: {}".format(giskard_wrapper.get_object_names().object_names))
 
 def plan_grasp_front_cb(feedback):
+    """
+    Simulates: Plan grasp front.
+    :param feedback
+    :type feedback PoseStamped
+    """
     make_plan(feedback.pose, MakePlanGoal.FRONT, MakePlanGoal.GRASP)
 
 
 def plan_grasp_top_cb(feedback):
+    """
+    Simulates: Plan grasp top.
+    :param feedback
+    :type feedback PoseStamped
+    """
     make_plan(feedback.pose, MakePlanGoal.TOP, MakePlanGoal.GRASP)
 
 
 def plan_place_front_cb(feedback):
+    """
+    Simulates: Plan place front.
+    :param feedback
+    :type feedback PoseStamped
+    """
     make_plan(feedback.pose, MakePlanGoal.FRONT, MakePlanGoal.PLACE)
 
 
 def plan_place_top_cb(feedback):
+    """
+    Simulates: Plan place top.
+    :param feedback
+    :type feedback PoseStamped
+    """
     make_plan(feedback.pose, MakePlanGoal.TOP, MakePlanGoal.PLACE)
 
     
@@ -183,6 +279,13 @@ def marker_moved_cb(feedback):
     server.applyChanges()
 
 def open(object_name, object_link_name):
+    """
+    Sends the goal of opening something to the server.
+    :param object_name object name
+    :type object_name string
+    :param object_link_name object link name
+    :type object_link_name string
+    """
     goal = OpenGoal()
     goal.object_name = object_name
     goal.object_link_name = object_link_name

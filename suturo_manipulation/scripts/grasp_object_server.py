@@ -9,11 +9,19 @@ from giskardpy.python_interface import GiskardWrapper
 
 
 class GraspsObjectServer:
+    """
+    Action Server, which handles the Grasping of objects
+    """
     _feedback = GraspFeedback()
     _result = GraspResult()
     _root = u'odom'
 
     def __init__(self, name):
+        """
+        Initializes the Server.
+        :param name The server name
+        :type name string
+        """
         self._action_name = name
         self._as = actionlib.SimpleActionServer(self._action_name, GraspAction, execute_cb=self.execute_cb,
                                                 auto_start=False)
@@ -27,6 +35,9 @@ class GraspsObjectServer:
         rospy.loginfo("{} is ready and waiting for orders.".format(self._action_name))
 
     def get_mode_rotation(self):
+        """
+        Loads the gripper rotation modes from the ROS parameter server.
+        """
         mode_rotation = {}
         front_rotation = rospy.get_param(u'/manipulation/base_gripper_rotation/front', default=None)
         top_rotation = rospy.get_param(u'/manipulation/base_gripper_rotation/top', default=None)
@@ -37,13 +48,17 @@ class GraspsObjectServer:
         return mode_rotation
 
     def execute_cb(self, goal):
+        """
+        Executes the grasping of objects.
+        :param goal The grasp goal
+        :type goal GraspGoal
+        """
         # uncomment to disable collision avoidance
         # self._manipulator.set_collision(None)
         rospy.loginfo("Grasping: {}".format(goal))
         # Set initial result value.
         success = True
         self._result.error_code = self._result.FAILED
-
         collision_whitelist = []
         if goal.object_frame_id in self._giskard_wrapper.get_object_names().object_names:
             collision_whitelist.append(goal.object_frame_id)

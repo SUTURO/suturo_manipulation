@@ -7,11 +7,19 @@ from giskardpy.python_interface import GiskardWrapper
 
 
 class MoveGripperServer:
+    """
+    Action Server, which handles the movement of the gripper.
+    """
     _feedback = MoveGripperFeedback()
     _result = MoveGripperResult()
     _root = u'odom'
 
     def __init__(self, name):
+        """
+        Initializes the Server.
+        :param name The server name
+        :type name string
+        """
         self._action_name = name
         self._as = actionlib.SimpleActionServer(self._action_name, MoveGripperAction, execute_cb=self.execute_cb,
                                                 auto_start=False)
@@ -19,6 +27,11 @@ class MoveGripperServer:
         self._as.start()
 
     def execute_cb(self, goal):
+        """
+        Executes the movement of the gripper.
+        :param goal The grasp goal
+        :type goal GraspGoal
+        """
         rospy.loginfo("Move gripper: {}".format(goal))
         self._result.error_code = self._result.FAILED
         self._giskard_wrapper.interrupt()

@@ -13,6 +13,9 @@ from tf.transformations import euler_from_quaternion, quaternion_from_matrix
 
 
 class OpenServer:
+    """
+    Action Server, which handles the opening of objects.
+    """
     _feedback = OpenFeedback()
     _result = OpenResult()
     _root = u'odom'
@@ -29,6 +32,11 @@ class OpenServer:
         rospy.loginfo("{} is ready and waiting for orders.".format(self._action_name))
 
     def execute_cb(self, goal):
+        """
+        Executes the opening of objects.
+        :param goal The grasp goal
+        :type goal GraspGoal
+        """
         # uncomment to disable collision avoidance
         # self._manipulator.set_collision(None)
         rospy.loginfo("Opening: {}".format(goal))
@@ -53,7 +61,7 @@ class OpenServer:
         # opens the door
         success &= self._manipulator.open(tip_link=u'hand_gripper_tool_frame',
                                           object_link_name=goal.object_name,
-                                          angle_goal=goal.angle_goal,
+                                          angle_goal=1.4,
                                           use_limitation=limit_base_scan)
         # opens the gripper again
         self._gripper.set_gripper_joint_position(1.2)
@@ -67,6 +75,11 @@ class OpenServer:
         self._as.set_succeeded(self._result)
 
     def calculate_goal_pose(self, object_name):
+        """
+        Calculates the goal orientation pose depending on the object type.
+        :param object_name the object name
+        :type object_name string
+        """
         goal_pose = PoseStamped()
         goal_pose.header.frame_id = object_name
         rotation_matrix = np.eye(4)
