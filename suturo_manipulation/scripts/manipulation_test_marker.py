@@ -113,8 +113,8 @@ def init_menu():
 
 def take_neutral_pose_cb(feedback):
     """
-    Simulates: Take neutral pose.
-    :param feedback
+    Callback: Take neutral pose.
+    :param feedback The feedback
     :type feedback PoseStamped
     """
     take_pose(feedback.pose, TakePoseGoal.NEUTRAL)
@@ -122,8 +122,8 @@ def take_neutral_pose_cb(feedback):
 
 def take_look_low_pose_cb(feedback):
     """
-    Simulates: Take look low pose.
-    :param feedback
+    Callback: Take look low pose.
+    :param feedback The feedback
     :type feedback PoseStamped
     """
     take_pose(feedback.pose, TakePoseGoal.LOOK_LOW)
@@ -131,8 +131,8 @@ def take_look_low_pose_cb(feedback):
 
 def take_look_high_pose_cb(feedback):
     """
-    Simulates: Take look high pose.
-    :param feedback
+    Callback: Take look high pose.
+    :param feedback The feedback
     :type feedback PoseStamped
     """
     take_pose(feedback.pose, TakePoseGoal.LOOK_HIGH)
@@ -140,8 +140,8 @@ def take_look_high_pose_cb(feedback):
 
 def take_look_floor_pose_cb(feedback):
     """
-    Simulates: Take look floor pose.
-    :param feedback
+    Callback: Take look floor pose.
+    :param feedback The feedback
     :type feedback PoseStamped
     """
     take_pose(feedback.pose, TakePoseGoal.LOOK_FLOOR)
@@ -149,8 +149,8 @@ def take_look_floor_pose_cb(feedback):
 
 def take_look_at_marker_pose_cb(feedback):
     """
-    Simulates: Take look at marker pose.
-    :param feedback
+    Callback: Take look at marker pose.
+    :param feedback The feedback
     :type feedback PoseStamped
     """
     take_pose(feedback.pose, TakePoseGoal.GAZE)
@@ -158,8 +158,8 @@ def take_look_at_marker_pose_cb(feedback):
 
 def take_give_take_pose_cb(feedback):
     """
-    Simulates: Take take-give-take-pose pose.
-    :param feedback
+    Callback: Take take-give-take-pose pose.
+    :param feedback The feedback
     :type feedback PoseStamped
     """
     take_pose(feedback.pose, TakePoseGoal.GIVE_TAKE)
@@ -167,8 +167,8 @@ def take_give_take_pose_cb(feedback):
 
 def grasp_front_cb(feedback):
     """
-    Simulates: Grasp front.
-    :param feedback
+    Callback: Grasp front.
+    :param feedback The feedback
     :type feedback PoseStamped
     """
     grasp_object(feedback.pose, GraspGoal.FRONT)
@@ -176,8 +176,8 @@ def grasp_front_cb(feedback):
 
 def grasp_top_cb(feedback):
     """
-    Simulates: Grasp top.
-    :param feedback
+    Callback: Grasp top.
+    :param feedback The feedback
     :type feedback PoseStamped
     """
     grasp_object(feedback.pose, GraspGoal.TOP)
@@ -185,8 +185,8 @@ def grasp_top_cb(feedback):
 
 def place_front_cb(feedback):
     """
-    Simulates: Place front
-    :param feedback
+    Callback: Place front
+    :param feedback The feedback
     :type feedback PoseStamped
     """
     place_object(feedback.pose, PlaceGoal.FRONT)
@@ -194,8 +194,8 @@ def place_front_cb(feedback):
 
 def place_top_cb(feedback):
     """
-    Simulates: Place top.
-    :param feedback
+    Callback: Place top.
+    :param feedback The feedback
     :type feedback PoseStamped
     """
     place_object(feedback.pose, PlaceGoal.TOP)
@@ -203,8 +203,8 @@ def place_top_cb(feedback):
 
 def open_shelve_1_cb(feedback):
     """
-    Simulates: Open shelf 1.
-    :param feedback
+    Callback: Open shelf 1.
+    :param feedback The feedback
     :type feedback PoseStamped
     """
     open(u'iai_kitchen/hsr_shelf_openable:shelf:shelf_door_left:shelf_link_handle', u'iai_kitchen/hsr_shelf_openable:shelf:shelf_door_left:shelf_link_handle')
@@ -212,8 +212,8 @@ def open_shelve_1_cb(feedback):
 
 def open_door_1_cb(feedback):
     """
-    Simulates: Open door 1.
-    :param feedback
+    Callback: Open door 1.
+    :param feedback The feedback
     :type feedback PoseStamped
     """
     open(u'iai_kitchen/kitchen:outside:door_handle_outside', u'iai_kitchen/kitchen:outside:door_handle_outside')
@@ -221,8 +221,8 @@ def open_door_1_cb(feedback):
 
 def open_door_2_cb(feedback):
     """
-    Simulates: Open door 2.
-    :param feedback
+    Callback: Open door 2.
+    :param feedback The feedback
     :type feedback PoseStamped
     """
     open(u'door_2_handle_inside', u'door_2_handle_inside')
@@ -230,16 +230,16 @@ def open_door_2_cb(feedback):
 
 def print_object_names_cb(feedback):
     """
-    Simulates: print object names.
-    :param feedback
+    Callback: print object names.
+    :param feedback The feedback
     :type feedback PoseStamped
     """
     rospy.loginfo("object_names: {}".format(giskard_wrapper.get_object_names().object_names))
 
 def plan_grasp_front_cb(feedback):
     """
-    Simulates: Plan grasp front.
-    :param feedback
+    Callback: Plan grasp front.
+    :param feedback The feedback
     :type feedback PoseStamped
     """
     make_plan(feedback.pose, MakePlanGoal.FRONT, MakePlanGoal.GRASP)
@@ -247,8 +247,8 @@ def plan_grasp_front_cb(feedback):
 
 def plan_grasp_top_cb(feedback):
     """
-    Simulates: Plan grasp top.
-    :param feedback
+    Callback: Plan grasp top.
+    :param feedback The feedback
     :type feedback PoseStamped
     """
     make_plan(feedback.pose, MakePlanGoal.TOP, MakePlanGoal.GRASP)
@@ -256,8 +256,8 @@ def plan_grasp_top_cb(feedback):
 
 def plan_place_front_cb(feedback):
     """
-    Simulates: Plan place front.
-    :param feedback
+    Callback: Plan place front.
+    :param feedback The feedback
     :type feedback PoseStamped
     """
     make_plan(feedback.pose, MakePlanGoal.FRONT, MakePlanGoal.PLACE)
@@ -265,14 +265,19 @@ def plan_place_front_cb(feedback):
 
 def plan_place_top_cb(feedback):
     """
-    Simulates: Plan place top.
-    :param feedback
+    Callback: Plan place top.
+    :param feedback The feedback
     :type feedback PoseStamped
     """
     make_plan(feedback.pose, MakePlanGoal.TOP, MakePlanGoal.PLACE)
 
     
 def marker_moved_cb(feedback):
+    """
+    Callback: Moving the marker.
+    :param feedback The feedback
+    :type feedback PoseStamped
+    """
     marker = server.get(feedback.marker_name)
     marker.description = "{}, {}, {}".format(feedback.pose.position.x, feedback.pose.position.y,
                                              feedback.pose.position.z)
@@ -297,54 +302,123 @@ def open(object_name, object_link_name):
     rospy.loginfo("Execution time: {:.2f}s".format((rospy.Time.now() - start).to_sec()))
 
 def get_all_objects_cb(feedback):
+    """
+    Callback: Logs all objects.
+    :param feedback The feedback
+    :type feedback PoseStamped
+    """
     rospy.loginfo("All Objects: {}".format(giskard_wrapper.get_object_names().object_names))
 
 
 def get_attached_objects_cb(feedback):
+    """
+    Logs all attached objects.
+    :param feedback The feedback
+    :type feedback PoseStamped
+    """
     rospy.loginfo("Attached Objects: {}".format(giskard_wrapper.get_attached_objects().object_names))
 
 
 def get_robot_links_cb(feedback):
+    """
+    Logs all robot links.
+    :param feedback The feedback
+    :type feedback PoseStamped
+    """
     rospy.loginfo("Robot Links: {}".format(giskard_wrapper.get_robot_links()))
 
 
 def spawn_test_object_cb(feedback):
+    """
+    Callback: Spawns a test object at a specific pose.
+    :param feedback The feedback
+    :type feedback PoseStamped
+    """
     spawn_test_object(feedback.pose)
 
 
 def remove_test_object_cb(feedback):
+    """
+    Callback: Removes the test object.
+    :param feedback The feedback
+    :type feedback PoseStamped
+    """
     remove_test_object()
 
 
 def attach_test_object_cb(feedback):
+    """
+    Callback: Attaches the test object.
+    :param feedback The feedback
+    :type feedback PoseStamped
+    """
     attach_test_object()
 
 
 def detach_test_object_cb(feedback):
+    """
+    Callback: Detaches the test object.
+    :param feedback The feedback
+    :type feedback PoseStamped
+    """
     detach_test_object()
 
 
 def open_gripper_cb(feedback):
+    """
+    Callback: Simulates: Open the gripper.
+    :param feedback The feedback
+    :type feedback PoseStamped
+    """
     open_gripper()
 
 
 def close_gripper_cb(feedback):
+    """
+    Callback: Close the gripper.
+    :param feedback The feedback
+    :type feedback PoseStamped
+    """
     close_gripper()
 
 
 def close_gripper_force_cb(feedback):
+    """
+    Callback: Close the gripper with force.
+    :param feedback The feedback
+    :type feedback PoseStamped
+    """
     close_gripper_force()
 
 
 def get_gripper_joint_state_cb(feedback):
+    """
+    Callback: Returns the gripper joint state.
+    :param feedback The feedback
+    :type feedback PoseStamped
+    """
     get_gripper_joint_state()
 
 
 def clear_world_cb(feedback):
+    """
+    Callback: Clears the world.
+    :param feedback The feedback
+    :type feedback PoseStamped
+    """
     clear_world()
 
 
 def make_plan(goal_pose, gripper_mode, action_mode):
+    """
+    Makes an motion plan. Also logs the required time.
+    :param goal_pose The desired goal pose
+    :type goal_pose PoseStamped
+    :param gripper_mode The gripper orientation mode
+    :type gripper_mode string
+    :param action_mode The action mode
+    :type action_mode string
+    """
     goal = MakePlanGoal()
     goal.gripper_mode = gripper_mode
     goal.action_mode = action_mode
@@ -363,6 +437,13 @@ def make_plan(goal_pose, gripper_mode, action_mode):
 
 
 def take_pose(pose, mode):
+    """
+    Takes a desired pose. Also logs the required time.
+    :param pose The desired pose
+    :type pose PoseStamped
+    :param mode The encoding of the pose
+    :type mode int
+    """
     goal = TakePoseGoal()
     goal.pose_mode = mode
     goal.gaze_point = Vector3(x=pose.position.x, y=pose.position.y, z=pose.position.z)
@@ -375,6 +456,13 @@ def take_pose(pose, mode):
 
 
 def grasp_object(pose, mode):
+    """
+    Grasps an object. Also logs the required time.
+    :param pose The desired pose
+    :type pose PoseStamped
+    :param mode The encoding of the pose
+    :type mode int
+    """
     goal = GraspGoal()
     goal.grasp_mode = mode
     goal.object_frame_id = test_object_name
@@ -395,6 +483,13 @@ def grasp_object(pose, mode):
 
 
 def place_object(pose, mode):
+    """
+    Places an object. Also logs the required time.
+    :param pose The desired pose
+    :type pose PoseStamped
+    :param mode The encoding of the pose
+    :param mode int
+    """
     goal = PlaceGoal()
     goal.place_mode = mode
     goal.object_frame_id = test_object_name
@@ -414,6 +509,9 @@ def place_object(pose, mode):
 
 
 def get_gripper_joint_state():
+    """
+    Logs the gripper joint state.
+    """
     joint_states = giskard_wrapper.get_joint_states(u'/hsrb/joint_states')
     if joint_states.has_key(u'hand_motor_joint'):
         result = joint_states[u'hand_motor_joint']
@@ -423,18 +521,32 @@ def get_gripper_joint_state():
 
 
 def open_gripper():
+    """
+    Opens the gripper in position 1.2.
+    """
     gripper.set_gripper_joint_position(1.2)
 
 
 def close_gripper():
+    """
+    Closes the gripper to position -0.8
+    """
     gripper.set_gripper_joint_position(-0.8)
 
 
 def close_gripper_force():
+    """
+    Closes the gripper with force.
+    """
     gripper.close_gripper_force()
 
 
 def spawn_test_object(pose):
+    """
+    Spawns the test object.
+    :param pose The desired pose
+    :type pose PoseStamped
+    """
     remove_test_object()
     pose_S = PoseStamped()
     pose_S.header.frame_id = "map"
@@ -444,21 +556,33 @@ def spawn_test_object(pose):
 
 
 def remove_test_object():
+    """
+    Removes the test object.
+    """
     if test_object_name in giskard_wrapper.get_object_names().object_names:
         giskard_wrapper.remove_object(test_object_name)
 
 
 def attach_test_object():
+    """
+    Attaches the test object.
+    """
     if test_object_name in giskard_wrapper.get_object_names().object_names:
         giskard_wrapper.attach_object(test_object_name, "hand_palm_link")
 
 
 def detach_test_object():
+    """
+    Detaches the test object.
+    """
     if test_object_name in giskard_wrapper.get_attached_objects().object_names:
         giskard_wrapper.detach_object(test_object_name)
 
 
 def clear_world():
+    """
+    Clears the world and logs the result.
+    """
     result = giskard_wrapper.clear_world()
     rospy.loginfo("Clear world: {}".format(result.error_codes))
 
