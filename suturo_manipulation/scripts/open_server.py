@@ -60,6 +60,7 @@ class OpenServer:
 
         # opens the door
         success &= self._manipulator.open(tip_link=u'hand_gripper_tool_frame',
+                                          object_name_prefix=u'iai_kitchen',
                                           object_link_name=goal.object_name,
                                           angle_goal=1.4,
                                           use_limitation=limit_base_scan)

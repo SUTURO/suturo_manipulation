@@ -117,11 +117,13 @@ class Manipulator:
         result = self.giskard_wrapper_.get_result()
         return result and result.SUCCESS in result.error_codes
 
-    def open(self, tip_link, object_link_name, angle_goal, use_limitation):
+    def open(self, tip_link, object_name_prefix, object_link_name, angle_goal, use_limitation):
         """
         Lets the robot open the given object
         :type tip_link str
         :param tip_link the name of the gripper
+        :type object_name_prefix str
+        :param object_name_prefix the object link name prefix
         :type object_link_name str
         :param object_link_name handle to grasp
         :type angle_goal float
@@ -143,7 +145,7 @@ class Manipulator:
         }
         rospy.logerr(angle_goal)
         self.giskard_wrapper_.update_god_map(updates)
-        self.giskard_wrapper_.set_open_goal(tip_link, object_link_name.split('/')[1], angle_goal)
+        self.giskard_wrapper_.set_pull_door_goal(tip_link, object_name_prefix, object_link_name.split('/')[1], angle_goal)
         self.giskard_wrapper_.plan_and_execute(wait=True)
         result = self.giskard_wrapper_.get_result()
         if use_limitation:
