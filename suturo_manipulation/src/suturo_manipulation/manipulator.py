@@ -1,10 +1,11 @@
 #!/usr/bin/env python
+import math
 
 import rospy
 from std_srvs.srv import SetBool
 from giskardpy.python_interface import GiskardWrapper
-from giskardpy.utils import to_tf_quaternion, calculate_waypoint2D
-from geometry_msgs.msg import Quaternion, PoseStamped, PointStamped, Vector3Stamped
+from giskardpy.utils import to_tf_quaternion
+from geometry_msgs.msg import Quaternion, PoseStamped, PointStamped, Vector3Stamped, Point
 from tf.transformations import quaternion_multiply, quaternion_from_matrix
 
 
@@ -70,7 +71,7 @@ class Manipulator:
             step_pose = PoseStamped()
             step_pose.header.frame_id = goal_pose.header.frame_id
             step_pose.header.stamp = rospy.Time.now()
-            step_pose.pose.position = calculate_waypoint2D(goal_pose.pose.position, robot_pose.pose.position, step)
+            step_pose.pose.position = self.calculate_waypoint2D(goal_pose.pose.position, robot_pose.pose.position, step)
             step_pose.pose.orientation = goal_pose.pose.orientation
             rospy.loginfo("step_pose: {}".format(step_pose))
             # Move to the defined step
@@ -165,3 +166,34 @@ class Manipulator:
             return response.success
         except rospy.ServiceProxy as e:
             print("base scan limitation failed: %e"%e)
+
+    def calculate_waypoint2D(self, target, origin, distance):
+        """
+        Calculates a waypoint in front of the target.
+        :param target: The target position
+        :type target: Point
+        :param origin: The origin position
+        :type origin: Point
+        :param distance: The distance of the new waypoint to the target
+        :type distance: float
+        :return:
+        """
+        distance = abs(distance)
+        x = target.x - origin.x
+        y = target.y - origin.y
+
+        if x == 0.0:
+            if y < 0.0:
+                return Point(target.x, target.y + distance, target.z)
+            else:
+                return Point(target.x, target.y - distance, target.z)
+
+        alpha = math.atan(y / x)
+        dx = math.cos(alpha) * distance
+        dy = math.sin(alpha) * distance
+
+        if x > 0.0:
+            return Point(target.x - dx, target.y - dy, target.z)
+        else:
+            return Point(target.x + dx, target.y + dy, target.z)
+
