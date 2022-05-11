@@ -14,6 +14,8 @@ from suturo_manipulation.gripper import Gripper
 
 server = None
 menu_handler = MenuHandler()
+"""new"""
+open_drawer_client = None
 
 take_pose_client = None
 grasp_client = None
@@ -60,6 +62,12 @@ def init_menu():
     """
     Initiates the menu.
     """
+
+    """new"""
+    open_drawer_men = menu_handler.insert("Open Drawer")
+    menu_handler.insert("drawer 1", parent=open_drawer_men, callback=open_drawer_1_cb)
+
+
     pose_men = menu_handler.insert("Take pose")
     menu_handler.insert("Neutral", parent=pose_men, callback=take_neutral_pose_cb)
     menu_handler.insert("Look low", parent=pose_men, callback=take_look_low_pose_cb)
@@ -80,6 +88,10 @@ def init_menu():
     menu_handler.insert("door_1", parent=open_men, callback=open_door_1_cb)
     menu_handler.insert("door_2", parent=open_men, callback=open_door_2_cb)
     menu_handler.insert("schelve_1", parent=open_men, callback=open_shelve_1_cb)
+    menu_handler.insert("drawer 1", parent=open_men, callback=open_drawer_1_cb)
+
+
+
 
     giskard_men = menu_handler.insert("Giskard")
     menu_handler.insert("object_names", parent=giskard_men, callback=print_object_names_cb)
@@ -109,6 +121,9 @@ def init_menu():
     menu_handler.insert("Get Attached Object", parent=utility_men, callback=get_attached_objects_cb)
     menu_handler.insert("Get Robot Links", parent=utility_men, callback=get_robot_links_cb)
     menu_handler.insert("Clear world", parent=utility_men, callback=clear_world_cb)
+
+
+
 
 
 def take_neutral_pose_cb(feedback):
@@ -226,6 +241,10 @@ def open_door_2_cb(feedback):
     :type feedback PoseStamped
     """
     open(u'door_2_handle_inside', u'door_2_handle_inside')
+
+def open_drawer_1_cb (feedback):
+    open(u'iai_kitchen/drawer:drawer:drawer_knob',
+         u'iai_kitchen/drawer:drawer:drawer_knob')
 
 
 def print_object_names_cb(feedback):

@@ -54,16 +54,28 @@ class OpenServer:
         # closing the gripper
         self._gripper.set_gripper_joint_position(-0.1)
 
-        limit_base_scan = True
+        limit_base_scan = False
         if 'shelf' in goal.object_name:
             limit_base_scan = False
 
+        if 'drawer' in goal.object_name:
+            limit_base_scan = False
+
         # opens the door
-        success &= self._manipulator.open(tip_link=u'hand_gripper_tool_frame',
-                                          object_name_prefix=u'iai_kitchen',
-                                          object_link_name=goal.object_name,
-                                          angle_goal=1.4,
-                                          use_limitation=limit_base_scan)
+        if 'shelf' in goal.object_name:
+            success &= self._manipulator.open(tip_link=u'hand_gripper_tool_frame',
+                                              object_name_prefix=u'iai_kitchen',
+                                              object_link_name=goal.object_name,
+                                              angle_goal=1.4,
+                                              use_limitation=limit_base_scan)
+        # opens the drawer
+        elif 'drawer' in goal.object_name:
+            success &= self._manipulator.opendrawer(tip_link=u'hand_gripper_tool_frame',
+                                                    object_name_prefix=u'iai_kitchen',
+                                                    object_link_name=goal.object_name,
+                                                    distance_goal=-0.3,
+                                                    use_limitation=limit_base_scan)
+
         # opens the gripper again
         self._gripper.set_gripper_joint_position(1.2)
 
@@ -86,6 +98,8 @@ class OpenServer:
         rotation_matrix = np.eye(4)
         if 'shelf' in object_name:
             rotation_matrix = np.array(rospy.get_param(u'/manipulation/gripper_opening_matrices/shelf'))
+        elif 'drawer' in object_name:
+            rotation_matrix = np.array(rospy.get_param(u'/manipulation/gripper_opening_matrices/drawer'))
         elif 'door' in object_name:
             rotation_matrix = np.array(rospy.get_param(u'/manipulation/gripper_opening_matrices/door'))
         goal_pose.pose.orientation = Quaternion(*quaternion_from_matrix(rotation_matrix))

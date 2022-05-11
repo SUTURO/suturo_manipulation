@@ -13,6 +13,7 @@ class Gripper:
     """
     Handles the movement of the gripper.
     """
+
     def __init__(self, apply_force_action_server, follow_joint_trajectory_server):
         self._gripper_apply_force_client = actionlib.SimpleActionClient(apply_force_action_server,
                                                                         GripperApplyEffortAction)
@@ -31,7 +32,8 @@ class Gripper:
         :param mode: placed or grasped
         :return:
         """
-        rospy.loginfo("Publishing: object_in_gripper: Name: {}; Pose: {}; Mode: {}".format(object_frame_id, pose_stamped, mode))
+        rospy.loginfo(
+            "Publishing: object_in_gripper: Name: {}; Pose: {}; Mode: {}".format(object_frame_id, pose_stamped, mode))
         orientation = normalize_quaternion_msg(pose_stamped.pose.orientation)
         obj_in_gri = ObjectInGripper()
         obj_in_gri.object_frame_id = object_frame_id
@@ -46,7 +48,7 @@ class Gripper:
             :return: false or true, boolean
         """
         joint_states = self._giskard_wrapper.get_joint_states(u'/hsrb/joint_states')
-        if joint_states.has_key(u'hand_motor_joint'):
+        if u'hand_motor_joint' in joint_states:
             rospy.loginfo("hand_motor_joint: {}".format(joint_states[u'hand_motor_joint']))
             result = joint_states[u'hand_motor_joint'] > 0.0
             rospy.loginfo("object_in_gripper: {}".format(result))

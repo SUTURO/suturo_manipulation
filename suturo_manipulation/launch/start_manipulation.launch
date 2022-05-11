@@ -5,6 +5,7 @@
 	<arg name="run_take_pose_server" default="true"/>
 	<arg name="run_place_server" default="true"/>
 	<arg name="run_open_server" default="true"/>
+	<arg name="run_open_drawer_server" default="true"/>
 	<arg name="run_make_plan_server" default="true"/>
 	<arg name="run_object_state_listener" default="true"/>
 	<arg name="run_manipulation_test_marker" default="true"/>
@@ -17,7 +18,8 @@
 		<include file="$(find iai_hsr_sim)/launch/ros_control_sim.launch" />
 		<include file="$(find giskardpy)/launch/giskardpy_hsr.launch" >
 			<arg name="sim" value="true"/>
-			<arg name="gui" value="${arg gui}"/>
+			
+
 		</include>
 		<node pkg="rviz" type="rviz" name="rviz" args="-d $(find suturo_manipulation)/config/iai_hsr_sim.rviz" />
 	</group>
@@ -25,7 +27,8 @@
 	<group if="$(eval sim == false)">
 		<include file="$(find giskardpy)/launch/giskardpy_hsr.launch" >
 			<arg name="sim" value="false"/>
-			<arg name="gui" value="${arg gui}"/>
+			
+
 		</include>
 	</group>	
 
@@ -64,6 +67,11 @@
 
 	<node pkg="suturo_manipulation" name="open_server" type="open_server.py" output="screen"
 		if="$(eval run_open_server == true)"/>
+
+	<!--<node pkg="suturo_manipulation" name="open_drawer_server" type="open_drawer_server.py" output="screen"
+		if="$(eval run_open_drawer_server == true)"/>-->
+
+
 
 	<node pkg="suturo_manipulation" name="manipulation_test_marker" type="manipulation_test_marker.py" output="screen"
 		if="$(eval run_manipulation_test_marker == true)"/>

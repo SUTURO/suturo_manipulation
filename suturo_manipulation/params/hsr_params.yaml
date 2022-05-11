@@ -12,6 +12,12 @@ gripper_opening_matrices:
       [ 1,  0,  0, 0 ],
       [ 0,  0,  0, 1 ] ]
 
+  drawer:
+    [ [ 0, 1,  0, 0 ],
+      [ 0,  0, -1, 0 ],
+      [ 1,  0,  0, 0 ],
+      [ 0,  0,  0, 1 ] ]
+
 # gripper orientation for top and front
 base_gripper_rotation:
   top:
@@ -29,7 +35,7 @@ base_gripper_rotation:
 # predefined hsr robot poses
 robot_poses:
   neutral:
-    head_pan_joint: 0.0
+    head_pan_joint:  0.0
     head_tilt_joint: 0.0
     arm_lift_joint: 0.0
     arm_flex_joint: 0.0
@@ -50,7 +56,7 @@ robot_poses:
 
   look_low:
     head_pan_joint: -1.54
-    head_tilt_joint: -0.46
+    head_tilt_joint: -0.56
     arm_lift_joint: 0.0
     arm_flex_joint: -0.5
     arm_roll_joint: 0.0

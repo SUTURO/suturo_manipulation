@@ -76,12 +76,12 @@ class Manipulator:
             rospy.loginfo("step_pose: {}".format(step_pose))
             # Move to the defined step
             self.set_collision(self.collision_distance_, collision_whitelist)
-            self.giskard_wrapper_.set_cart_goal(root_link, tip_link, step_pose)
+            self.giskard_wrapper_.set_cart_goal(goal_pose=step_pose, tip_link=tip_link, root_link=root_link)
             self.giskard_wrapper_.plan_and_execute(wait=True)
         rospy.loginfo("goal_pose: {}".format(goal_pose))
         goal_pose.header.stamp = rospy.Time.now()
         self.set_collision(self.collision_distance_, collision_whitelist)
-        self.giskard_wrapper_.set_cart_goal(root_link, tip_link, goal_pose)
+        self.giskard_wrapper_.set_cart_goal(goal_pose=goal_pose, tip_link=tip_link, root_link=root_link)
         self.giskard_wrapper_.plan_and_execute(wait=True)
         result = self.giskard_wrapper_.get_result()
         rospy.loginfo("Giskard result: {}".format(result.error_codes))
@@ -113,7 +113,7 @@ class Manipulator:
         """
         self.set_collision(-1)
         #self.set_collision(self.collision_distance_)
-        self.giskard_wrapper_.set_cart_goal(root_link, tip_link, goal_pose)
+        self.giskard_wrapper_.set_cart_goal(goal_pose=goal_pose, tip_link=tip_link, root_link=root_link)
         self.giskard_wrapper_.plan_and_execute(wait=True)
         result = self.giskard_wrapper_.get_result()
         return result and result.SUCCESS in result.error_codes
@@ -147,6 +147,41 @@ class Manipulator:
         rospy.logerr(angle_goal)
         self.giskard_wrapper_.update_god_map(updates)
         self.giskard_wrapper_.set_pull_door_goal(tip_link, object_name_prefix, object_link_name.split('/')[1], angle_goal)
+        self.giskard_wrapper_.plan_and_execute(wait=True)
+        result = self.giskard_wrapper_.get_result()
+        if use_limitation:
+            self.change_base_scan_limitation(False)
+        return result and result.SUCCESS in result.error_codes
+
+    def opendrawer(self, tip_link, object_name_prefix, object_link_name, distance_goal, use_limitation):
+        """
+        Lets the robot open the given object
+        :type tip_link str
+        :param tip_link the name of the gripper
+        :type object_name_prefix str
+        :param object_name_prefix the object link name prefix
+        :type object_link_name str
+        :param object_link_name handle to grasp
+        :type distance_goal float
+        :param distance_goal the distance_goal in relation to the current status
+        :type use_limitation bool
+        :param use_limitation indicator, if the limitation should be used
+        """
+        self.change_base_scan_limitation(use_limitation)
+        self.set_collision(-1)
+        updates = {
+            u'rosparam': {
+                u'general_options': {
+                    u'joint_weights': {
+                        u'arm_lift_joint': 1000,
+                        u'arm_roll_joint': 1000
+                    }
+                }
+            }
+        }
+        rospy.logerr(distance_goal)
+        self.giskard_wrapper_.update_god_map(updates)
+        self.giskard_wrapper_.set_pull_drawer_goal(tip_link, object_name_prefix, object_link_name.split('/')[1], distance_goal)
         self.giskard_wrapper_.plan_and_execute(wait=True)
         result = self.giskard_wrapper_.get_result()
         if use_limitation:
