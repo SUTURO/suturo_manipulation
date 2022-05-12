@@ -7,6 +7,7 @@ from giskardpy.python_interface import GiskardWrapper
 from giskardpy.utils import to_tf_quaternion
 from geometry_msgs.msg import Quaternion, PoseStamped, PointStamped, Vector3Stamped, Point
 from tf.transformations import quaternion_multiply, quaternion_from_matrix
+from sensor_msgs.msg import JointState
 
 
 class Manipulator:
@@ -21,9 +22,12 @@ class Manipulator:
         :param mode_rotation: Rotation of tip depending on robot_pose
         :type mode_rotation: dict(mode: [x, y, z, w])
         """
+
         self.mode_rotation_ = mode_rotation
         self.collision_distance_ = collision_distance
         self.giskard_wrapper_ = GiskardWrapper()
+        self.giskard_wrapper_._object_js_topics['iai_kitchen'] = rospy.Publisher('kitchen/cram_joint_states', JointState, queue_size=10)
+
 
     def set_collision(self, distance, collision_whitelist=None):
         """
@@ -169,23 +173,17 @@ class Manipulator:
         """
         self.change_base_scan_limitation(use_limitation)
         self.set_collision(-1)
-        updates = {
-            u'rosparam': {
-                u'general_options': {
-                    u'joint_weights': {
-                        u'arm_lift_joint': 1000,
-                        u'arm_roll_joint': 1000
-                    }
-                }
-            }
-        }
         rospy.logerr(distance_goal)
-        self.giskard_wrapper_.update_god_map(updates)
-        self.giskard_wrapper_.set_pull_drawer_goal(tip_link, object_name_prefix, object_link_name.split('/')[1], distance_goal)
+        self.giskard_wrapper_.set_open_drawer_goal(tip_link, object_name_prefix, object_link_name.split('/')[1], distance_goal)
         self.giskard_wrapper_.plan_and_execute(wait=True)
         result = self.giskard_wrapper_.get_result()
+        print("hallo" + tip_link, object_name_prefix, object_link_name)
         if use_limitation:
             self.change_base_scan_limitation(False)
+        print("object joint hilfe")
+        print(self.giskard_wrapper_._object_js_topics)
+        self.giskard_wrapper_.get_object_info('iai_kitchen')
+        self.giskard_wrapper_.set_object_joint_state('iai_kitchen', {'drawer_move': distance_goal})
         return result and result.SUCCESS in result.error_codes
 
     def change_base_scan_limitation(self, indicator):

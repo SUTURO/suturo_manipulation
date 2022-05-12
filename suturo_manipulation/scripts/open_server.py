@@ -70,11 +70,14 @@ class OpenServer:
                                               use_limitation=limit_base_scan)
         # opens the drawer
         elif 'drawer' in goal.object_name:
+            print("oobject" + goal.object_name)
             success &= self._manipulator.opendrawer(tip_link=u'hand_gripper_tool_frame',
                                                     object_name_prefix=u'iai_kitchen',
                                                     object_link_name=goal.object_name,
                                                     distance_goal=-0.3,
                                                     use_limitation=limit_base_scan)
+
+
 
         # opens the gripper again
         self._gripper.set_gripper_joint_position(1.2)
