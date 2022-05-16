@@ -35,8 +35,9 @@ class MoveGripperServer:
         rospy.loginfo("Move gripper: {}".format(goal))
         self._result.error_code = self._result.FAILED
         self._giskard_wrapper.interrupt()
-        self._giskard_wrapper.set_cart_goal(self._root, u'hand_palm_link', goal.goal_pose)
-        self._giskard_wrapper.plan_and_execute(wait=False)
+        self._giskard_wrapper.set_joint_goal(rospy.get_param(u'/manipulation/robot_poses/wipe'))
+        self._giskard_wrapper.set_cart_goal(goal_pose=goal.goal_pose, tip_link=u'hand_palm_link', root_link=self._root)
+        self._giskard_wrapper.plan_and_execute(wait=True)
         result = self._giskard_wrapper.get_result(rospy.Duration(60))
         if result and result.SUCCESS in result.error_code:
             self._result.error_code = self._result.SUCCESS
