@@ -174,7 +174,7 @@ class Manipulator:
         self.change_base_scan_limitation(use_limitation)
         self.set_collision(-1)
         rospy.logerr(distance_goal)
-        self.giskard_wrapper_.set_open_drawer_goal(tip_link, object_name_prefix, object_link_name.split('/')[1], distance_goal)
+        self.giskard_wrapper_.set_close_drawer_goal(tip_link, object_name_prefix, object_link_name.split('/')[1], distance_goal)
         self.giskard_wrapper_.plan_and_execute(wait=True)
         result = self.giskard_wrapper_.get_result()
         if use_limitation:
