@@ -96,6 +96,6 @@ class GraspsObjectServer:
 
 
 if __name__ == '__main__':
-    rospy.init_node('grasp_object_server')
+    rospy.init_node('grasp_server')
     server = GraspsObjectServer(rospy.get_name())
     rospy.spin()

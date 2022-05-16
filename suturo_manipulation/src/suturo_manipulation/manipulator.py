@@ -157,9 +157,9 @@ class Manipulator:
             self.change_base_scan_limitation(False)
         return result and result.SUCCESS in result.error_codes
 
-    def opendrawer(self, tip_link, object_name_prefix, object_link_name, distance_goal, use_limitation):
+    def openclosedrawer(self, tip_link, object_name_prefix, object_link_name, distance_goal, use_limitation):
         """
-        Lets the robot open the given object
+        Lets the robot open the drawer
         :type tip_link str
         :param tip_link the name of the gripper
         :type object_name_prefix str
@@ -177,11 +177,8 @@ class Manipulator:
         self.giskard_wrapper_.set_open_drawer_goal(tip_link, object_name_prefix, object_link_name.split('/')[1], distance_goal)
         self.giskard_wrapper_.plan_and_execute(wait=True)
         result = self.giskard_wrapper_.get_result()
-        print("hallo" + tip_link, object_name_prefix, object_link_name)
         if use_limitation:
             self.change_base_scan_limitation(False)
-        print("object joint hilfe")
-        print(self.giskard_wrapper_._object_js_topics)
         self.giskard_wrapper_.get_object_info('iai_kitchen')
         self.giskard_wrapper_.set_object_joint_state('iai_kitchen', {'drawer_move': distance_goal})
         return result and result.SUCCESS in result.error_codes

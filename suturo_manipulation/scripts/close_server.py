@@ -4,7 +4,7 @@ import rospy
 import actionlib
 import numpy as np
 from geometry_msgs.msg import Quaternion, PoseStamped
-from manipulation_msgs.msg import OpenAction, OpenFeedback, OpenResult
+from manipulation_msgs.msg import CloseAction, CloseActionFeedback, CloseActionResult
 from giskardpy import tfwrapper
 from suturo_manipulation.gripper import Gripper
 from suturo_manipulation.manipulator import Manipulator
@@ -12,17 +12,17 @@ from giskardpy.python_interface import GiskardWrapper
 from tf.transformations import euler_from_quaternion, quaternion_from_matrix
 
 
-class OpenServer:
+class CloseServer:
     """
-    Action Server, which handles the opening of objects.
+    Action Server, which handles the closing of objects.
     """
-    _feedback = OpenFeedback()
-    _result = OpenResult()
+    _feedback = CloseActionFeedback()
+    _result = CloseActionResult()
     _root = u'odom'
 
     def __init__(self, name):
         self._action_name = name
-        self._as = actionlib.SimpleActionServer(self._action_name, OpenAction, execute_cb=self.execute_cb,
+        self._as = actionlib.SimpleActionServer(self._action_name, CloseAction, execute_cb=self.execute_cb,
                                                 auto_start=False)
         self._gripper = Gripper(apply_force_action_server=u'/hsrb/gripper_controller/apply_force',
                                 follow_joint_trajectory_server=u'/hsrb/gripper_controller/follow_joint_trajectory')
@@ -33,13 +33,13 @@ class OpenServer:
 
     def execute_cb(self, goal):
         """
-        Executes the opening of objects.
+        Executes the closing of objects.
         :param goal The grasp goal
         :type goal GraspGoal
         """
         # uncomment to disable collision avoidance
         # self._manipulator.set_collision(None)
-        rospy.loginfo("Opening: {}".format(goal))
+        rospy.loginfo("Closing: {}".format(goal))
         # Set initial result value.
         success = True
         self._result.error_code = self._result.FAILED
@@ -54,32 +54,23 @@ class OpenServer:
         # closing the gripper
         self._gripper.set_gripper_joint_position(-0.1)
 
-        limit_base_scan = False
-        if 'shelf' in goal.object_name:
-            limit_base_scan = False
 
         if 'drawer' in goal.object_name:
             limit_base_scan = False
 
-        # opens the door
-        if 'shelf' in goal.object_name:
-            success &= self._manipulator.open(tip_link=u'hand_gripper_tool_frame',
-                                              object_name_prefix=u'iai_kitchen',
-                                              object_link_name=goal.object_name,
-                                              angle_goal=1.4,
-                                              use_limitation=limit_base_scan)
-        # opens the drawer
-        elif 'drawer' in goal.object_name:
+
+        # closes the drawer
+        if 'drawer' in goal.object_name:
             print("oobject" + goal.object_name)
             success &= self._manipulator.openclosedrawer(tip_link=u'hand_gripper_tool_frame',
                                                          object_name_prefix=u'iai_kitchen',
                                                          object_link_name=goal.object_name,
-                                                         distance_goal=-0.3,
+                                                         distance_goal=0.3,
                                                          use_limitation=limit_base_scan)
 
 
 
-        # opens the gripper again
+        # closes the gripper again
         self._gripper.set_gripper_joint_position(1.2)
 
         # return to initial transport pose
@@ -99,16 +90,12 @@ class OpenServer:
         goal_pose = PoseStamped()
         goal_pose.header.frame_id = object_name
         rotation_matrix = np.eye(4)
-        if 'shelf' in object_name:
-            rotation_matrix = np.array(rospy.get_param(u'/manipulation/gripper_opening_matrices/shelf'))
-        elif 'drawer' in object_name:
+        if 'drawer' in object_name:
             rotation_matrix = np.array(rospy.get_param(u'/manipulation/gripper_opening_matrices/drawer'))
-        elif 'door' in object_name:
-            rotation_matrix = np.array(rospy.get_param(u'/manipulation/gripper_opening_matrices/door'))
         goal_pose.pose.orientation = Quaternion(*quaternion_from_matrix(rotation_matrix))
         return goal_pose
 
 if __name__ == '__main__':
-    rospy.init_node('open_server')
-    server = OpenServer(rospy.get_name())
+    rospy.init_node('close_server')
+    server = CloseServer(rospy.get_name())
     rospy.spin()

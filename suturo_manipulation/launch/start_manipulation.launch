@@ -66,8 +66,7 @@
 	<node pkg="suturo_manipulation" name="open_server" type="open_server.py" output="screen"
 		if="$(eval run_open_server == true)"/>
 
-	<!--<node pkg="suturo_manipulation" name="open_drawer_server" type="open_drawer_server.py" output="screen"
-		if="$(eval run_open_drawer_server == true)"/>-->
+
 
 
 

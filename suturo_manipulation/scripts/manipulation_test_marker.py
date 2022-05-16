@@ -5,7 +5,7 @@ import rospy
 from geometry_msgs.msg import PoseStamped, Vector3
 from interactive_markers.interactive_marker_server import *
 from interactive_markers.menu_handler import *
-from manipulation_msgs.msg import TakePoseAction, TakePoseGoal, GraspAction, GraspGoal, PlaceAction, PlaceGoal, OpenAction, OpenGoal, MakePlanAction, MakePlanGoal
+from manipulation_msgs.msg import MoveGripperAction, TakePoseAction, TakePoseGoal, GraspAction, GraspGoal, PlaceAction, PlaceGoal, OpenAction, OpenGoal, MakePlanAction, MakePlanGoal
 from visualization_msgs.msg import *
 
 from giskardpy.python_interface import GiskardWrapper
@@ -16,11 +16,11 @@ server = None
 menu_handler = MenuHandler()
 """new"""
 open_drawer_client = None
-
 take_pose_client = None
 grasp_client = None
 place_client = None
 open_client = None
+move_gripper_client = None
 giskard_wrapper = None
 gripper = None
 test_object_name = "test_object"
@@ -76,6 +76,9 @@ def init_menu():
     menu_handler.insert("Look at marker", parent=pose_men, callback=take_look_at_marker_pose_cb)
     menu_handler.insert("Give Take", parent=pose_men, callback=take_give_take_pose_cb)
 
+    move_gripper_men = menu_handler.insert("Move gripper here")
+    menu_handler.insert("wipe", parent=move_gripper_men, callback=move_gripper_pose_cb)
+
     grasp_men = menu_handler.insert("Grasp here")
     menu_handler.insert("Front", parent=grasp_men, callback=grasp_front_cb)
     menu_handler.insert("Top", parent=grasp_men, callback=grasp_top_cb)
@@ -125,7 +128,9 @@ def init_menu():
 
 
 
+def move_gripper_pose_cb(feedback):
 
+    move_gripper(feedback.pose)
 def take_neutral_pose_cb(feedback):
     """
     Callback: Take neutral pose.
@@ -473,6 +478,22 @@ def take_pose(pose, mode):
     rospy.loginfo("take_pose result: {}".format(result.error_code))
     rospy.loginfo("Execution time: {:.2f}s".format((rospy.Time.now() - start).to_sec()))
 
+def move_gripper(pose):
+
+    goal = GraspGoal
+
+    pose_grasp = PoseStamped()
+    pose_grasp.header.frame_id = "map"
+    pose_grasp.header.stamp = rospy.Time.now()
+    pose_grasp.pose = pose
+
+    goal.goal_pose = pose_grasp
+    start = rospy.Time.now()
+    move_gripper_client.send_goal(goal)
+    move_gripper_client.wait_for_result()
+    result = move_gripper_client.get_result()
+    rospy.loginfo("move_gripper result: {}".format(result.error_code))
+    rospy.loginfo("Execution time: {:.2f}s".format((rospy.Time.now() - start).to_sec()))
 
 def grasp_object(pose, mode):
     """
@@ -615,12 +636,13 @@ if __name__ == '__main__':
     take_pose_client = actionlib.SimpleActionClient('take_pose_server', TakePoseAction)
     grasp_client = actionlib.SimpleActionClient('grasp_server', GraspAction)
     place_client = actionlib.SimpleActionClient('place_server', PlaceAction)
-
+    move_gripper_client = actionlib.SimpleActionClient('move_gripper_server', MoveGripperAction)
     open_client = actionlib.SimpleActionClient('open_server', OpenAction)
     take_pose_client.wait_for_server()
     grasp_client.wait_for_server()
     place_client.wait_for_server()
     open_client.wait_for_server()
+    move_gripper_client.wait_for_server()
 
     make_plan_client = actionlib.SimpleActionClient('make_plan_server', MakePlanAction)
     take_pose_client.wait_for_server()
