@@ -157,7 +157,7 @@ class Manipulator:
             self.change_base_scan_limitation(False)
         return result and result.SUCCESS in result.error_codes
 
-    def openclosedrawer(self, tip_link, object_name_prefix, object_link_name, distance_goal, use_limitation):
+    def opendrawer(self, tip_link, object_name_prefix, object_link_name, distance_goal, use_limitation):
         """
         Lets the robot open the drawer
         :type tip_link str
@@ -166,6 +166,32 @@ class Manipulator:
         :param object_name_prefix the object link name prefix
         :type object_link_name str
         :param object_link_name handle to grasp
+        :type distance_goal float
+        :param distance_goal the distance_goal in relation to the current status
+        :type use_limitation bool
+        :param use_limitation indicator, if the limitation should be used
+        """
+        self.change_base_scan_limitation(use_limitation)
+        self.set_collision(-1)
+        rospy.logerr(distance_goal)
+        self.giskard_wrapper_.set_open_drawer_goal(tip_link, object_name_prefix, object_link_name.split('/')[1], distance_goal)
+        self.giskard_wrapper_.plan_and_execute(wait=True)
+        result = self.giskard_wrapper_.get_result()
+        if use_limitation:
+            self.change_base_scan_limitation(False)
+        self.giskard_wrapper_.get_object_info('iai_kitchen')
+        self.giskard_wrapper_.set_object_joint_state('iai_kitchen', {'drawer_move': distance_goal})
+        return result and result.SUCCESS in result.error_codes
+
+    def closedrawer(self, tip_link, object_name_prefix, object_link_name, distance_goal, use_limitation):
+        """
+        Lets the robot close the drawer
+        :type tip_link str
+        :param tip_link the name of the gripper
+        :type object_name_prefix str
+        :param object_name_prefix the object link name prefix
+        :type object_link_name str
+        :param object_link_name knob to grasp
         :type distance_goal float
         :param distance_goal the distance_goal in relation to the current status
         :type use_limitation bool

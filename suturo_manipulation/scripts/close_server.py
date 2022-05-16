@@ -62,11 +62,11 @@ class CloseServer:
         # closes the drawer
         if 'drawer' in goal.object_name:
             print("oobject" + goal.object_name)
-            success &= self._manipulator.openclosedrawer(tip_link=u'hand_gripper_tool_frame',
-                                                         object_name_prefix=u'iai_kitchen',
-                                                         object_link_name=goal.object_name,
-                                                         distance_goal=0.3,
-                                                         use_limitation=limit_base_scan)
+            success &= self._manipulator.closedrawer(tip_link=u'hand_gripper_tool_frame',
+                                                     object_name_prefix=u'iai_kitchen',
+                                                     object_link_name=goal.object_name,
+                                                     distance_goal=0.3,
+                                                     use_limitation=limit_base_scan)
 
 
 
