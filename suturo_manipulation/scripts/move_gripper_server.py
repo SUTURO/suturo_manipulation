@@ -39,7 +39,7 @@ class MoveGripperServer:
         self._giskard_wrapper.set_cart_goal(goal_pose=goal.goal_pose, tip_link=u'hand_palm_link', root_link=self._root)
         self._giskard_wrapper.plan_and_execute(wait=True)
         result = self._giskard_wrapper.get_result(rospy.Duration(60))
-        if result and result.SUCCESS in result.error_code:
+        if result and result.SUCCESS in result.error_codes:
             self._result.error_code = self._result.SUCCESS
         self._as.set_succeeded(self._result)
 
