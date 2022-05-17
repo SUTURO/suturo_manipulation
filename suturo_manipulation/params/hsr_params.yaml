@@ -14,8 +14,8 @@ gripper_opening_matrices:
 
   drawer:
     [ [ 0, 0,  1, 0 ],
-      [ -1,  0, 0, 0 ],
-      [ 0,  -1,  0, 0 ],
+      [ 1,  0, 0, 0 ],
+      [ 0,  1,  0, 0 ],
       [ 0,  0,  0, 1 ] ]
 
 # gripper orientation for top and front
