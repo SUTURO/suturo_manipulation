@@ -37,6 +37,7 @@ class OpenServer:
         :param goal The grasp goal
         :type goal GraspGoal
         """
+        openorclose = goal.openorclose
         # uncomment to disable collision avoidance
         # self._manipulator.set_collision(None)
         rospy.loginfo("Opening: {}".format(goal))
@@ -61,21 +62,43 @@ class OpenServer:
         if 'drawer' in goal.object_name:
             limit_base_scan = False
 
-        # opens the door
-        if 'shelf' in goal.object_name:
-            success &= self._manipulator.open(tip_link=u'hand_gripper_tool_frame',
-                                              object_name_prefix=u'iai_kitchen',
-                                              object_link_name=goal.object_name,
-                                              angle_goal=1.4,
-                                              use_limitation=limit_base_scan)
-        # opens the drawer
-        elif 'drawer' in goal.object_name:
-            print("oobject" + goal.object_name)
-            success &= self._manipulator.opendrawer(tip_link=u'hand_gripper_tool_frame',
-                                                    object_name_prefix=u'iai_kitchen',
-                                                    object_link_name=goal.object_name,
-                                                    distance_goal=-0.3,
-                                                    use_limitation=limit_base_scan)
+        # closes drawer
+        if openorclose == 1:
+
+            if 'shelf' in goal.object_name:
+                success &= self._manipulator.open(tip_link=u'hand_gripper_tool_frame',
+                                                  object_name_prefix=u'iai_kitchen',
+                                                  object_link_name=goal.object_name,
+                                                  angle_goal=1.4,
+                                                  use_limitation=limit_base_scan)
+
+            # opens the drawer
+            elif 'drawer' in goal.object_name:
+                print("oobject" + goal.object_name)
+                success &= self._manipulator.opendrawer(tip_link=u'hand_gripper_tool_frame',
+                                                        object_name_prefix=u'iai_kitchen',
+                                                        object_link_name=goal.object_name,
+                                                        distance_goal=-0.3,
+                                                        use_limitation=limit_base_scan)
+
+        if openorclose == 0:
+            if 'shelf' in goal.object_name:
+                success &= self._manipulator.open(tip_link=u'hand_gripper_tool_frame',
+                                                  object_name_prefix=u'iai_kitchen',
+                                                  object_link_name=goal.object_name,
+                                                  angle_goal=-1.4,
+                                                  use_limitation=limit_base_scan)
+
+            # opens the drawer
+            elif 'drawer' in goal.object_name:
+                print("oobject" + goal.object_name)
+                success &= self._manipulator.opendrawer(tip_link=u'hand_gripper_tool_frame',
+                                                        object_name_prefix=u'iai_kitchen',
+                                                        object_link_name=goal.object_name,
+                                                        distance_goal=0.3,
+                                                        use_limitation=limit_base_scan)
+
+
 
 
 
@@ -83,8 +106,8 @@ class OpenServer:
         self._gripper.set_gripper_joint_position(1.2)
 
         # return to initial transport pose
-        if success:
-            success &= self._manipulator.take_robot_pose(rospy.get_param(u'/manipulation/robot_poses/transport'))
+        #if success:
+            #success &= self._manipulator.take_robot_pose(rospy.get_param(u'/manipulation/robot_poses/transport'))
 
         if success:
             self._result.error_code = self._result.SUCCESS
@@ -97,6 +120,7 @@ class OpenServer:
         :type object_name string
         """
         goal_pose = PoseStamped()
+
         goal_pose.header.frame_id = object_name
         rotation_matrix = np.eye(4)
         if 'shelf' in object_name:

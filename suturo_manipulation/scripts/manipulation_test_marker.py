@@ -249,7 +249,7 @@ def open_door_2_cb(feedback):
 
 def open_drawer_1_cb (feedback):
     open(u'iai_kitchen/drawer:drawer:drawer_knob',
-         u'iai_kitchen/drawer:drawer:drawer_knob')
+         u'iai_kitchen/drawer:drawer:drawer_knob',1)
 
 
 def print_object_names_cb(feedback):
@@ -307,7 +307,7 @@ def marker_moved_cb(feedback):
                                              feedback.pose.position.z)
     server.applyChanges()
 
-def open(object_name, object_link_name):
+def open(object_name, object_link_name, openorclose):
     """
     Sends the goal of opening something to the server.
     :param object_name object name
@@ -316,6 +316,8 @@ def open(object_name, object_link_name):
     :type object_link_name string
     """
     goal = OpenGoal()
+    goal.openorclose = 1
+
     goal.object_name = object_name
     goal.object_link_name = object_link_name
     start = rospy.Time.now()
