@@ -41,10 +41,14 @@ class GraspsObjectServer:
         mode_rotation = {}
         front_rotation = rospy.get_param(u'/manipulation/base_gripper_rotation/front', default=None)
         top_rotation = rospy.get_param(u'/manipulation/base_gripper_rotation/top', default=None)
+        drawer_rotation = rospy.get_param(u'/manipulation/base_gripper_rotation/drawer', default=None)
         if front_rotation:
             mode_rotation[GraspGoal.FRONT] = front_rotation
         if top_rotation:
             mode_rotation[GraspGoal.TOP] = top_rotation
+        if drawer_rotation:
+            mode_rotation[GraspGoal.DRAWER] = drawer_rotation
+
         return mode_rotation
 
     def execute_cb(self, goal):
@@ -77,9 +81,12 @@ class GraspsObjectServer:
                                                   mode=goal.grasp_mode,
                                                   step=0.1,
                                                   collision_whitelist=collision_whitelist)
+
         if success:
             self._gripper.close_gripper_force(0.8)
             success &= self._gripper.object_in_gripper()
+            if goal.grasp_mode == 3:
+                success &= self._manipulator.take_robot_pose(rospy.get_param(u'/manipulation/robot_poses/look_drawer'))
             if success:
                 # Attach object
                 if goal.object_frame_id in self._giskard_wrapper.get_object_names().object_names:

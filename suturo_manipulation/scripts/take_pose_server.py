@@ -62,6 +62,10 @@ class TakePoseServer:
         elif goal.pose_mode == goal.LOOK_FLOOR:
             self._giskard_wrapper.set_joint_goal(rospy.get_param(u'/manipulation/robot_poses/look_floor'))
             self._giskard_wrapper.plan_and_execute(wait=True)
+        elif goal.pose_mode == goal.LOOK_DRAWER:
+            self._giskard_wrapper.set_joint_goal(rospy.get_param(u'/manipulation/robot_poses/look_drawer'))
+            self._giskard_wrapper.plan_and_execute(wait=True)
+
         elif goal.pose_mode == goal.GAZE:
             camera_height = goal.gaze_point.z - 0.4
             if camera_height < 0.0:

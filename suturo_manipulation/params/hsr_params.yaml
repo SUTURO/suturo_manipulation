@@ -32,6 +32,12 @@ base_gripper_rotation:
     - 0.7
     - 0.0
 
+  drawer:
+    - 5.0
+    - 1.0
+    - 0.0
+    - 0.0
+
 # predefined hsr robot poses
 robot_poses:
   wipe:
@@ -51,6 +57,15 @@ robot_poses:
     arm_roll_joint: 1.4
     wrist_flex_joint: -1.5
     wrist_roll_joint: 0.14
+
+  look_drawer:
+    head_pan_joint: 0.0
+    head_tilt_joint: 0.0
+    arm_lift_joint: 1.00
+    arm_flex_joint: -0.5
+    arm_roll_joint: 0.0
+    wrist_flex_joint: -1.57
+    wrist_roll_joint: 0.0
 
 
   look_high:

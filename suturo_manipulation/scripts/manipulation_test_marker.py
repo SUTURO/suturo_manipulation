@@ -73,6 +73,7 @@ def init_menu():
     menu_handler.insert("Look low", parent=pose_men, callback=take_look_low_pose_cb)
     menu_handler.insert("Look high", parent=pose_men, callback=take_look_high_pose_cb)
     menu_handler.insert("Look floor", parent=pose_men, callback=take_look_floor_pose_cb)
+    menu_handler.insert("Look drawer", parent=pose_men, callback=take_look_drawer_pose_cb)
     menu_handler.insert("Look at marker", parent=pose_men, callback=take_look_at_marker_pose_cb)
     menu_handler.insert("Give Take", parent=pose_men, callback=take_give_take_pose_cb)
 
@@ -82,6 +83,7 @@ def init_menu():
     grasp_men = menu_handler.insert("Grasp here")
     menu_handler.insert("Front", parent=grasp_men, callback=grasp_front_cb)
     menu_handler.insert("Top", parent=grasp_men, callback=grasp_top_cb)
+    menu_handler.insert("Drawer", parent=grasp_men, callback=grasp_drawer_cb)
 
     place_men = menu_handler.insert("Place here")
     menu_handler.insert("Front", parent=place_men, callback=place_front_cb)
@@ -166,6 +168,14 @@ def take_look_floor_pose_cb(feedback):
     """
     take_pose(feedback.pose, TakePoseGoal.LOOK_FLOOR)
 
+def take_look_drawer_pose_cb(feedback):
+    """
+    Callback: Take look floor pose.
+    :param feedback The feedback
+    :type feedback PoseStamped
+    """
+    take_pose(feedback.pose, TakePoseGoal.LOOK_DRAWER)
+
 
 def take_look_at_marker_pose_cb(feedback):
     """
@@ -201,6 +211,14 @@ def grasp_top_cb(feedback):
     :type feedback PoseStamped
     """
     grasp_object(feedback.pose, GraspGoal.TOP)
+
+def grasp_drawer_cb(feedback):
+    """
+    Callback: Grasp drawer.
+    :param feedback The feedback
+    :type feedback PoseStamped
+    """
+    grasp_object(feedback.pose, GraspGoal.DRAWER)
 
 
 def place_front_cb(feedback):
