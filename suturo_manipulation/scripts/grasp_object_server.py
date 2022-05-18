@@ -73,7 +73,7 @@ class GraspsObjectServer:
         robot_pose = tfwrapper.lookup_pose('map', 'base_footprint')
         # open gripper
         self._gripper.set_gripper_joint_position(1.2)
-
+        self._manipulator.set_collision(-1)
         success &= self._manipulator.move_to_goal(root_link=self._root,
                                                   tip_link=u'hand_gripper_tool_frame',
                                                   goal_pose=goal.goal_pose,
@@ -86,6 +86,7 @@ class GraspsObjectServer:
             self._gripper.close_gripper_force(0.8)
             success &= self._gripper.object_in_gripper()
             if goal.grasp_mode == 3:
+
                 success &= self._manipulator.take_robot_pose(rospy.get_param(u'/manipulation/robot_poses/look_drawer'))
             if success:
                 # Attach object
