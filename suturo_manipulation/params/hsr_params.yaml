@@ -33,8 +33,8 @@ base_gripper_rotation:
     - 0.0
 
   drawer:
-    - 5.0
     - 1.0
+    - 0.0
     - 0.0
     - 0.0
 
@@ -62,7 +62,7 @@ robot_poses:
     head_pan_joint: 0.0
     head_tilt_joint: 0.0
     arm_lift_joint: 0.8
-    arm_flex_joint: -0.5
+    arm_flex_joint: -1.5
     arm_roll_joint: 0.0
     wrist_flex_joint: -1.57
     wrist_roll_joint: 0.0
