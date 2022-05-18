@@ -61,7 +61,7 @@ robot_poses:
   look_drawer:
     head_pan_joint: 0.0
     head_tilt_joint: 0.0
-    arm_lift_joint: 1.00
+    arm_lift_joint: 0.8
     arm_flex_joint: -0.5
     arm_roll_joint: 0.0
     wrist_flex_joint: -1.57
