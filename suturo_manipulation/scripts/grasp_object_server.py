@@ -72,7 +72,7 @@ class GraspsObjectServer:
         # get current robot_pose
         robot_pose = tfwrapper.lookup_pose('map', 'base_footprint')
         # open gripper
-        self._gripper.set_gripper_joint_position(1.2)
+        self._gripper.set_gripper_joint_position(1.1)
         self._manipulator.set_collision(-1)
         success &= self._manipulator.move_to_goal(root_link=self._root,
                                                   tip_link=u'hand_gripper_tool_frame',
