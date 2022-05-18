@@ -72,7 +72,10 @@ class GraspsObjectServer:
         # get current robot_pose
         robot_pose = tfwrapper.lookup_pose('map', 'base_footprint')
         # open gripper
-        self._gripper.set_gripper_joint_position(1.1)
+        if goal.grasp_mode == 3:
+            self._gripper.set_gripper_joint_position(1.1)
+        else:
+            self._gripper.set_gripper_joint_position(1.2)
         self._manipulator.set_collision(-1)
         success &= self._manipulator.move_to_goal(root_link=self._root,
                                                   tip_link=u'hand_gripper_tool_frame',
@@ -85,14 +88,14 @@ class GraspsObjectServer:
         if success:
             self._gripper.close_gripper_force(0.8)
             success &= self._gripper.object_in_gripper()
-            if goal.grasp_mode == 3:
 
-                success &= self._manipulator.take_robot_pose(rospy.get_param(u'/manipulation/robot_poses/look_drawer'))
             if success:
                 # Attach object
                 if goal.object_frame_id in self._giskard_wrapper.get_object_names().object_names:
                     self._giskard_wrapper.attach_object(goal.object_frame_id, u'hand_palm_link')
                 self._gripper.publish_object_in_gripper(goal.object_frame_id, goal.goal_pose, ObjectInGripper.GRASPED)
+            if goal.grasp_mode == 3:
+                success &= self._manipulator.take_robot_pose(rospy.get_param(u'/manipulation/robot_poses/look_drawer'))
         robot_pose.header.stamp = rospy.Time.now()  # Might not be needed but is cleaner this way
         success &= self._manipulator.move_to_goal(root_link=self._root,
                                                   tip_link=u'base_footprint',
