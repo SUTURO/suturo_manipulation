@@ -5,7 +5,8 @@ import rospy
 from geometry_msgs.msg import PoseStamped, Vector3
 from interactive_markers.interactive_marker_server import *
 from interactive_markers.menu_handler import *
-from manipulation_msgs.msg import MoveGripperAction, TakePoseAction, TakePoseGoal, GraspAction, GraspGoal, PlaceAction, PlaceGoal, OpenAction, OpenGoal, MakePlanAction, MakePlanGoal
+from manipulation_msgs.msg import MoveGripperAction, TakePoseAction, TakePoseGoal, GraspAction, GraspGoal, PlaceAction, \
+    PlaceGoal, OpenAction, OpenGoal, MakePlanAction, MakePlanGoal
 from visualization_msgs.msg import *
 
 from giskardpy.python_interface import GiskardWrapper
@@ -67,7 +68,6 @@ def init_menu():
     open_drawer_men = menu_handler.insert("Open Drawer")
     menu_handler.insert("drawer 1", parent=open_drawer_men, callback=open_drawer_1_cb)
 
-
     pose_men = menu_handler.insert("Take pose")
     menu_handler.insert("Neutral", parent=pose_men, callback=take_neutral_pose_cb)
     menu_handler.insert("Look low", parent=pose_men, callback=take_look_low_pose_cb)
@@ -88,15 +88,13 @@ def init_menu():
     place_men = menu_handler.insert("Place here")
     menu_handler.insert("Front", parent=place_men, callback=place_front_cb)
     menu_handler.insert("Top", parent=place_men, callback=place_top_cb)
+    menu_handler.insert("Drawer", parent=place_men, callback=place_drawer_cb)
 
     open_men = menu_handler.insert("Open...")
     menu_handler.insert("door_1", parent=open_men, callback=open_door_1_cb)
     menu_handler.insert("door_2", parent=open_men, callback=open_door_2_cb)
     menu_handler.insert("schelve_1", parent=open_men, callback=open_shelve_1_cb)
     menu_handler.insert("drawer 1", parent=open_men, callback=open_drawer_1_cb)
-
-
-
 
     giskard_men = menu_handler.insert("Giskard")
     menu_handler.insert("object_names", parent=giskard_men, callback=print_object_names_cb)
@@ -128,11 +126,10 @@ def init_menu():
     menu_handler.insert("Clear world", parent=utility_men, callback=clear_world_cb)
 
 
-
-
 def move_gripper_pose_cb(feedback):
-
     move_gripper(feedback.pose)
+
+
 def take_neutral_pose_cb(feedback):
     """
     Callback: Take neutral pose.
@@ -167,6 +164,7 @@ def take_look_floor_pose_cb(feedback):
     :type feedback PoseStamped
     """
     take_pose(feedback.pose, TakePoseGoal.LOOK_FLOOR)
+
 
 def take_look_drawer_pose_cb(feedback):
     """
@@ -212,6 +210,7 @@ def grasp_top_cb(feedback):
     """
     grasp_object(feedback.pose, GraspGoal.TOP)
 
+
 def grasp_drawer_cb(feedback):
     """
     Callback: Grasp drawer.
@@ -237,7 +236,15 @@ def place_top_cb(feedback):
     :type feedback PoseStamped
     """
     place_object(feedback.pose, PlaceGoal.TOP)
-    
+
+def place_drawer_cb(feedback):
+    """
+    Callback: Place top.
+    :param feedback The feedback
+    :type feedback PoseStamped
+    """
+    place_object(feedback.pose, PlaceGoal.DRAWER)
+
 
 def open_shelve_1_cb(feedback):
     """
@@ -245,7 +252,8 @@ def open_shelve_1_cb(feedback):
     :param feedback The feedback
     :type feedback PoseStamped
     """
-    open(u'iai_kitchen/hsr_shelf_openable:shelf:shelf_door_left:shelf_link_handle', u'iai_kitchen/hsr_shelf_openable:shelf:shelf_door_left:shelf_link_handle')
+    open(u'iai_kitchen/hsr_shelf_openable:shelf:shelf_door_left:shelf_link_handle',
+         u'iai_kitchen/hsr_shelf_openable:shelf:shelf_door_left:shelf_link_handle')
 
 
 def open_door_1_cb(feedback):
@@ -265,9 +273,17 @@ def open_door_2_cb(feedback):
     """
     open(u'door_2_handle_inside', u'door_2_handle_inside')
 
-def open_drawer_1_cb (feedback):
-    open(u'iai_kitchen/drawer:drawer:drawer_knob',
-         u'iai_kitchen/drawer:drawer:drawer_knob',1)
+
+def open_drawer_1_cb(feedback):
+    goal_pose = PoseStamped()
+    goal_pose.header.frame_id = 'map'
+    goal_pose.header.stamp.secs = 0
+    goal_pose.header.stamp.nsecs = 0
+    goal_pose.header.seq = 0
+    goal_pose.pose.position.x = 0.1811423897743225
+    goal_pose.pose.position.y = -0.30172261595726013
+    goal_pose.pose.position.z = 0.2773821949958801
+    open2(goal_pose, 1)
 
 
 def print_object_names_cb(feedback):
@@ -277,6 +293,7 @@ def print_object_names_cb(feedback):
     :type feedback PoseStamped
     """
     rospy.loginfo("object_names: {}".format(giskard_wrapper.get_object_names().object_names))
+
 
 def plan_grasp_front_cb(feedback):
     """
@@ -313,7 +330,7 @@ def plan_place_top_cb(feedback):
     """
     make_plan(feedback.pose, MakePlanGoal.TOP, MakePlanGoal.PLACE)
 
-    
+
 def marker_moved_cb(feedback):
     """
     Callback: Moving the marker.
@@ -324,6 +341,7 @@ def marker_moved_cb(feedback):
     marker.description = "{}, {}, {}".format(feedback.pose.position.x, feedback.pose.position.y,
                                              feedback.pose.position.z)
     server.applyChanges()
+
 
 def open(object_name, object_link_name, openorclose):
     """
@@ -344,6 +362,20 @@ def open(object_name, object_link_name, openorclose):
     result = open_client.get_result()
     rospy.loginfo("open result: {}".format(result.error_code))
     rospy.loginfo("Execution time: {:.2f}s".format((rospy.Time.now() - start).to_sec()))
+
+
+def open2(goal_pose, openorclose):
+    goal = OpenGoal()
+    goal.openorclose = openorclose
+    goal.goal_pose = goal_pose
+
+    start = rospy.Time.now()
+    open_client.send_goal(goal)
+    open_client.wait_for_result()
+    result = open_client.get_result()
+    rospy.loginfo("open result: {}".format(result.error_code))
+    rospy.loginfo("Execution time: {:.2f}s".format((rospy.Time.now() - start).to_sec()))
+
 
 def get_all_objects_cb(feedback):
     """
@@ -498,8 +530,8 @@ def take_pose(pose, mode):
     rospy.loginfo("take_pose result: {}".format(result.error_code))
     rospy.loginfo("Execution time: {:.2f}s".format((rospy.Time.now() - start).to_sec()))
 
-def move_gripper(pose):
 
+def move_gripper(pose):
     goal = GraspGoal
 
     pose_grasp = PoseStamped()
@@ -514,6 +546,7 @@ def move_gripper(pose):
     result = move_gripper_client.get_result()
     rospy.loginfo("move_gripper result: {}".format(result.error_code))
     rospy.loginfo("Execution time: {:.2f}s".format((rospy.Time.now() - start).to_sec()))
+
 
 def grasp_object(pose, mode):
     """
