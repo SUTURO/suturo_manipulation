@@ -12,7 +12,15 @@ gripper_opening_matrices:
       [ 1,  0,  0, 0 ],
       [ 0,  0,  0, 1 ] ]
 
+# gripper orientation with given goal
   drawer:
+    [ [ -1, 0,  0,  0 ],
+      [ 0,  0, -1,  0 ],
+      [ 0,  -1,  0,  0 ],
+      [ 0,  0,  0,  1 ] ]
+
+#for gripper orientation with link drawer_knob
+  drawerlink:
     [ [ 0, 0,  1, 0 ],
       [ 1,  0, 0, 0 ],
       [ 0,  1,  0, 0 ],

@@ -2,6 +2,7 @@
 import math
 
 import rospy
+import numpy as np
 from std_srvs.srv import SetBool
 from giskardpy.python_interface import GiskardWrapper
 from giskardpy.utils import to_tf_quaternion
@@ -122,6 +123,23 @@ class Manipulator:
         result = self.giskard_wrapper_.get_result()
         return result and result.SUCCESS in result.error_codes
 
+    def move_to_drawer(self, root_link, tip_link, goal_pose):
+
+        #goal_pose = PoseStamped()
+        #goal_pose.header.frame_id = goal_pose.header.frame_id
+        #rotation_matrix = np.eye(4)
+        rotation_matrix = np.array(rospy.get_param(u'/manipulation/gripper_opening_matrices/drawer'))
+        goal_pose.pose.orientation = Quaternion(*quaternion_from_matrix(rotation_matrix))
+        self.set_collision(-1)
+        self.giskard_wrapper_.set_cart_goal(goal_pose=goal_pose, tip_link=tip_link, root_link=root_link)
+        self.giskard_wrapper_.plan_and_execute(wait=True)
+        result = self.giskard_wrapper_.get_result()
+        rospy.loginfo("Giskard result: {}".format(result.error_codes))
+        return result and result.SUCCESS in result.error_codes
+
+
+
+
     def open(self, tip_link, object_name_prefix, object_link_name, angle_goal, use_limitation):
         """
         Lets the robot open the given object
@@ -157,15 +175,15 @@ class Manipulator:
             self.change_base_scan_limitation(False)
         return result and result.SUCCESS in result.error_codes
 
-    def opendrawer(self, tip_link, object_name_prefix, object_link_name, distance_goal, use_limitation):
+    def manipulatedrawer(self, tip_link, object_name_prefix, object_link_name, distance_goal, use_limitation):
         """
-        Lets the robot open the drawer
+        Lets the robot open or close the drawer
         :type tip_link str
         :param tip_link the name of the gripper
         :type object_name_prefix str
         :param object_name_prefix the object link name prefix
         :type object_link_name str
-        :param object_link_name handle to grasp
+        :param object_link_name knob to grasp
         :type distance_goal float
         :param distance_goal the distance_goal in relation to the current status
         :type use_limitation bool

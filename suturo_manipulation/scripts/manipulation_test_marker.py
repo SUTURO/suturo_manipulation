@@ -96,6 +96,9 @@ def init_menu():
     menu_handler.insert("schelve_1", parent=open_men, callback=open_shelve_1_cb)
     menu_handler.insert("drawer 1", parent=open_men, callback=open_drawer_1_cb)
 
+    close_men = menu_handler.insert("Close...")
+    menu_handler.insert("drawer 1", parent=close_men, callback=close_drawer_1_cb)
+
     giskard_men = menu_handler.insert("Giskard")
     menu_handler.insert("object_names", parent=giskard_men, callback=print_object_names_cb)
 
@@ -127,7 +130,9 @@ def init_menu():
 
 
 def move_gripper_pose_cb(feedback):
+    print(feedback.pose)
     move_gripper(feedback.pose)
+
 
 
 def take_neutral_pose_cb(feedback):
@@ -273,6 +278,10 @@ def open_door_2_cb(feedback):
     """
     open(u'door_2_handle_inside', u'door_2_handle_inside')
 
+#open with goal_pose= object_link_name
+#def open_drawer_1_cb (feedback):
+    #open(u'iai_kitchen/drawer:drawer:drawer_knob',
+         #u'iai_kitchen/drawer:drawer:drawer_knob')
 
 def open_drawer_1_cb(feedback):
     goal_pose = PoseStamped()
@@ -283,7 +292,18 @@ def open_drawer_1_cb(feedback):
     goal_pose.pose.position.x = 0.1811423897743225
     goal_pose.pose.position.y = -0.30172261595726013
     goal_pose.pose.position.z = 0.2773821949958801
-    open2(goal_pose, 1)
+    openorclose2(goal_pose, 1)
+
+def close_drawer_1_cb(feedback):
+    goal_pose = PoseStamped()
+    goal_pose.header.frame_id = 'map'
+    goal_pose.header.stamp.secs = 0
+    goal_pose.header.stamp.nsecs = 0
+    goal_pose.header.seq = 0
+    goal_pose.pose.position.x = 0.1811423897743225
+    goal_pose.pose.position.y = -0.00172261595726013
+    goal_pose.pose.position.z = 0.2773821949958801
+    openorclose2(goal_pose, 0)
 
 
 def print_object_names_cb(feedback):
@@ -364,11 +384,11 @@ def open(object_name, object_link_name, openorclose):
     rospy.loginfo("Execution time: {:.2f}s".format((rospy.Time.now() - start).to_sec()))
 
 
-def open2(goal_pose, openorclose):
+def openorclose2(goal_pose, openorclose):
     goal = OpenGoal()
+    goal.object_name = u'iai_kitchen/drawer:drawer:drawer_knob'
     goal.openorclose = openorclose
     goal.goal_pose = goal_pose
-
     start = rospy.Time.now()
     open_client.send_goal(goal)
     open_client.wait_for_result()
@@ -532,7 +552,7 @@ def take_pose(pose, mode):
 
 
 def move_gripper(pose):
-    goal = GraspGoal
+    goal = GraspGoal()
 
     pose_grasp = PoseStamped()
     pose_grasp.header.frame_id = "map"

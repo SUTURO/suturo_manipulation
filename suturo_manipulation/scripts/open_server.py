@@ -46,12 +46,14 @@ class OpenServer:
         self._result.error_code = self._result.FAILED
 
         collision_whitelist = []
-
+        self._manipulator.set_collision(-1)
         # open gripper
         self._gripper.set_gripper_joint_position(1.2)
-        # move to handle of the object
-        goal_pose = self.calculate_goal_pose(goal.object_link_name)
-        success &= self._manipulator.grasp_bar(u'odom', u'hand_gripper_tool_frame', goal_pose)
+        # move to knob of the object
+
+        self._manipulator.move_to_drawer(u'odom', u'hand_gripper_tool_frame', goal.goal_pose)
+        #goal_pose = self.calculate_goal_pose(goal.object_link_name)
+        #success &= self._manipulator.grasp_bar(u'odom', u'hand_gripper_tool_frame', goal_pose)
         # closing the gripper
         self._gripper.set_gripper_joint_position(-0.1)
 
@@ -75,11 +77,11 @@ class OpenServer:
             # opens the drawer
             elif 'drawer' in goal.object_name:
                 print("oobject" + goal.object_name)
-                success &= self._manipulator.opendrawer(tip_link=u'hand_gripper_tool_frame',
-                                                        object_name_prefix=u'iai_kitchen',
-                                                        object_link_name=goal.object_name,
-                                                        distance_goal=-0.3,
-                                                        use_limitation=limit_base_scan)
+                success &= self._manipulator.manipulatedrawer(tip_link=u'hand_gripper_tool_frame',
+                                                              object_name_prefix=u'iai_kitchen',
+                                                              object_link_name=goal.object_name,
+                                                              distance_goal=-0.3,
+                                                              use_limitation=limit_base_scan)
 
         if openorclose == 0:
             if 'shelf' in goal.object_name:
@@ -92,11 +94,11 @@ class OpenServer:
             # opens the drawer
             elif 'drawer' in goal.object_name:
                 print("oobject" + goal.object_name)
-                success &= self._manipulator.opendrawer(tip_link=u'hand_gripper_tool_frame',
-                                                        object_name_prefix=u'iai_kitchen',
-                                                        object_link_name=goal.object_name,
-                                                        distance_goal=0.3,
-                                                        use_limitation=limit_base_scan)
+                success &= self._manipulator.manipulatedrawer(tip_link=u'hand_gripper_tool_frame',
+                                                              object_name_prefix=u'iai_kitchen',
+                                                              object_link_name=goal.object_name,
+                                                              distance_goal=0.3,
+                                                              use_limitation=limit_base_scan)
 
 
 
@@ -131,6 +133,7 @@ class OpenServer:
             rotation_matrix = np.array(rospy.get_param(u'/manipulation/gripper_opening_matrices/door'))
         goal_pose.pose.orientation = Quaternion(*quaternion_from_matrix(rotation_matrix))
         return goal_pose
+
 
 if __name__ == '__main__':
     rospy.init_node('open_server')
