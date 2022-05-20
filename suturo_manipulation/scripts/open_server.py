@@ -55,6 +55,7 @@ class OpenServer:
         #goal_pose = self.calculate_goal_pose(goal.object_link_name)
         #success &= self._manipulator.grasp_bar(u'odom', u'hand_gripper_tool_frame', goal_pose)
         # closing the gripper
+        #self._manipulator.set_collision(-1)
         self._gripper.set_gripper_joint_position(-0.1)
 
         limit_base_scan = False
