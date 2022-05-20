@@ -46,7 +46,7 @@ class OpenServer:
         self._result.error_code = self._result.FAILED
 
         collision_whitelist = []
-        self._manipulator.set_collision(-1)
+        #self._manipulator.set_collision(-1)
         # open gripper
         self._gripper.set_gripper_joint_position(1.2)
         # move to knob of the object
