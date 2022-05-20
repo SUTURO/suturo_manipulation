@@ -5,7 +5,7 @@ import rospy
 import actionlib
 from manipulation_msgs.msg import TakePoseAction, TakePoseFeedback, TakePoseResult
 from giskardpy.python_interface import GiskardWrapper
-from suturo_manipulation.manipulator import Manipulator
+
 
 class TakePoseServer:
     """
@@ -25,7 +25,7 @@ class TakePoseServer:
         self._as = actionlib.SimpleActionServer(self._action_name, TakePoseAction, execute_cb=self.execute_cb,
                                                 auto_start=False)
         self._as.start()
-        self._manipulator = Manipulator(collision_distance=0.01)
+        #self._manipulator = Manipulator(collision_distance=0.01)
         self._giskard_wrapper = GiskardWrapper()
         self._robot = hsrb_interface.Robot()
         self._whole_body = self._robot.get('whole_body')
@@ -59,7 +59,6 @@ class TakePoseServer:
             self._giskard_wrapper.set_joint_goal(rospy.get_param(u'/manipulation/robot_poses/look_high'))
             self._giskard_wrapper.plan_and_execute(wait=True)
         elif goal.pose_mode == goal.LOOK_LOW:
-            self._manipulator.set_collision(-1)
             self._giskard_wrapper.set_joint_goal(rospy.get_param(u'/manipulation/robot_poses/look_low'))
             self._giskard_wrapper.plan_and_execute(wait=True)
         elif goal.pose_mode == goal.LOOK_FLOOR:
