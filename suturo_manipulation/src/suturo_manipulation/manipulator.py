@@ -130,7 +130,7 @@ class Manipulator:
         #rotation_matrix = np.eye(4)
         rotation_matrix = np.array(rospy.get_param(u'/manipulation/gripper_opening_matrices/drawer'))
         goal_pose.pose.orientation = Quaternion(*quaternion_from_matrix(rotation_matrix))
-        self.set_collision(-1)
+        #self.set_collision(-1)
         self.giskard_wrapper_.set_cart_goal(goal_pose=goal_pose, tip_link=tip_link, root_link=root_link)
         self.giskard_wrapper_.plan_and_execute(wait=True)
         result = self.giskard_wrapper_.get_result()

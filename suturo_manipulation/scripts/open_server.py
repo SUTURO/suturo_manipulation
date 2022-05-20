@@ -48,9 +48,9 @@ class OpenServer:
         collision_whitelist = []
 
         # open gripper
+        self._manipulator.set_collision(-1)
         self._gripper.set_gripper_joint_position(1.2)
         # move to knob of the object
-        self._manipulator.set_collision(-1)
         self._manipulator.move_to_drawer(u'odom', u'hand_gripper_tool_frame', goal.goal_pose)
         #goal_pose = self.calculate_goal_pose(goal.object_link_name)
         #success &= self._manipulator.grasp_bar(u'odom', u'hand_gripper_tool_frame', goal_pose)
