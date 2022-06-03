@@ -35,7 +35,7 @@ class OpenServer:
         """
         Executes the opening of objects.
         :param goal The grasp goal
-        :type goal GraspGoal
+        :type goal OpenGoal
         """
         openorclose = goal.openorclose
         # uncomment to disable collision avoidance
@@ -54,8 +54,8 @@ class OpenServer:
         self._manipulator.move_to_drawer(u'odom', u'hand_gripper_tool_frame', goal.goal_pose)
         #goal_pose = self.calculate_goal_pose(goal.object_link_name)
         #success &= self._manipulator.grasp_bar(u'odom', u'hand_gripper_tool_frame', goal_pose)
+
         # closing the gripper
-        #self._manipulator.set_collision(-1)
         self._gripper.set_gripper_joint_position(-0.1)
 
         limit_base_scan = False
@@ -65,7 +65,7 @@ class OpenServer:
         if 'drawer' in goal.object_name:
             limit_base_scan = False
 
-        # closes drawer
+        # open the drawer/shelf
         if openorclose == 1:
 
             if 'shelf' in goal.object_name:
@@ -75,7 +75,7 @@ class OpenServer:
                                                   angle_goal=1.4,
                                                   use_limitation=limit_base_scan)
 
-            # opens the drawer
+
             elif 'drawer' in goal.object_name:
                 print("oobject" + goal.object_name)
                 success &= self._manipulator.manipulatedrawer(tip_link=u'hand_gripper_tool_frame',
@@ -83,7 +83,7 @@ class OpenServer:
                                                               object_link_name=goal.object_name,
                                                               distance_goal=-0.3,
                                                               use_limitation=limit_base_scan)
-
+        #closes the drawer/shelf
         if openorclose == 0:
             if 'shelf' in goal.object_name:
                 success &= self._manipulator.open(tip_link=u'hand_gripper_tool_frame',
@@ -92,7 +92,7 @@ class OpenServer:
                                                   angle_goal=-1.4,
                                                   use_limitation=limit_base_scan)
 
-            # opens the drawer
+
             elif 'drawer' in goal.object_name:
                 print("oobject" + goal.object_name)
                 success &= self._manipulator.manipulatedrawer(tip_link=u'hand_gripper_tool_frame',
@@ -108,9 +108,6 @@ class OpenServer:
         # opens the gripper again
         self._gripper.set_gripper_joint_position(1.2)
 
-        # return to initial transport pose
-        #if success:
-            #success &= self._manipulator.take_robot_pose(rospy.get_param(u'/manipulation/robot_poses/transport'))
 
         if success:
             self._result.error_code = self._result.SUCCESS
@@ -129,7 +126,7 @@ class OpenServer:
         if 'shelf' in object_name:
             rotation_matrix = np.array(rospy.get_param(u'/manipulation/gripper_opening_matrices/shelf'))
         elif 'drawer' in object_name:
-            rotation_matrix = np.array(rospy.get_param(u'/manipulation/gripper_opening_matrices/drawer'))
+            rotation_matrix = np.array(rospy.get_param(u'/manipulation/gripper_opening_matrices/drawer-link'))
         elif 'door' in object_name:
             rotation_matrix = np.array(rospy.get_param(u'/manipulation/gripper_opening_matrices/door'))
         goal_pose.pose.orientation = Quaternion(*quaternion_from_matrix(rotation_matrix))

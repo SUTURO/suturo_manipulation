@@ -20,13 +20,13 @@ gripper_opening_matrices:
       [ 0,  0,  0,  1 ] ]
 
 #for gripper orientation with link drawer_knob
-  drawerlink:
+  drawer-link:
     [ [ 0, 0,  1, 0 ],
       [ 1,  0, 0, 0 ],
       [ 0,  1,  0, 0 ],
       [ 0,  0,  0, 1 ] ]
 
-# gripper orientation for top and front
+# gripper orientation for top,front and drawer
 base_gripper_rotation:
   top:
     - 1.0

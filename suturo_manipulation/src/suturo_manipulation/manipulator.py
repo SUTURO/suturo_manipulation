@@ -124,13 +124,17 @@ class Manipulator:
         return result and result.SUCCESS in result.error_codes
 
     def move_to_drawer(self, root_link, tip_link, goal_pose):
-
-        #goal_pose = PoseStamped()
-        #goal_pose.header.frame_id = goal_pose.header.frame_id
-        #rotation_matrix = np.eye(4)
+        """
+        Lets the robot move the gripper to the given goal_pose
+        :type root_link str
+        :param root_link The base/root link of the robot
+        :type tip_link str
+        :param tip_link The tip link of the robot(gripper)
+        :type goal_pose PoseStamped
+        :param goal_pose Given goal_pose to move at
+        """
         rotation_matrix = np.array(rospy.get_param(u'/manipulation/gripper_opening_matrices/drawer'))
         goal_pose.pose.orientation = Quaternion(*quaternion_from_matrix(rotation_matrix))
-        #self.set_collision(-1)
         self.giskard_wrapper_.set_cart_goal(goal_pose=goal_pose, tip_link=tip_link, root_link=root_link)
         self.giskard_wrapper_.plan_and_execute(wait=True)
         result = self.giskard_wrapper_.get_result()

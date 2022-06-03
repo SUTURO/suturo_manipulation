@@ -65,8 +65,8 @@ def init_menu():
     """
 
     """new"""
-    open_drawer_men = menu_handler.insert("Open Drawer")
-    menu_handler.insert("drawer 1", parent=open_drawer_men, callback=open_drawer_1_cb)
+    open_drawer_men = menu_handler.insert("Open Drawer with link")
+    menu_handler.insert("drawer 1", parent=open_drawer_men, callback=open_drawer_1_2_cb)
 
     pose_men = menu_handler.insert("Take pose")
     menu_handler.insert("Neutral", parent=pose_men, callback=take_neutral_pose_cb)
@@ -278,10 +278,12 @@ def open_door_2_cb(feedback):
     """
     open(u'door_2_handle_inside', u'door_2_handle_inside')
 
-#open with goal_pose= object_link_name
-#def open_drawer_1_cb (feedback):
-    #open(u'iai_kitchen/drawer:drawer:drawer_knob',
-         #u'iai_kitchen/drawer:drawer:drawer_knob')
+def open_drawer_1_2_cb(feedback):
+    """
+    open with goal_pose= object_link_name
+    """
+    open(u'iai_kitchen/drawer:drawer:drawer_knob',
+         u'iai_kitchen/drawer:drawer:drawer_knob')
 
 def open_drawer_1_cb(feedback):
     goal_pose = PoseStamped()

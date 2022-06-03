@@ -8,7 +8,7 @@ from giskardpy.python_interface import GiskardWrapper
 
 class MoveGripperServer:
     """
-    Action Server, which handles the movement of the gripper.
+    Action Server, which handles the movement of the gripper in a robot_pose for the wipe motion.
     """
     _feedback = MoveGripperFeedback()
     _result = MoveGripperResult()
