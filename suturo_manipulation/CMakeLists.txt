@@ -12,3 +12,7 @@ include_directories(
 #  ${catkin_INCLUDE_DIRS}
 )
 
+catkin_install_python(PROGRAMS
+	scripts/milestone0_showcase.py
+  DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION})
+

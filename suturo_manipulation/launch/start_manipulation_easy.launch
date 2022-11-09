@@ -1,0 +1,8 @@
+<launch>
+	<!--arg name=" unser super tolles skript " default="true"/-->
+
+	<include file="$(find giskardpy)/launch/giskardpy_hsr_gazebo.launch"/>
+
+	<node pkg="suturo_manipulation" name="milestone0_showcase" type="milestone0_showcase.py" output="screen"/>
+
+</launch>
