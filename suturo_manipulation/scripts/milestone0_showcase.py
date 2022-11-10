@@ -6,6 +6,7 @@ from giskardpy.python_interface import GiskardWrapper
 import actionlib
 import moveit_msgs.msg as move
 
+import tf
 
 import hsrb_interface
 from manipulation_msgs.msg import TakePoseAction, TakePoseFeedback, TakePoseResult
@@ -30,6 +31,8 @@ class TakePoseServer:
                                                 auto_start=False)
         self._as.start()
 
+        self.listener = tf.TransformListener()
+
         self._giskard_wrapper = GiskardWrapper()
         self._robot = hsrb_interface.Robot()
         self._whole_body = self._robot.get('whole_body')
@@ -42,9 +45,10 @@ class TakePoseServer:
         :type goal TakePoseGoal
         """
         rospy.loginfo("Take pose: {}".format(goal))
+        new_goal = self.listener.transformPose('map', goal)
         self._result.error_code = self._result.FAILED
 
-        self._giskard_wrapper.set_cart_goal(root_link='map', tip_link='hand_palm_link', goal_pose=goal)
+        self._giskard_wrapper.set_cart_goal(root_link='map', tip_link='hand_palm_link', goal_pose=new_goal)
 
         self._giskard_wrapper.allow_collision()
         self._giskard_wrapper.plan_and_execute()
