@@ -7,6 +7,7 @@ from giskardpy.python_interface import GiskardWrapper
 import actionlib
 import tf
 import hsrb_interface
+# Giskard benutzen!
 from manipulation_msgs.msg import MoveGripperAction, MoveGripperActionFeedback, MoveGripperActionResult, MoveGripperActionGoal
 
 
@@ -31,7 +32,7 @@ class MoveGripperServer:
 
         self.listener = tf.TransformListener()
 
-        self._giskard_wrapper = GiskardWrapper()
+        self._giskard_wrapper = GiskardWrapper() #funktioniert nicht
         self._robot = hsrb_interface.Robot()
         self._whole_body = self._robot.get('whole_body')
 
@@ -44,10 +45,38 @@ class MoveGripperServer:
         self._giskard_wrapper.set_cart_goal(root_link='arm_roll_link', tip_link='hand_palm_link', goal_pose=base_goal)
         '''
 
-        self._giskard_wrapper.set_joint_goal({'arm_roll_joint': 1.6})
-        self._giskard_wrapper.plan_and_execute()
+        #self._giskard_wrapper.set_joint_goal({'arm_roll_joint': 1.6})
+        #self._giskard_wrapper.plan_and_execute()
+
         rospy.loginfo("{} is ready and waiting for orders.".format(self._action_name))
 
+        self.robot_x = -2.5
+        self.robot_y = 2.5
+        #'''
+        # definition mueslibox
+        mueslibox_center = PointStamped()
+        mueslibox_center.point.x = 0 #-0.434721 - self.robot_x
+        mueslibox_center.point.y = 1.8
+        mueslibox_center.point.z = 0.6
+
+        mueslibox = Vector3Stamped()
+        mueslibox.vector.z = 1
+        print(mueslibox)
+
+        tip_grasp_axis = Vector3Stamped()
+        tip_grasp_axis.vector.y = 1
+        print(tip_grasp_axis)
+
+        self._giskard_wrapper.allow_all_collisions()
+
+        self._giskard_wrapper.set_grasp_bar_goal(bar_center=mueslibox_center,
+                                                 bar_axis=mueslibox,
+                                                 bar_length=0.05,
+                                                 root_link='map',
+                                                 tip_link='hand_palm_link',
+                                                 tip_grasp_axis=tip_grasp_axis)
+        self._giskard_wrapper.plan_and_execute()
+        #'''
     def execute_cb(self, goal):
         """
         Executes the pose taking
@@ -69,8 +98,8 @@ class MoveGripperServer:
         self._giskard_wrapper.set_cart_goal(root_link='map', tip_link='hand_palm_link', goal_pose=new_goal)
 
         self._giskard_wrapper.allow_all_collisions()
-        #self._giskard_wrapper.avoid_all_collisions(0.1)
-        #self._giskard_wrapper.allow_collision('iai_kitchen')
+        # self._giskard_wrapper.avoid_all_collisions(0.1)
+        # self._giskard_wrapper.allow_collision('iai_kitchen')
         self._giskard_wrapper.plan_and_execute()
 
         '''
