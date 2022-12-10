@@ -3,6 +3,8 @@
 import rospy
 import math # for sin and cos
 from geometry_msgs.msg import PoseStamped, Point, Quaternion, Vector3Stamped, PointStamped
+
+from giskardpy.goals.suturo import MoveHandOutOfSight
 from giskardpy.python_interface import GiskardWrapper
 import actionlib
 import tf
@@ -32,7 +34,7 @@ class MoveGripperServer:
 
         self.listener = tf.TransformListener()
 
-        self._giskard_wrapper = GiskardWrapper() #funktioniert nicht
+        self._giskard_wrapper = GiskardWrapper()
         self._robot = hsrb_interface.Robot()
         self._whole_body = self._robot.get('whole_body')
 
@@ -45,14 +47,14 @@ class MoveGripperServer:
         self._giskard_wrapper.set_cart_goal(root_link='arm_roll_link', tip_link='hand_palm_link', goal_pose=base_goal)
         '''
 
-        #self._giskard_wrapper.set_joint_goal({'arm_roll_joint': 1.6})
-        #self._giskard_wrapper.plan_and_execute()
+        self._giskard_wrapper.set_joint_goal({'arm_roll_joint': 1.6})
+        self._giskard_wrapper.plan_and_execute()
 
         rospy.loginfo("{} is ready and waiting for orders.".format(self._action_name))
 
         self.robot_x = -2.5
         self.robot_y = 2.5
-        #'''
+        '''
         # definition mueslibox
         mueslibox_center = PointStamped()
         mueslibox_center.point.x = 0 #-0.434721 - self.robot_x
@@ -64,12 +66,12 @@ class MoveGripperServer:
         print(mueslibox)
 
         tip_grasp_axis = Vector3Stamped()
-        tip_grasp_axis.vector.y = 1
+        tip_grasp_axis.vector.x = 1
         print(tip_grasp_axis)
+        self._giskard_wrapper.add_box(name='asdf')
+        self._giskard_wrapper.allow_collision(group1='asdf', group2='hsrb')
 
-        self._giskard_wrapper.allow_all_collisions()
-
-        self._giskard_wrapper.set_grasp_bar_goal(bar_center=mueslibox_center,
+        self._giskard_wrapper.set_json_goal(bar_center=mueslibox_center,
                                                  bar_axis=mueslibox,
                                                  bar_length=0.05,
                                                  root_link='map',
@@ -167,8 +169,24 @@ class MoveGripperServer:
 
 if __name__ == '__main__':
     rospy.init_node('milestone0_server')
-    server = MoveGripperServer(rospy.get_name())
-    rospy.spin()
+    # rospy.spin()
+
+    _giskard_wrapper = GiskardWrapper()
+    
+    mueslibox_center = PointStamped()
+    mueslibox_center.point.x = 0  # -0.434721 - self.robot_x
+    mueslibox_center.point.y = 1.8
+    mueslibox_center.point.z = 0.6
+    _giskard_wrapper.set_json_goal(
+                            constraint_type='GraspBox',
+                            box_pose=mueslibox_center,
+                            tip_link='handpalmlink',
+                            box_x_length=0.2,
+                            box_y_length=0.2,
+                            box_z_length=0.2
+                        )
+
+    _giskard_wrapper.plan_and_execute()
 
 '''
 # Start
