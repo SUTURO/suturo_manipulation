@@ -166,44 +166,62 @@ class MoveGripperServer:
             self._result.result.error_code = self._result.result.SUCCESS
         self._as.set_succeeded(self._result)
 
+def prepare_variables():
+    _giskard_wrapper = GiskardWrapper()
+
+    mueslibox_center = PointStamped()
+    mueslibox_center.header.frame_id = 'map'
+    mueslibox_center.point.x = - 0.1
+    mueslibox_center.point.y = 1.75
+    mueslibox_center.point.z = 0.7
+
+    drawer_point = PointStamped()
+    drawer_point.header.frame_id = 'map'
+    drawer_point.point.x = 0.18
+    drawer_point.point.y = -0.3
+    drawer_point.point.z = 0.282
+
+    return _giskard_wrapper, mueslibox_center, drawer_point
+
+def test_muesli(point):
+    goal_pose = PoseStamped()
+    goal_pose.header = point.header
+    # goal_pose.position = point.point
+    goal_pose.pose.position = point.point
+    _giskard_wrapper.set_cart_goal(goal_pose, "hand_palm_link", "map")
+
+def test_open_drawer(point):
+    goal_pose = PoseStamped()
+    goal_pose.header = point.header
+    # goal_pose.position = point.point
+    goal_pose.pose.position = point.point
+    _giskard_wrapper.set_cart_goal(goal_pose, "hand_palm_link", "map")
+
+
 
 if __name__ == '__main__':
     rospy.init_node('milestone0_server')
-    # rospy.spin()
 
-    _giskard_wrapper = GiskardWrapper()
-    
-    mueslibox_center = PointStamped()
-    mueslibox_center.point.x = 0  # -0.434721 - self.robot_x
-    mueslibox_center.point.y = 1.8
-    mueslibox_center.point.z = 0.6
-    _giskard_wrapper.set_json_goal(
-                            constraint_type='GraspBox',
-                            box_pose=mueslibox_center,
-                            tip_link='handpalmlink',
-                            box_x_length=0.2,
-                            box_y_length=0.2,
-                            box_z_length=0.2
-                        )
+    _giskard_wrapper, mueslibox_point, drawer_point = prepare_variables()
 
+    # Hand init
+    #_giskard_wrapper.set_hand_out_of_sight()
+
+    # Mueslibox testing
+    #test_muesli(mueslibox_point)
+
+    # Grab mueslibox
+    #_giskard_wrapper.grab_mueslibox(box_pose=mueslibox, tip_link="hand_palm_link", box_z=0.1)
+
+    # Drawer testing
+    # test_open_drawer(drawer_point)
+
+    # Open drawer
+    _giskard_wrapper.open_drawer()
+
+    # Close drawer
+    # _giskard_wrapper.close_drawer()
+
+    # Run
     _giskard_wrapper.plan_and_execute()
 
-'''
-# Start
-rospy.init_node('test')
-# rospy.loginfo('Start')
-
-base_goal = PoseStamped()
-base_goal.header.frame_id = 'map'
-base_goal.pose.position = Point(0, 0, 0)
-base_goal.pose.orientation = Quaternion(0, 0, 0, 1)
-
-#giskard_wrapper.set_cart_goal(root_link = 'map', tip_link = 'base_footprint', goal_pose = base_goal)
-
-# giskard_wrapper.allow_all_collisions()
-#giskard_wrapper.plan_and_execute()
-
-if result.SUCCESS in result.error_codes:
-    self._result.error_code = self._result.SUCCESS
-self._as.set_succeeded(self._result)
-'''
