@@ -6,7 +6,7 @@ from control_msgs.msg import FollowJointTrajectoryAction, FollowJointTrajectoryG
 from trajectory_msgs.msg import JointTrajectoryPoint
 from manipulation_msgs.msg import ObjectInGripper
 from giskardpy.python_interface import GiskardWrapper
-from giskardpy.utils import normalize_quaternion_msg
+from giskardpy.utils.tfwrapper import normalize_quaternion_msg
 
 
 class Gripper:
