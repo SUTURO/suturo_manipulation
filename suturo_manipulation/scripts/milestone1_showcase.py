@@ -1,8 +1,8 @@
 #!/usr/bin/env python
 
 import rospy
-import math # for sin and cos
-from geometry_msgs.msg import PoseStamped, Point, Quaternion, Vector3Stamped, PointStamped
+import math  # for sin and cos
+from geometry_msgs.msg import PoseStamped, Point, Quaternion, Vector3Stamped, PointStamped, Vector3
 
 from giskardpy.goals.suturo import MoveHandOutOfSight
 from giskardpy.python_interface import GiskardWrapper
@@ -10,7 +10,10 @@ import actionlib
 import tf
 import hsrb_interface
 # Giskard benutzen!
-from manipulation_msgs.msg import MoveGripperAction, MoveGripperActionFeedback, MoveGripperActionResult, MoveGripperActionGoal
+from manipulation_msgs.msg import MoveGripperAction, MoveGripperActionFeedback, MoveGripperActionResult, \
+    MoveGripperActionGoal
+
+from suturo_manipulation.gripper import Gripper
 
 
 class MoveGripperServer:
@@ -79,6 +82,7 @@ class MoveGripperServer:
                                                  tip_grasp_axis=tip_grasp_axis)
         self._giskard_wrapper.plan_and_execute()
         #'''
+
     def execute_cb(self, goal):
         """
         Executes the pose taking
@@ -92,10 +96,10 @@ class MoveGripperServer:
         self._result.result.error_code = self._result.result.FAILED
 
         new_goal.pose.position.z += 0.3
-        new_goal.pose.orientation.x = math.sin(270/2)
+        new_goal.pose.orientation.x = math.sin(270 / 2)
         new_goal.pose.orientation.y = 0
         new_goal.pose.orientation.z = 0
-        new_goal.pose.orientation.w = math.cos(270/2)
+        new_goal.pose.orientation.w = math.cos(270 / 2)
 
         self._giskard_wrapper.set_cart_goal(root_link='map', tip_link='hand_palm_link', goal_pose=new_goal)
 
@@ -109,15 +113,16 @@ class MoveGripperServer:
             self._result.result.error_code = self._result.result.SUCCESS
         self._as.set_succeeded(self._result)
 
+
 def prepare_variables():
     _giskard_wrapper = GiskardWrapper()
 
-    #mueslibox variables
-    mueslibox_center = PointStamped()
+    # mueslibox variables
+    mueslibox_center = PoseStamped()
     mueslibox_center.header.frame_id = 'map'
-    mueslibox_center.point.x = - 0.1
-    mueslibox_center.point.y = 1.75
-    mueslibox_center.point.z = 0.7
+    mueslibox_center.pose.position.x = - 0.1
+    mueslibox_center.pose.position.y = 1.75
+    mueslibox_center.pose.position.z = 0.7
 
     mueslibox_tip_link = "hand_palm_link"
 
@@ -125,20 +130,22 @@ def prepare_variables():
 
     mueslibox_vars = (mueslibox_center, mueslibox_tip_link, box_z_length)
 
-    #drawer variables
-    drawer_point = PointStamped()
+    # drawer variables
+    drawer_point = PoseStamped()
     drawer_point.header.frame_id = 'map'
-    drawer_point.point.x = 0.18
-    drawer_point.point.y = -0.2
-    drawer_point.point.z = 0.282
+    drawer_point.pose.position.x = 0.18
+    drawer_point.pose.position.y = -0.2
+    drawer_point.pose.position.z = 0.282
 
-    drawer_direction = Vector3Stamped()
+    drawer_direction = Vector3()
+    drawer_direction.z = 1
 
-    drawer_distance = 0.1
+    drawer_distance = 0.5
 
     drawer_vars = (drawer_point, drawer_direction, drawer_distance)
 
     return _giskard_wrapper, mueslibox_vars, drawer_vars
+
 
 def test_muesli(point):
     goal_pose = PoseStamped()
@@ -146,6 +153,7 @@ def test_muesli(point):
     # goal_pose.position = point.point
     goal_pose.pose.position = point.point
     _giskard_wrapper.set_cart_goal(goal_pose, "hand_palm_link", "map")
+
 
 def test_open_drawer(point):
     goal_pose = PoseStamped()
@@ -155,6 +163,13 @@ def test_open_drawer(point):
     _giskard_wrapper.set_cart_goal(goal_pose, "hand_palm_link", "map")
 
 
+def test_open_gripper():
+    g.set_gripper_joint_position(1)
+
+
+def test_close_gripper():
+    g.close_gripper_force(1)
+
 
 if __name__ == '__main__':
     rospy.init_node('milestone0_server')
@@ -162,29 +177,33 @@ if __name__ == '__main__':
     _giskard_wrapper, mueslibox_variables, drawer_variables = prepare_variables()
 
     # Testing: Open drawer
-    #test_open_drawer(drawer_variables[0])
+    # test_open_drawer(drawer_variables[0])
 
     # Testing: Mueslibox
-    #test_muesli(mueslibox_point)
-    #_giskard_wrapper.set_joint_goal({'hand_r_distal_joint': -0.5})  #hand_motor_joint
+    # test_muesli(mueslibox_point)
+    # _giskard_wrapper.set_joint_goal({'hand_r_distal_joint': -0.5})  #hand_motor_joint
 
-    #/hsrb/gripper_controller/grasp/goal
+    g = Gripper(apply_force_action_server='/hsrb/gripper_controller/apply_force',
+                follow_joint_trajectory_server='/hsrb/gripper_controller/follow_joint_trajectory')
+
+    #test_close_gripper()
+    test_open_gripper()
 
     # Hand init
-    #_giskard_wrapper.set_hand_out_of_sight()
+    # _giskard_wrapper.set_hand_out_of_sight()
 
     # Grab mueslibox
-    _giskard_wrapper.grab_box(box_pose=mueslibox_variables[0])
-    #_giskard_wrapper.grab_box(box_pose=mueslibox_variables[0], tip_link=mueslibox_variables[1], box_z=mueslibox_variables[2])
+    # _giskard_wrapper.grasp_box(box_pose=mueslibox_variables[0], mueslibox=True)
+    # _giskard_wrapper.grasp_box(box_pose=mueslibox_variables[0], tip_link=mueslibox_variables[1], box_z=mueslibox_variables[2])
 
     # Open drawer
-    #_giskard_wrapper.grab_box(box_pose=drawer_variables[0])
+    # _giskard_wrapper.grasp_box(box_pose=drawer_variables[0], box_z=0.001, mueslibox=False, grasp_vertical=True)
+    # _giskard_wrapper.grasp_box(box_pose=drawer_variables[0], box_z=0.001, mueslibox=False, grasp_vertical=False)
 
-    #_giskard_wrapper.open_drawer(knob_pose=drawer_variables[0], direction=drawer_variables[1], distance=drawer_variables[2])
+    # _giskard_wrapper.open_drawer(knob_pose=drawer_variables[0], direction=drawer_variables[1], distance=drawer_variables[2])
 
     # Close drawer
     # _giskard_wrapper.close_drawer()
 
     # Run
     _giskard_wrapper.plan_and_execute()
-
