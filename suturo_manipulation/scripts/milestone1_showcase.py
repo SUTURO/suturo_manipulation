@@ -104,63 +104,6 @@ class MoveGripperServer:
         # self._giskard_wrapper.allow_collision('iai_kitchen')
         self._giskard_wrapper.plan_and_execute()
 
-        '''
-        self._giskard_wrapper.allow_self_collision()
-        if goal.pose_mode == goal.FREE:
-            self._giskard_wrapper.set_joint_goal({
-                u'head_pan_joint': goal.head_pan_joint,
-                u'head_tilt_joint': goal.head_tilt_joint,
-                u'arm_lift_joint': goal.arm_lift_joint,
-                u'arm_flex_joint': goal.arm_flex_joint,
-                u'arm_roll_joint': goal.arm_roll_joint,
-                u'wrist_flex_joint': goal.wrist_flex_joint,
-                u'wrist_roll_joint': goal.wrist_roll_joint
-            })
-            self._giskard_wrapper.plan_and_execute(wait=True)
-        elif goal.pose_mode == goal.NEUTRAL:
-            self._giskard_wrapper.set_joint_goal(rospy.get_param(u'/manipulation/robot_poses/neutral'))
-            self._giskard_wrapper.plan_and_execute(wait=True)
-        elif goal.pose_mode == goal.LOOK_HIGH:
-            self._giskard_wrapper.set_joint_goal(rospy.get_param(u'/manipulation/robot_poses/look_high'))
-            self._giskard_wrapper.plan_and_execute(wait=True)
-        elif goal.pose_mode == goal.LOOK_LOW:
-            self._giskard_wrapper.set_joint_goal(rospy.get_param(u'/manipulation/robot_poses/look_low'))
-            self._giskard_wrapper.plan_and_execute(wait=True)
-        elif goal.pose_mode == goal.LOOK_FLOOR:
-            self._giskard_wrapper.set_joint_goal(rospy.get_param(u'/manipulation/robot_poses/look_floor'))
-            self._giskard_wrapper.plan_and_execute(wait=True)
-        elif goal.pose_mode == goal.LOOK_DRAWER:
-            self._giskard_wrapper.set_joint_goal(rospy.get_param(u'/manipulation/robot_poses/look_drawer'))
-            self._giskard_wrapper.plan_and_execute(wait=True)
-
-        elif goal.pose_mode == goal.GAZE:
-            camera_height = goal.gaze_point.z - 0.4
-            if camera_height < 0.0:
-                camera_height = 0.0
-            elif camera_height > 0.69:
-                camera_height = 0.69
-            self._giskard_wrapper.set_joint_goal({
-                u'head_pan_joint': -1.54,
-                u'head_tilt_joint': 0.0,
-                u'arm_lift_joint': camera_height,  # must be between 0 and 0.69
-                u'arm_flex_joint': -0.5,
-                u'arm_roll_joint': -1.8,
-                u'wrist_flex_joint': -1.57,
-                u'wrist_roll_joint': 0.0
-            })
-            self._giskard_wrapper.plan_and_execute(wait=True)
-            v3 = hsrb_interface.geometry.Vector3(x=goal.gaze_point.x, y=goal.gaze_point.y, z=goal.gaze_point.z)
-            self._whole_body.gaze_point(point=v3, ref_frame_id='map')
-        elif goal.pose_mode == goal.GIVE_TAKE:
-            self._giskard_wrapper.set_joint_goal(rospy.get_param(u'/manipulation/robot_poses/give_take'))
-            self._giskard_wrapper.plan_and_execute(wait=True)
-        result = self._giskard_wrapper.get_result(rospy.Duration(60))
-        if result and result.SUCCESS in result.error_codes:
-            self._result.error_code = self._result.SUCCESS
-        
-        self._giskard_wrapper.avoid_self_collision()
-        '''
-
         result = self._giskard_wrapper.get_result(rospy.Duration(120))
         if result.SUCCESS in result.error_codes:
             self._result.result.error_code = self._result.result.SUCCESS
@@ -169,19 +112,33 @@ class MoveGripperServer:
 def prepare_variables():
     _giskard_wrapper = GiskardWrapper()
 
+    #mueslibox variables
     mueslibox_center = PointStamped()
     mueslibox_center.header.frame_id = 'map'
     mueslibox_center.point.x = - 0.1
     mueslibox_center.point.y = 1.75
     mueslibox_center.point.z = 0.7
 
+    mueslibox_tip_link = "hand_palm_link"
+
+    box_z_length = 0.1
+
+    mueslibox_vars = (mueslibox_center, mueslibox_tip_link, box_z_length)
+
+    #drawer variables
     drawer_point = PointStamped()
     drawer_point.header.frame_id = 'map'
     drawer_point.point.x = 0.18
-    drawer_point.point.y = -0.3
+    drawer_point.point.y = -0.2
     drawer_point.point.z = 0.282
 
-    return _giskard_wrapper, mueslibox_center, drawer_point
+    drawer_direction = Vector3Stamped()
+
+    drawer_distance = 0.1
+
+    drawer_vars = (drawer_point, drawer_direction, drawer_distance)
+
+    return _giskard_wrapper, mueslibox_vars, drawer_vars
 
 def test_muesli(point):
     goal_pose = PoseStamped()
@@ -202,22 +159,28 @@ def test_open_drawer(point):
 if __name__ == '__main__':
     rospy.init_node('milestone0_server')
 
-    _giskard_wrapper, mueslibox_point, drawer_point = prepare_variables()
+    _giskard_wrapper, mueslibox_variables, drawer_variables = prepare_variables()
+
+    # Testing: Open drawer
+    #test_open_drawer(drawer_variables[0])
+
+    # Testing: Mueslibox
+    #test_muesli(mueslibox_point)
+    #_giskard_wrapper.set_joint_goal({'hand_r_distal_joint': -0.5})  #hand_motor_joint
+
+    #/hsrb/gripper_controller/grasp/goal
 
     # Hand init
     #_giskard_wrapper.set_hand_out_of_sight()
 
-    # Mueslibox testing
-    #test_muesli(mueslibox_point)
-
     # Grab mueslibox
-    #_giskard_wrapper.grab_mueslibox(box_pose=mueslibox, tip_link="hand_palm_link", box_z=0.1)
-
-    # Drawer testing
-    # test_open_drawer(drawer_point)
+    _giskard_wrapper.grab_box(box_pose=mueslibox_variables[0])
+    #_giskard_wrapper.grab_box(box_pose=mueslibox_variables[0], tip_link=mueslibox_variables[1], box_z=mueslibox_variables[2])
 
     # Open drawer
-    _giskard_wrapper.open_drawer()
+    #_giskard_wrapper.grab_box(box_pose=drawer_variables[0])
+
+    #_giskard_wrapper.open_drawer(knob_pose=drawer_variables[0], direction=drawer_variables[1], distance=drawer_variables[2])
 
     # Close drawer
     # _giskard_wrapper.close_drawer()
