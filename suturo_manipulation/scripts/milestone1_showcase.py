@@ -131,18 +131,24 @@ def prepare_variables():
     mueslibox_vars = (mueslibox_center, mueslibox_tip_link, box_z_length)
 
     # drawer variables
+
+    # y = -0.02 for test without gripper
+    # y = -0.225 for real test.
     drawer_point = PoseStamped()
     drawer_point.header.frame_id = 'map'
     drawer_point.pose.position.x = 0.18
-    drawer_point.pose.position.y = -0.2
+    drawer_point.pose.position.y = -0.225
     drawer_point.pose.position.z = 0.282
 
-    drawer_direction = Vector3()
-    drawer_direction.z = 1
+    drawer_open_direction = Vector3()
+    drawer_open_direction.y = 1
 
-    drawer_distance = 0.5
+    drawer_close_direction = Vector3()
+    drawer_close_direction.y = -1
 
-    drawer_vars = (drawer_point, drawer_direction, drawer_distance)
+    drawer_distance = 0.1
+
+    drawer_vars = (drawer_point, drawer_open_direction, drawer_distance, drawer_close_direction)
 
     return _giskard_wrapper, mueslibox_vars, drawer_vars
 
@@ -177,33 +183,43 @@ if __name__ == '__main__':
     _giskard_wrapper, mueslibox_variables, drawer_variables = prepare_variables()
 
     # Testing: Open drawer
-    # test_open_drawer(drawer_variables[0])
+    #test_open_drawer(drawer_variables[0])
 
     # Testing: Mueslibox
-    # test_muesli(mueslibox_point)
-    # _giskard_wrapper.set_joint_goal({'hand_r_distal_joint': -0.5})  #hand_motor_joint
+    #test_muesli(mueslibox_point)
 
+    ''' Test gripper
     g = Gripper(apply_force_action_server='/hsrb/gripper_controller/apply_force',
                 follow_joint_trajectory_server='/hsrb/gripper_controller/follow_joint_trajectory')
+    #'''
+    '''
+    Distances to gripper: 
+    hand_palm_link: 7.8 cm
+    '''
 
     #test_close_gripper()
-    test_open_gripper()
+    #test_open_gripper()
 
     # Hand init
-    # _giskard_wrapper.set_hand_out_of_sight()
+    #_giskard_wrapper.set_hand_out_of_sight()
 
     # Grab mueslibox
-    # _giskard_wrapper.grasp_box(box_pose=mueslibox_variables[0], mueslibox=True)
-    # _giskard_wrapper.grasp_box(box_pose=mueslibox_variables[0], tip_link=mueslibox_variables[1], box_z=mueslibox_variables[2])
+    #_giskard_wrapper.grasp_box(box_pose=mueslibox_variables[0], mueslibox=True)
+    #_giskard_wrapper.grasp_box(box_pose=mueslibox_variables[0], tip_link=mueslibox_variables[1], box_z=mueslibox_variables[2])
+
+
+    # Drawer
+    # Move to drawer
+    #_giskard_wrapper.grasp_box(box_pose=drawer_variables[0], box_z=0.001, mueslibox=False, grasp_vertical=True)
+    #_giskard_wrapper.grasp_box(box_pose=drawer_variables[0], box_z=0.001, mueslibox=False, grasp_vertical=False)
 
     # Open drawer
-    # _giskard_wrapper.grasp_box(box_pose=drawer_variables[0], box_z=0.001, mueslibox=False, grasp_vertical=True)
-    # _giskard_wrapper.grasp_box(box_pose=drawer_variables[0], box_z=0.001, mueslibox=False, grasp_vertical=False)
-
-    # _giskard_wrapper.open_drawer(knob_pose=drawer_variables[0], direction=drawer_variables[1], distance=drawer_variables[2])
+    #_giskard_wrapper.open_drawer(knob_pose=drawer_variables[0], direction=drawer_variables[1], distance=drawer_variables[2])
+    # Close drawer
+    #_giskard_wrapper.open_drawer(knob_pose=drawer_variables[0], direction=drawer_variables[3], distance=drawer_variables[2])
 
     # Close drawer
-    # _giskard_wrapper.close_drawer()
+    #_giskard_wrapper.close_drawer()
 
     # Run
     _giskard_wrapper.plan_and_execute()
