@@ -1,6 +1,0 @@
-<launch>
-	<include file="$(find giskardpy)/launch/giskardpy_hsr_gazebo.launch"/>
-
-	<!-- node pkg="suturo_manipulation" name="milestone1_showcase" type="milestone1_showcase.py" output="screen"/!-->
-
-</launch>
