@@ -1,0 +1,12 @@
+<?xml version="1.0"?>
+<launch>
+
+	<!--include file="$(find giskardpy)/launch/giskardpy_hsr_local.launch"/!-->
+
+	<include file="$(find giskardpy)/launch/giskardpy_hsr_local.launch" />
+
+	<!--node pkg="suturo_manipulation" name="take_pose_server" type="take_pose_server.py" output="screen"/-->
+
+	<!-- node pkg="suturo_manipulation" name="milestone1_showcase" type="milestone1_showcase.py" output="screen"/!-->
+
+</launch>
