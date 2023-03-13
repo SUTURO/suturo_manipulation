@@ -280,24 +280,20 @@ if __name__ == '__main__':
 
     #_giskard_wrapper.move_gripper(True)
     #_giskard_wrapper.move_gripper(False)
+
     # Hand init
     # _giskard_wrapper.set_base_position()
 
     # Grab mueslibox
 
     muesli_size = [0.04, 0.1, 0.2]
-    #_giskard_wrapper.grasp_box(box_name=box_name, box_pose=mueslibox_variables[0])
-
-    #_giskard_wrapper.update_parent_link_of_group(name=box_name, parent_link=_giskard_wrapper.robot_name)
-    #_giskard_wrapper.allow_collision(_giskard_wrapper.robot_name, box_name)
-
-
-    # Pick up
-    #_giskard_wrapper.move_drawer(mueslibox_variables[0], mueslibox_variables[4], mueslibox_variables[5], align_axis=False)
-
+    _giskard_wrapper.grasp_box(box_name=box_name, box_pose=mueslibox_variables[0], testing=True)
 
     # Place mueslibox
-    _giskard_wrapper.place_object(goal_pose=mueslibox_variables[3], object_height=mueslibox_variables[2])
+    height = 0.2
+    #_giskard_wrapper.place_object(object_name=box_name, goal_pose=mueslibox_variables[3], object_height=height, testing=True)
+
+    #_giskard_wrapper.drive_back(distance=0.5)
 
     # Drawer
 
