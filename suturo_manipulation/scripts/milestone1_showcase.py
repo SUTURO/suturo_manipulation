@@ -287,7 +287,19 @@ if __name__ == '__main__':
     # Grab mueslibox
 
     muesli_size = [0.04, 0.1, 0.2]
-    _giskard_wrapper.grasp_object(object_name=box_name, object_pose=mueslibox_variables[0])
+
+    table_position = [1.6, -1.1, 0.9]
+    shelf_position = [-0.092, 1.65, 0.75]
+
+    obj = table_position
+
+    obj_pose = PoseStamped()
+    obj_pose.header.frame_id = 'map'
+    obj_pose.pose.position.x = obj[0]
+    obj_pose.pose.position.y = obj[1]
+    obj_pose.pose.position.z = obj[2] + 0.15
+    #_giskard_wrapper.grasp_object(object_name=box_name, object_pose=mueslibox_variables[0])
+    _giskard_wrapper.grasp_object(object_name=box_name, object_pose=obj_pose, testing=True)
 
     #_giskard_wrapper.add_object_to_world(object_name=box_name, object_pose=mueslibox_variables[0])
 
