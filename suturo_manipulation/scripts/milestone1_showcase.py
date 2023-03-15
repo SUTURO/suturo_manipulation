@@ -287,7 +287,9 @@ if __name__ == '__main__':
     # Grab mueslibox
 
     muesli_size = [0.04, 0.1, 0.2]
-    _giskard_wrapper.grasp_box(box_name=box_name, box_pose=mueslibox_variables[0], testing=True)
+    _giskard_wrapper.grasp_object(object_name=box_name, object_pose=mueslibox_variables[0])
+
+    #_giskard_wrapper.add_object_to_world(object_name=box_name, object_pose=mueslibox_variables[0])
 
     # Place mueslibox
     height = 0.2
@@ -299,8 +301,8 @@ if __name__ == '__main__':
 
     knob_size = [0.04, 0.01, 0.02]
     # Move to drawer
-    #_giskard_wrapper.grasp_box(box_pose=drawer_variables[0], box_size=knob_size)
-    #_giskard_wrapper.grasp_box(box_pose=drawer_variables[0], box_z=0.001, mueslibox=False, grasp_vertical=False)
+    #_giskard_wrapper.grasp_box(object_pose=drawer_variables[0], object_size=knob_size)
+    #_giskard_wrapper.grasp_box(object_pose=drawer_variables[0], box_z=0.001, mueslibox=False, grasp_vertical=False)
 
     # Open drawer
     #_giskard_wrapper.move_drawer(knob_pose=drawer_variables[0], direction=drawer_variables[1], distance=drawer_variables[2])
