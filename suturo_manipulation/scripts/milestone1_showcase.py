@@ -29,7 +29,7 @@ def prepare_variables():
     # Test Pose
     test_orientation = Quaternion(x=0.0, y=0.0, z=-1.0, w=1.0)
     test_pose = mueslibox_center
-    test_pose.pose.orientation = test_orientation
+    #test_pose.pose.orientation = test_orientation
 
     return _giskard_wrapper, mueslibox_center, drawer_point, test_pose
 
@@ -43,30 +43,12 @@ def pick_object(name: str,
     # Open Gripper
     open_gripper()
 
+    # Add object to giskard
+    print('Add Object')
+    add_object(name=name, pose=pose, size=size)
+
     # Pick object
     print('Getting in position')
-    # object_size = [0.04, 0.1, 0.2]  # FIXME make box size dynamic
-    height = 0.259
-    radius = 0.0395
-
-    ### Will be removed with knowledge synchronization ###
-    if object_name not in _giskard_wrapper.get_group_names():
-        gisk_size = (size.x, size.y, size.z)
-        gisk_pose = pose
-
-        if object_type == 'box':
-            _giskard_wrapper.add_box(name=name,
-                                     size=gisk_size,
-                                     pose=gisk_pose)
-        elif object_type == 'cylinder':
-
-            _giskard_wrapper.add_cylinder(name=name,
-                                          height=height,
-                                          radius=radius,
-                                          pose=gisk_pose)
-
-    #######################################################
-
     _giskard_wrapper.grasp_object(object_name=name,
                                   object_pose=pose,
                                   object_size=size,
@@ -74,8 +56,8 @@ def pick_object(name: str,
                                   tip_link=tip_link)
 
     _giskard_wrapper.plan_and_execute(wait=True)
-    # _giskard_wrapper.plan()
-
+    _giskard_wrapper.plan()
+    '''
     # Attach Object
     _giskard_wrapper.update_parent_link_of_group(object_name, tip_link)
 
@@ -95,7 +77,7 @@ def pick_object(name: str,
 
     set_base_position()
     _giskard_wrapper.plan_and_execute(wait=True)
-
+    '''
 
 def open_gripper():
     print('Open Gripper')
@@ -174,8 +156,20 @@ def add_object(name: str,
                                       radius=radius,
                                       pose=gisk_pose)
 
-    _giskard_wrapper.plan_and_execute()
+    _giskard_wrapper.plan_and_execute(wait=True)
 
+def test_new_feature(name, pose, grasp):
+    #_giskard_wrapper.test_goal()
+
+    #_giskard_wrapper.test_goal(object_name=name, object_pose=pose, grasp_object=grasp)
+
+    # Move gripper, theoretically
+    joints = {'hand_motor_joint': 1.0}
+    _giskard_wrapper.set_joint_goal(goal_state=joints)
+
+
+
+    _giskard_wrapper.plan_and_execute()
 
 if __name__ == '__main__':
     rospy.init_node('milestone0_server')
@@ -208,7 +202,7 @@ if __name__ == '__main__':
     #pick_object(name='', pose=obj_pose, size=muesli_size)
 
     # create object
-    add_object(name=object_name, pose=obj_pose, size=muesli_size)
+    #add_object(name=object_name, pose=obj_pose, size=muesli_size)
 
     # place object
     #place_object(name=object_name, pose=obj_pose, height=obj_height)
@@ -216,3 +210,6 @@ if __name__ == '__main__':
     # Drawer
     knob_size = Vector3(x=0.04, y=0.1, z=0.2)
     #pick_object(name='', pose=drawer_point, size=knob_size)
+
+    # Gripper
+    test_new_feature(object_name, obj_pose, True)
