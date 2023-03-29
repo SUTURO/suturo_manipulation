@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 import time
 
+import hsrb_interface
 import rospy
 import math  # for sin and cos
 from geometry_msgs.msg import PoseStamped, Point, Quaternion, Vector3Stamped, PointStamped, Vector3
@@ -18,6 +19,7 @@ def prepare_variables():
     mueslibox_center.pose.position.y = 1.68
     mueslibox_center.pose.position.z = 0.7
 
+
     # drawer
     drawer_point = PoseStamped()
     drawer_point.header.frame_id = 'map'
@@ -27,7 +29,7 @@ def prepare_variables():
 
 
     # Test Pose
-    test_orientation = Quaternion(x=0.0, y=0.0, z=-1.0, w=1.0)
+    test_orientation = Quaternion(x=0.0, y=0.0, z=0.3, w=1.0)
     test_pose = mueslibox_center
     #test_pose.pose.orientation = test_orientation
 
@@ -47,16 +49,24 @@ def pick_object(name: str,
     print('Add Object')
     add_object(name=name, pose=pose, size=size)
 
+    print('Point Object')
+    _giskard_wrapper.set_pointing(goal_pose=pose, root_link=root_link, tip_link=tip_link)
+    _giskard_wrapper.plan_and_execute(wait=True)
+
     # Pick object
     print('Getting in position')
+    offset = 0.001
     _giskard_wrapper.grasp_object(object_name=name,
                                   object_pose=pose,
                                   object_size=size,
                                   root_link=root_link,
-                                  tip_link=tip_link)
+                                  tip_link=tip_link,
+                                  offset=offset)
 
-    _giskard_wrapper.plan_and_execute(wait=True)
+    #_giskard_wrapper.plan_and_execute(wait=True)
     _giskard_wrapper.plan()
+
+    print()
     '''
     # Attach Object
     _giskard_wrapper.update_parent_link_of_group(object_name, tip_link)
@@ -167,8 +177,6 @@ def test_new_feature(name, pose, grasp):
     joints = {'hand_motor_joint': 1.0}
     _giskard_wrapper.set_joint_goal(goal_state=joints)
 
-
-
     _giskard_wrapper.plan_and_execute()
 
 if __name__ == '__main__':
@@ -185,6 +193,7 @@ if __name__ == '__main__':
     # Grab mueslibox
 
     muesli_size = Vector3(x=0.04, y=0.1, z=0.2)
+    big_muesli = Vector3(x=0.095, y=0.19, z=0.26)
 
     obj_height = 0.2
 
@@ -199,7 +208,7 @@ if __name__ == '__main__':
     # obj_pose = mueslibox_center
     obj_pose = t_pose
 
-    #pick_object(name='', pose=obj_pose, size=muesli_size)
+    pick_object(name='', pose=obj_pose, size=big_muesli)
 
     # create object
     #add_object(name=object_name, pose=obj_pose, size=muesli_size)
@@ -212,4 +221,4 @@ if __name__ == '__main__':
     #pick_object(name='', pose=drawer_point, size=knob_size)
 
     # Gripper
-    test_new_feature(object_name, obj_pose, True)
+    #test_new_feature(object_name, obj_pose, True)
