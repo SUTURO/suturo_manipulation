@@ -184,7 +184,7 @@ if __name__ == '__main__':
 
     _giskard_wrapper, mueslibox_center, drawer_point, t_pose = prepare_variables()
 
-    object_name = 'boxy'
+    object_name = 'test_object'
 
     # LabEnv coordinates
     table_position = [1.6, -1.1, 0.9]
@@ -208,7 +208,7 @@ if __name__ == '__main__':
     # obj_pose = mueslibox_center
     obj_pose = t_pose
 
-    pick_object(name='', pose=obj_pose, size=big_muesli)
+    pick_object(name=object_name, pose=obj_pose, size=big_muesli)
 
     # create object
     #add_object(name=object_name, pose=obj_pose, size=muesli_size)
