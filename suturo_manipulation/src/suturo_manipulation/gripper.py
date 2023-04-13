@@ -47,14 +47,23 @@ class Gripper:
         This method checks if an object is in the gripper
             :return: false or true, boolean
         """
-        joint_states = self._giskard_wrapper.get_joint_states(u'/hsrb/joint_states')
-        if u'hand_motor_joint' in joint_states:
-            rospy.loginfo("hand_motor_joint: {}".format(joint_states[u'hand_motor_joint']))
-            result = joint_states[u'hand_motor_joint'] > 0.0
+        joints = self._giskard_wrapper.get_group_info('hsrb')
+
+        joint_states = joints.joint_state
+        try:
+            hand_motor_index = joint_states.name.index(u'hsrb/hand_motor_joint')
+
+            hand_motor_value = joint_states.position[hand_motor_index]
+        except:
+            hand_motor_value = None
+
+
+        if hand_motor_value is not None:
+            rospy.loginfo("hand_motor_joint: {}".format(hand_motor_value))
+            result = hand_motor_value > 0.1
             rospy.loginfo("object_in_gripper: {}".format(result))
             return result
-        else:
-            rospy.logerr("object_in_gripper: unable to hand_motor_joint state defaulting to false!")
+        rospy.logerr("object_in_gripper: unable to hand_motor_joint state defaulting to false!")
         return False
 
     def close_gripper_force(self, force=0.8):

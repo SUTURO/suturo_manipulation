@@ -1,5 +1,6 @@
 #!/usr/bin/env python
 import time
+from typing import List
 
 import hsrb_interface
 import rospy
@@ -9,31 +10,125 @@ from geometry_msgs.msg import PoseStamped, Point, Quaternion, Vector3Stamped, Po
 from giskardpy.python_interface import GiskardWrapper
 
 
-def prepare_variables():
-    _giskard_wrapper = GiskardWrapper()
+class TestEntity:
+    def __init__(self):
+        self.name = None
+        self.size = None
 
-    # mueslibox
+    def get_name(self):
+        return self.name
+
+
+class Box(TestEntity):
+    def __init__(self,
+                 name: str,
+                 pose: PoseStamped,
+                 size: Vector3Stamped):
+        super().__init__()
+        self.name = name
+        self.pose = pose
+        self.size = size
+        self.height = size.vector.z
+
+
+class Position(TestEntity):
+    def __init__(self,
+                 name: str,
+                 pose: PoseStamped):
+        super().__init__()
+        self.name = name
+        self.pose = pose
+
+
+def get_object(name: str,
+               object_list: [TestEntity]):
+    for e in object_list:
+        if e.get_name() == name:
+            if isinstance(e, Position):
+                dummy_size = Vector3(x=0.01, y=0.01, z=0.01)
+                dummy_box = Vector3Stamped()
+                dummy_box.vector = dummy_size
+                e.size = dummy_box
+            return e
+
+
+def prepare_variables():
+
+    # Objects
+    # mueslibox position
     mueslibox_center = PoseStamped()
     mueslibox_center.header.frame_id = 'map'
     mueslibox_center.pose.position.x = - 0.1
     mueslibox_center.pose.position.y = 1.68
     mueslibox_center.pose.position.z = 0.7
 
+    # medium muesli size
+    medium_muesli_size = Vector3Stamped()
+    medium_muesli_size.header.frame_id = 'map'
+    medium_muesli_size.vector.x = 0.04
+    medium_muesli_size.vector.y = 0.1
+    medium_muesli_size.vector.z = 0.2
 
-    # drawer
-    drawer_point = PoseStamped()
-    drawer_point.header.frame_id = 'map'
-    drawer_point.pose.position.x = 0.18
-    drawer_point.pose.position.y = -0.225
-    drawer_point.pose.position.z = 0.282
+    # big muesli size
+    big_muesli_size = Vector3Stamped()
+    big_muesli_size.header.frame_id = 'map'
+    big_muesli_size.vector.x = 0.095
+    big_muesli_size.vector.y = 0.19
+    big_muesli_size.vector.z = 0.26
 
+    # drawer position
+    knob_pose = PoseStamped()
+    knob_pose.header.frame_id = 'map'
+    knob_pose.pose.position.x = 0.18
+    knob_pose.pose.position.y = -0.225
+    knob_pose.pose.position.z = 0.282
 
-    # Test Pose
-    test_orientation = Quaternion(x=0.0, y=0.0, z=0.3, w=1.0)
-    test_pose = mueslibox_center
-    #test_pose.pose.orientation = test_orientation
+    # drawer size
+    knob_size = Vector3Stamped()
+    knob_size.header.frame_id = 'map'
+    knob_size.vector.x = 0.04
+    knob_size.vector.y = 0.1
+    knob_size.vector.z = 0.2
 
-    return _giskard_wrapper, mueslibox_center, drawer_point, test_pose
+    medium_muesli = Box(name='muesli_medium', pose=mueslibox_center, size=medium_muesli_size)
+    big_muesli = Box(name='muesli_big', pose=mueslibox_center, size=big_muesli_size)
+    drawer_knob = Box(name='drawer_knob', pose=knob_pose, size=knob_size)
+
+    objects = []
+    objects.append(medium_muesli)
+    objects.append(big_muesli)
+    objects.append(drawer_knob)
+
+    # Single Positions
+    # Simulation test pose
+    Sim_test_pose_quaternion = Quaternion(x=0.0, y=0.0, z=0.2, w=1.0)
+    Sim_test_pose = mueslibox_center
+    Sim_test_pose.pose.orientation = Sim_test_pose_quaternion
+
+    # LabEnv table 1
+    LabEnv_table_pose = PoseStamped()
+    LabEnv_table_pose.header.frame_id = 'map'
+    LabEnv_table_pose.pose.position.x = 1.6
+    LabEnv_table_pose.pose.position.y = -1.1
+    LabEnv_table_pose.pose.position.z = 0.9
+
+    # LabEnv top shelf
+    LabEnv_shelf_pose = PoseStamped()
+    LabEnv_shelf_pose.header.frame_id = 'map'
+    LabEnv_shelf_pose.pose.position.x = -0.092
+    LabEnv_shelf_pose.pose.position.y = 1.65
+    LabEnv_shelf_pose.pose.position.z = 0.75
+
+    simulation_testing = Position('simulation_test_pose', Sim_test_pose)
+    LabEnv_table = Position('LabEnv_table', LabEnv_table_pose)
+    LabEnv_shelf = Position('LabEnv_shelf', LabEnv_shelf_pose)
+
+    positions = []
+    positions.append(simulation_testing)
+    positions.append(LabEnv_table)
+    positions.append(LabEnv_shelf)
+
+    return objects, positions
 
 
 def pick_object(name: str,
@@ -50,12 +145,12 @@ def pick_object(name: str,
     add_object(name=name, pose=pose, size=size)
 
     print('Point Object')
-    _giskard_wrapper.set_pointing(goal_pose=pose, root_link=root_link, tip_link=tip_link)
-    _giskard_wrapper.plan_and_execute(wait=True)
+    # _giskard_wrapper.set_pointing(goal_pose=pose, root_link=root_link, tip_link=tip_link)
+    # _giskard_wrapper.plan_and_execute(wait=True)
 
     # Pick object
     print('Getting in position')
-    offset = 0.001
+    offset = 0.01
     _giskard_wrapper.grasp_object(object_name=name,
                                   object_pose=pose,
                                   object_size=size,
@@ -63,18 +158,16 @@ def pick_object(name: str,
                                   tip_link=tip_link,
                                   offset=offset)
 
-    #_giskard_wrapper.plan_and_execute(wait=True)
-    _giskard_wrapper.plan()
+    _giskard_wrapper.plan_and_execute(wait=True)
+    # _giskard_wrapper.plan()
 
-    print()
-    '''
     # Attach Object
-    _giskard_wrapper.update_parent_link_of_group(object_name, tip_link)
+    _giskard_wrapper.update_parent_link_of_group(name, tip_link)
 
     print('Grabbing Object')
     _giskard_wrapper.move_gripper(False)
     _giskard_wrapper.plan_and_execute(wait=True)
-
+    '''
     # Lift Object
     print('Lifting Object')
     _giskard_wrapper.lift_object(object_name=object_name)
@@ -88,6 +181,7 @@ def pick_object(name: str,
     set_base_position()
     _giskard_wrapper.plan_and_execute(wait=True)
     '''
+
 
 def open_gripper():
     print('Open Gripper')
@@ -118,9 +212,9 @@ def place_object(name: str,
 
     # Detach Object
     print('Move Back')
-    _giskard_wrapper.update_parent_link_of_group(object_name, root_link)
-    _giskard_wrapper.avoid_collision(min_distance=0.01, group1=_giskard_wrapper.robot_name, group2=object_name)
-    _giskard_wrapper.retract(object_name=object_name)
+    _giskard_wrapper.update_parent_link_of_group(name, root_link)
+    _giskard_wrapper.avoid_collision(min_distance=0.01, group1=_giskard_wrapper.robot_name, group2=name)
+    _giskard_wrapper.retract(object_name=name)
 
     _giskard_wrapper.plan_and_execute(wait=True)
 
@@ -149,7 +243,7 @@ def add_object(name: str,
     radius = 0.0395
 
     ### Will be removed with knowledge synchronization ###
-    if object_name in _giskard_wrapper.get_group_names():
+    if name in _giskard_wrapper.get_group_names():
         _giskard_wrapper.remove_group(name)
 
     gisk_size = (size.x, size.y, size.z)
@@ -159,8 +253,8 @@ def add_object(name: str,
         _giskard_wrapper.add_box(name=name,
                                  size=gisk_size,
                                  pose=gisk_pose)
-    elif object_type == 'cylinder':
 
+    elif object_type == 'cylinder':
         _giskard_wrapper.add_cylinder(name=name,
                                       height=height,
                                       radius=radius,
@@ -168,57 +262,42 @@ def add_object(name: str,
 
     _giskard_wrapper.plan_and_execute(wait=True)
 
-def test_new_feature(name, pose, grasp):
-    #_giskard_wrapper.test_goal()
 
-    #_giskard_wrapper.test_goal(object_name=name, object_pose=pose, grasp_object=grasp)
+def test_new_feature(name, pose, size, grasp):
+    _giskard_wrapper.test_goal_rotation(object_pose=pose)
+
+    add_object(name=name, pose=pose, size=size)
+
+    # _giskard_wrapper.test_goal_gripper(object_name=name, object_pose=pose, grasp_object=grasp)
 
     # Move gripper, theoretically
-    joints = {'hand_motor_joint': 1.0}
-    _giskard_wrapper.set_joint_goal(goal_state=joints)
+    # joints = {'hand_motor_joint': 1.0}
+    # _giskard_wrapper.set_joint_goal(goal_state=joints)
 
-    _giskard_wrapper.plan_and_execute()
+    # _giskard_wrapper.plan_and_execute()
+    _giskard_wrapper.plan()
+
 
 if __name__ == '__main__':
     rospy.init_node('milestone0_server')
+    _giskard_wrapper = GiskardWrapper()
+    objects, positions = prepare_variables()
 
-    _giskard_wrapper, mueslibox_center, drawer_point, t_pose = prepare_variables()
+    pos_name = 'muesli_medium'
+    test_object = get_object(pos_name, objects)
 
-    object_name = 'test_object'
-
-    # LabEnv coordinates
-    table_position = [1.6, -1.1, 0.9]
-    shelf_position = [-0.092, 1.65, 0.75]
-
-    # Grab mueslibox
-
-    muesli_size = Vector3(x=0.04, y=0.1, z=0.2)
-    big_muesli = Vector3(x=0.095, y=0.19, z=0.26)
-
-    obj_height = 0.2
-
-    obj = table_position
-
-    obj_pose = PoseStamped()
-    obj_pose.header.frame_id = 'map'
-    obj_pose.pose.position.x = obj[0]
-    obj_pose.pose.position.y = obj[1]
-    obj_pose.pose.position.z = obj[2] + 0.15
-
-    # obj_pose = mueslibox_center
-    obj_pose = t_pose
-
-    pick_object(name=object_name, pose=obj_pose, size=big_muesli)
+    pick_object(name=pos_name, pose=test_object.pose, size=test_object.size)
 
     # create object
-    #add_object(name=object_name, pose=obj_pose, size=muesli_size)
+    add_object(name=pos_name, pose=test_object.pose, size=test_object.size)
 
     # place object
-    #place_object(name=object_name, pose=obj_pose, height=obj_height)
+    place_object(name=pos_name, pose=test_object.pose, height=test_object.height)
 
     # Drawer
-    knob_size = Vector3(x=0.04, y=0.1, z=0.2)
-    #pick_object(name='', pose=drawer_point, size=knob_size)
+    #pick_object(name='', pose=test_object.pose, size=test_object.size)
 
     # Gripper
-    #test_new_feature(object_name, obj_pose, True)
+    test_new_feature(pos_name, test_object.pose, test_object.size, True)
+    # _giskard_wrapper.move_gripper(open_gripper=False)
+    # _giskard_wrapper.plan_and_execute()
