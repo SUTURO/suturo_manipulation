@@ -23,12 +23,12 @@ class Box(TestEntity):
     def __init__(self,
                  name: str,
                  pose: PoseStamped,
-                 size: Vector3Stamped):
+                 size: Vector3):
         super().__init__()
         self.name = name
         self.pose = pose
         self.size = size
-        self.height = size.vector.z
+        self.height = size.z
 
 
 class Position(TestEntity):
@@ -46,9 +46,7 @@ def get_object(name: str,
         if e.get_name() == name:
             if isinstance(e, Position):
                 dummy_size = Vector3(x=0.01, y=0.01, z=0.01)
-                dummy_box = Vector3Stamped()
-                dummy_box.vector = dummy_size
-                e.size = dummy_box
+                e.size = dummy_size
             return e
 
 
@@ -63,18 +61,16 @@ def prepare_variables():
     mueslibox_center.pose.position.z = 0.7
 
     # medium muesli size
-    medium_muesli_size = Vector3Stamped()
-    medium_muesli_size.header.frame_id = 'map'
-    medium_muesli_size.vector.x = 0.04
-    medium_muesli_size.vector.y = 0.1
-    medium_muesli_size.vector.z = 0.2
+    medium_muesli_size = Vector3()
+    medium_muesli_size.x = 0.04
+    medium_muesli_size.y = 0.1
+    medium_muesli_size.z = 0.2
 
     # big muesli size
-    big_muesli_size = Vector3Stamped()
-    big_muesli_size.header.frame_id = 'map'
-    big_muesli_size.vector.x = 0.095
-    big_muesli_size.vector.y = 0.19
-    big_muesli_size.vector.z = 0.26
+    big_muesli_size = Vector3()
+    big_muesli_size.x = 0.095
+    big_muesli_size.y = 0.19
+    big_muesli_size.z = 0.26
 
     # drawer position
     knob_pose = PoseStamped()
@@ -84,11 +80,10 @@ def prepare_variables():
     knob_pose.pose.position.z = 0.282
 
     # drawer size
-    knob_size = Vector3Stamped()
-    knob_size.header.frame_id = 'map'
-    knob_size.vector.x = 0.04
-    knob_size.vector.y = 0.1
-    knob_size.vector.z = 0.2
+    knob_size = Vector3()
+    knob_size.x = 0.04
+    knob_size.y = 0.1
+    knob_size.z = 0.2
 
     medium_muesli = Box(name='muesli_medium', pose=mueslibox_center, size=medium_muesli_size)
     big_muesli = Box(name='muesli_big', pose=mueslibox_center, size=big_muesli_size)
@@ -101,7 +96,7 @@ def prepare_variables():
 
     # Single Positions
     # Simulation test pose
-    Sim_test_pose_quaternion = Quaternion(x=0.0, y=0.0, z=0.2, w=1.0)
+    Sim_test_pose_quaternion = Quaternion(x=0.0, y=0.0, z=0.087, w=0.996)
     Sim_test_pose = mueslibox_center
     Sim_test_pose.pose.orientation = Sim_test_pose_quaternion
 
@@ -144,7 +139,7 @@ def pick_object(name: str,
     print('Add Object')
     add_object(name=name, pose=pose, size=size)
 
-    print('Point Object')
+    # print('Point Object')
     # _giskard_wrapper.set_pointing(goal_pose=pose, root_link=root_link, tip_link=tip_link)
     # _giskard_wrapper.plan_and_execute(wait=True)
 
@@ -158,16 +153,16 @@ def pick_object(name: str,
                                   tip_link=tip_link,
                                   offset=offset)
 
-    _giskard_wrapper.plan_and_execute(wait=True)
-    # _giskard_wrapper.plan()
+    #_giskard_wrapper.plan_and_execute(wait=True)
+    _giskard_wrapper.plan()
 
     # Attach Object
-    _giskard_wrapper.update_parent_link_of_group(name, tip_link)
-
+    #_giskard_wrapper.update_parent_link_of_group(name, tip_link)
+    '''
     print('Grabbing Object')
     _giskard_wrapper.move_gripper(False)
     _giskard_wrapper.plan_and_execute(wait=True)
-    '''
+    
     # Lift Object
     print('Lifting Object')
     _giskard_wrapper.lift_object(object_name=object_name)
@@ -264,18 +259,24 @@ def add_object(name: str,
 
 
 def test_new_feature(name, pose, size, grasp):
-    _giskard_wrapper.test_goal_rotation(object_pose=pose)
 
-    add_object(name=name, pose=pose, size=size)
 
-    # _giskard_wrapper.test_goal_gripper(object_name=name, object_pose=pose, grasp_object=grasp)
+    #add_object(name=name, pose=pose, size=size)
+
+    gripper = 'TestGripperGoal'
+    rotation = 'TestRotationGoal'
+    sequence = 'TestSequenceGoal'
+
+    test_goal = gripper
+
+    _giskard_wrapper.test_goal(sequence, object_name=name, object_pose=pose, grasp_object=grasp)
 
     # Move gripper, theoretically
     # joints = {'hand_motor_joint': 1.0}
     # _giskard_wrapper.set_joint_goal(goal_state=joints)
 
-    # _giskard_wrapper.plan_and_execute()
-    _giskard_wrapper.plan()
+    _giskard_wrapper.plan_and_execute()
+    #_giskard_wrapper.plan()
 
 
 if __name__ == '__main__':
@@ -284,20 +285,21 @@ if __name__ == '__main__':
     objects, positions = prepare_variables()
 
     pos_name = 'muesli_medium'
+    tf_name = 'Shelf_OSXGETDK'
     test_object = get_object(pos_name, objects)
 
-    pick_object(name=pos_name, pose=test_object.pose, size=test_object.size)
+    #pick_object(name=tf_name, pose=test_object.pose, size=test_object.size)
 
     # create object
-    add_object(name=pos_name, pose=test_object.pose, size=test_object.size)
+    #add_object(name=pos_name, pose=test_object.pose, size=test_object.size)
 
     # place object
-    place_object(name=pos_name, pose=test_object.pose, height=test_object.height)
+    #place_object(name=pos_name, pose=test_object.pose, height=test_object.height)
 
     # Drawer
     #pick_object(name='', pose=test_object.pose, size=test_object.size)
 
     # Gripper
-    test_new_feature(pos_name, test_object.pose, test_object.size, True)
+    test_new_feature(tf_name, test_object.pose, test_object.size, True)
     # _giskard_wrapper.move_gripper(open_gripper=False)
     # _giskard_wrapper.plan_and_execute()
