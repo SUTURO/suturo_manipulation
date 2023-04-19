@@ -258,7 +258,7 @@ def add_object(name: str,
     _giskard_wrapper.plan_and_execute(wait=True)
 
 
-def test_new_feature(name, pose, size, grasp):
+def test_new_feature(name, pose, size, grasp, lift_first):
 
 
     #add_object(name=name, pose=pose, size=size)
@@ -267,9 +267,9 @@ def test_new_feature(name, pose, size, grasp):
     rotation = 'TestRotationGoal'
     sequence = 'TestSequenceGoal'
 
-    test_goal = gripper
+    test_goal = sequence
 
-    _giskard_wrapper.test_goal(sequence, object_name=name, object_pose=pose, grasp_object=grasp)
+    _giskard_wrapper.test_goal(test_goal, object_name=name, object_pose=pose, grasp_object=grasp, lift_first=lift_first)
 
     # Move gripper, theoretically
     # joints = {'hand_motor_joint': 1.0}
@@ -300,6 +300,6 @@ if __name__ == '__main__':
     #pick_object(name='', pose=test_object.pose, size=test_object.size)
 
     # Gripper
-    test_new_feature(tf_name, test_object.pose, test_object.size, True)
+    test_new_feature(tf_name, test_object.pose, test_object.size, grasp=True, lift_first=False)
     # _giskard_wrapper.move_gripper(open_gripper=False)
     # _giskard_wrapper.plan_and_execute()
