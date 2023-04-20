@@ -132,6 +132,7 @@ def pick_object(name: str,
                 root_link='map',
                 tip_link='hand_palm_link',
                 object_type='box'):
+    '''
     # Open Gripper
     open_gripper()
 
@@ -158,16 +159,16 @@ def pick_object(name: str,
 
     # Attach Object
     #_giskard_wrapper.update_parent_link_of_group(name, tip_link)
-    '''
+
     print('Grabbing Object')
     _giskard_wrapper.move_gripper(False)
     _giskard_wrapper.plan_and_execute(wait=True)
-    
+    '''
     # Lift Object
     print('Lifting Object')
-    _giskard_wrapper.lift_object(object_name=object_name)
+    _giskard_wrapper.lift_object(object_name=name)
     _giskard_wrapper.plan_and_execute(wait=True)
-
+    '''
     # Retract
     print('Retracting')
     _giskard_wrapper.retract(object_name=object_name)
@@ -288,7 +289,7 @@ if __name__ == '__main__':
     tf_name = 'Shelf_OSXGETDK'
     test_object = get_object(pos_name, objects)
 
-    #pick_object(name=tf_name, pose=test_object.pose, size=test_object.size)
+    pick_object(name=tf_name, pose=test_object.pose, size=test_object.size)
 
     # create object
     #add_object(name=pos_name, pose=test_object.pose, size=test_object.size)
@@ -300,6 +301,6 @@ if __name__ == '__main__':
     #pick_object(name='', pose=test_object.pose, size=test_object.size)
 
     # Gripper
-    test_new_feature(tf_name, test_object.pose, test_object.size, grasp=True, lift_first=False)
+    #test_new_feature(tf_name, test_object.pose, test_object.size, grasp=True, lift_first=False)
     # _giskard_wrapper.move_gripper(open_gripper=False)
     # _giskard_wrapper.plan_and_execute()
