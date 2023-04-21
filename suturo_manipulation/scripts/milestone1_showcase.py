@@ -268,7 +268,7 @@ def test_new_feature(name, pose, size, grasp, lift_first):
     rotation = 'TestRotationGoal'
     sequence = 'TestSequenceGoal'
 
-    test_goal = sequence
+    test_goal = rotation
 
     _giskard_wrapper.test_goal(test_goal, object_name=name, object_pose=pose, grasp_object=grasp, lift_first=lift_first)
 
@@ -289,7 +289,7 @@ if __name__ == '__main__':
     tf_name = 'Shelf_OSXGETDK'
     test_object = get_object(pos_name, objects)
 
-    pick_object(name=tf_name, pose=test_object.pose, size=test_object.size)
+    #pick_object(name=tf_name, pose=test_object.pose, size=test_object.size)
 
     # create object
     #add_object(name=pos_name, pose=test_object.pose, size=test_object.size)
@@ -301,6 +301,6 @@ if __name__ == '__main__':
     #pick_object(name='', pose=test_object.pose, size=test_object.size)
 
     # Gripper
-    #test_new_feature(tf_name, test_object.pose, test_object.size, grasp=True, lift_first=False)
+    test_new_feature(tf_name, test_object.pose, test_object.size, grasp=True, lift_first=False)
     # _giskard_wrapper.move_gripper(open_gripper=False)
     # _giskard_wrapper.plan_and_execute()
