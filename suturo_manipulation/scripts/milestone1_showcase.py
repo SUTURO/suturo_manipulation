@@ -229,6 +229,7 @@ def set_base_position():
               'wrist_roll_joint': 0.14
               }
     _giskard_wrapper.set_joint_goal(joints)
+    _giskard_wrapper.plan_and_execute()
 
 
 def add_object(name: str,
@@ -264,7 +265,6 @@ def test_new_feature(name, pose, size, grasp, lift_first):
 
     #add_object(name=name, pose=pose, size=size)
 
-    gripper = 'TestGripperGoal'
     rotation = 'TestRotationGoal'
     sequence = 'TestSequenceGoal'
 
