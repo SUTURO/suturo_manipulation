@@ -261,22 +261,49 @@ def add_object(name: str,
     _giskard_wrapper.plan_and_execute(wait=True)
 
 
-def test_new_feature(name, pose, size, grasp, lift_first):
+def test_new_feature(name: str,
+                     pose: PoseStamped,
+                     size, grasp, lift_first):
 
 
     #add_object(name=name, pose=pose, size=size)
 
     rotation = 'TestRotationGoal'
     sequence = 'TestSequenceGoal'
+    force_sensor = 'TestForceSensorGoal'
 
-    test_goal = rotation
+    test_goal = sequence
 
-    #_giskard_wrapper.test_goal(test_goal, object_name=name, object_pose=pose, grasp_object=grasp, lift_first=lift_first)
+    #pose.pose.position.x = 1.48
+    #pose.pose.position.y = -0.979
+    #pose.pose.position.z = 0.7
+
+
+    pose_1 = PoseStamped()
+    pose_1.pose.position.x = 0.0
+    pose_1.pose.position.y = 0.5
+    pose_1.pose.position.z = 0.7
+
+    pose_2 = PoseStamped()
+    pose_2.pose.position.x = -1.0
+    pose_2.pose.position.y = 1.0
+    pose_2.pose.position.z = 0.7
+
+
+    #_giskard_wrapper.test_goal(test_goal, object_name=name, object_pose_1=pose_1, object_pose_2=pose_2, grasp_object=grasp, lift_first=lift_first)
+    #_giskard_wrapper.retract(object_name='')
+
+    #_giskard_wrapper.add_cmd()
+
+    _giskard_wrapper.lift_object(object_name='')
+
+    #_giskard_wrapper.move_gripper(open_gripper=False)
+
     #joints = {'arm_lift_joint': 0.0}
 
     #_giskard_wrapper.set_joint_goal(goal_state=joints)
 
-    _giskard_wrapper.prepare_placing(object_pose=test_position.pose, height=size.z)
+    #_giskard_wrapper.prepare_placing(object_pose=test_position.pose, height=size.z)
 
     # Move gripper, theoretically
     # joints = {'hand_motor_joint': 1.0}
@@ -303,7 +330,7 @@ if __name__ == '__main__':
     #pick_object(name=tf_name, pose=test_object.pose, size=test_object.size)
 
     # create object
-    add_object(name=tf_name, pose=test_position.pose, size=test_object.size)
+    #add_object(name=tf_name, pose=test_position.pose, size=test_object.size)
 
     # place object
     #place_object(name=object_name, pose=test_position.pose, height=test_object.height)
@@ -312,6 +339,6 @@ if __name__ == '__main__':
     #pick_object(name='', pose=test_position.pose, size=test_object.size)
 
     # Gripper
-    #test_new_feature(tf_name, test_position.pose, test_object.size, grasp=True, lift_first=False)
-    # _giskard_wrapper.move_gripper(open_gripper=False)
+    test_new_feature(tf_name, test_position.pose, test_object.size, grasp=True, lift_first=False)
+    #_giskard_wrapper.move_gripper(open_gripper=False)
     # _giskard_wrapper.plan_and_execute()
