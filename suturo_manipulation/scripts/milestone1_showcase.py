@@ -1,11 +1,6 @@
 #!/usr/bin/env python
-import time
-from typing import List
-
-import hsrb_interface
 import rospy
-import math  # for sin and cos
-from geometry_msgs.msg import PoseStamped, Point, Quaternion, Vector3Stamped, PointStamped, Vector3
+from geometry_msgs.msg import PoseStamped, Point, Quaternion, Vector3Stamped, PointStamped, Vector3, Pose
 
 from giskardpy.python_interface import GiskardWrapper
 
@@ -125,93 +120,10 @@ def prepare_variables():
     return objects, positions
 
 
-def pick_object(name: str,
-                pose: PoseStamped,
-                size: Vector3,
-                root_link='map',
-                tip_link='hand_palm_link',
-                object_type='box'):
-    '''
-    # Open Gripper
-    open_gripper()
-
-    # Add object to giskard
-    print('Add Object')
-    add_object(name=name, pose=pose, size=size)
-
-    # print('Point Object')
-    # _giskard_wrapper.set_pointing(goal_pose=pose, root_link=root_link, tip_link=tip_link)
-    # _giskard_wrapper.plan_and_execute(wait=True)
-    '''
-    # Pick object
-    print('Getting in position')
-    _giskard_wrapper.grasp_object(object_name=name,
-                                  object_pose=pose,
-                                  object_size=size,
-                                  root_link=root_link,
-                                  tip_link=tip_link)
-
-    # _giskard_wrapper.plan_and_execute(wait=True)
-    # _giskard_wrapper.plan()
-    '''
-    # Attach Object
-    #_giskard_wrapper.update_parent_link_of_group(name, tip_link)
-
-    print('Grabbing Object')
-    _giskard_wrapper.move_gripper(False)
-    _giskard_wrapper.plan_and_execute(wait=True)
-    
-    # Lift Object
-    print('Lifting Object')
-    _giskard_wrapper.lift_object(object_name=name)
-    _giskard_wrapper.plan_and_execute(wait=True)
-    
-    # Retract
-    print('Retracting')
-    _giskard_wrapper.retract(object_name=object_name)
-    _giskard_wrapper.plan_and_execute(wait=True)
-
-    set_base_position()
-    _giskard_wrapper.plan_and_execute(wait=True)
-    '''
-
-
 def open_gripper():
     print('Open Gripper')
     _giskard_wrapper.move_gripper(True)
     _giskard_wrapper.plan_and_execute(wait=True)
-
-
-def place_object(name: str,
-                 pose: PoseStamped,
-                 height: float,
-                 root_link='map',
-                 tip_link='hand_palm_link'):
-    # Align height
-    _giskard_wrapper.align_height(object_name='', object_pose=pose, height=0.0)
-    _giskard_wrapper.plan_and_execute(wait=True)
-
-    # Place Object
-    _giskard_wrapper.place_object(object_name=name,
-                                  goal_pose=pose,
-                                  object_height=height,
-                                  root_link=root_link,
-                                  tip_link=tip_link)
-    _giskard_wrapper.plan_and_execute(wait=True)
-
-    # Open Gripper
-
-    open_gripper()
-
-    # Detach Object
-    print('Move Back')
-    _giskard_wrapper.update_parent_link_of_group(name, root_link)
-    _giskard_wrapper.avoid_collision(min_distance=0.01, group1=_giskard_wrapper.robot_name, group2=name)
-    _giskard_wrapper.retract(object_name=name)
-
-    _giskard_wrapper.plan_and_execute(wait=True)
-
-    set_base_position()
 
 
 def add_object(name: str,
@@ -269,8 +181,8 @@ def set_base_position(plan=True, execute=True):
               'arm_flex_joint': 0.0,
               'arm_roll_joint': 1.4,
               'wrist_flex_joint': -1.5,
-              'wrist_roll_joint': 0.14
-              }
+              'wrist_roll_joint': 0.14}
+
     _giskard_wrapper.set_joint_goal(joints)
 
     if plan:
@@ -280,8 +192,8 @@ def set_base_position(plan=True, execute=True):
             _giskard_wrapper.plan(wait=True)
 
 
-def align_height(name, pose, height, from_above=False, plan=True, execute=True):
-    _giskard_wrapper.align_height(object_name=name, object_pose=pose, height=height, from_above=from_above)
+def align_height(context, name, pose, height, plan=True, execute=True):
+    _giskard_wrapper.align_height(context=context, object_name=name, goal_pose=pose, height=height)
 
     if plan:
         if execute:
@@ -290,13 +202,8 @@ def align_height(name, pose, height, from_above=False, plan=True, execute=True):
             _giskard_wrapper.plan(wait=True)
 
 
-def reach(name, pose, size, root='map', tip='hand_palm_link', from_above=False, plan=True, execute=True):
-    _giskard_wrapper.reach(object_name=name,
-                           object_pose=pose,
-                           object_size=size,
-                           root_link=root,
-                           tip_link=tip,
-                           from_above=from_above)
+def lifting(name='', distance=0.02, root='base_link', tip='hand_palm_link', plan=True, execute=True):
+    _giskard_wrapper.lift_object(object_name=name, lifting=distance, root_link=root, tip_link=tip)
 
     if plan:
         if execute:
@@ -305,9 +212,27 @@ def reach(name, pose, size, root='map', tip='hand_palm_link', from_above=False, 
             _giskard_wrapper.plan(wait=True)
 
 
-def retracting(name, distance, root='map', tip='base_link', plan=True, execute=True):
+def reaching(context, name, shape, pose, size, root='map', tip='hand_gripper_tool_frame', plan=True, execute=True):
+    _giskard_wrapper.reaching(context=context,
+                              object_name=name,
+                              object_shape=shape,
+                              goal_pose=pose,
+                              object_size=size,
+                              root_link=root,
+                              tip_link=tip)
+
+    if plan:
+        if execute:
+            _giskard_wrapper.plan_and_execute(wait=True)
+        else:
+            _giskard_wrapper.plan(wait=True)
+
+
+def retracting(name='', distance=0.2, reference_frame='base_link', root='map', tip='hand_palm_link', plan=True,
+               execute=True):
     _giskard_wrapper.retract(object_name=name,
                              distance=distance,
+                             reference_frame=reference_frame,
                              root_link=root,
                              tip_link=tip)
 
@@ -322,11 +247,11 @@ def sequence_goal(goals, plan=True, execute=True):
     goal_names = []
     goal_args = []
 
-    for goal_name, kwargs in goals:
+    '''for goal_name, kwargs in goals:
         goal_names.append(goal_name)
-        goal_args.append(kwargs)
+        goal_args.append(kwargs)'''
 
-    _giskard_wrapper.sequence_goal(goal_names, goal_args)
+    _giskard_wrapper.sequence_goal(motion_sequence=goals)
 
     if plan:
         if execute:
@@ -361,6 +286,11 @@ def prepare_sequences():
                            'root_link': 'map',
                            'tip_link': 'base_link'}
 
+    retracting_kwargs_2 = {'object_name': '',
+                           'distance': 0.05,
+                           'root_link': 'map',
+                           'tip_link': 'hand_gripper_tool_frame'}
+
     align_height_kwargs_1 = {'object_name': '',
                              'goal_pose': this_test_pose,
                              'object_height': 0.0,
@@ -370,13 +300,13 @@ def prepare_sequences():
                              'tip_link': 'hand_gripper_tool_frame'}
 
     grasp_frontal_kwargs_1 = {'object_name': '',
-                              'object_pose': this_test_pose,
+                              'goal_pose': this_test_pose,
                               'object_size': this_test_size,
                               'frontal_grasping': True,
                               'root_link': 'odom',
                               'tip_link': 'hand_gripper_tool_frame'}
-    lift_retract = [(lift, lift_kwargs_1),
-                    (retract, retracting_kwargs_1)]
+    lift_retract = {lift: lift_kwargs_1,
+                    retract: retracting_kwargs_2}
 
     lift_lift = [(lift, lift_kwargs_1),
                  (lift, lift_kwargs_2)]
@@ -399,6 +329,16 @@ def prepare_sequences():
     return all_sequences
 
 
+def move_gripper(open_gripper, plan=True, execute=True):
+    _giskard_wrapper.move_gripper(open_gripper=open_gripper)
+
+    if plan:
+        if execute:
+            _giskard_wrapper.plan_and_execute(wait=True)
+        else:
+            _giskard_wrapper.plan(wait=True)
+
+
 def run_test():
     objects, positions = prepare_variables()
 
@@ -410,31 +350,83 @@ def run_test():
     test_object = get_entity(object_name, objects)
     test_position: Position = get_entity(position_name, positions)
 
+    local_point = Point(x=2.5, y=0.33, z=0.8)
+    local_pose = Pose(position=local_point)
+
+    local_pose_stamped = PoseStamped(pose=local_pose)
+    object_size = Vector3(x=0.1, y=0.05, z=0.2)
+
     sequence = all_sequences['lift_retract']
 
-    # pick_object(name=tf_name, pose=test_position.pose, size=test_object.size)
+    context = {'action': 'placing',
+               'from_above': False}
 
-    # place object
-    # place_object(name=object_name, pose=test_position.pose, height=test_object.height)
+    # retracting()
+
+    name = ''
+    shape = ''
+
+    # align_height(context, name=name, pose=local_pose_stamped, height=object_size.z, execute=True)
+
+    # reaching(context=context, name=name, shape=shape, pose=local_pose_stamped, size=object_size, execute=False)
 
     # Sequencegoals
 
     # sequence_goal(sequence)
 
     # align_height(name='', pose=this_test_pose, height=0.0, from_above=True, execute=True)
-    # reach(name='', pose=this_test_pose, size=this_test_size, from_above=True, execute=False)
+    # reaching(name='', pose=this_test_pose, size=this_test_size, from_above=True, execute=False)
 
     # Test new feature
     # test_new_feature(tf_name, test_position.pose, test_object.size, grasp=True, lift_first=False)
+
+    # move_gripper(False)
+
+    lifting()
+
+    # retracting(reference_frame='hand_palm_link')
+
+    #take_pose()
+
+
+def take_pose(plan=True, execute=True):
+    _giskard_wrapper.take_pose()
+
+    if plan:
+        if execute:
+            _giskard_wrapper.plan_and_execute(wait=True)
+        else:
+            _giskard_wrapper.plan(wait=True)
+
+def test_goal(goal_name, plan=True, execute=True, **kwargs):
+
+    _giskard_wrapper.test_goal(goal_name=goal_name, **kwargs)
+
+    if plan:
+        if execute:
+            _giskard_wrapper.plan_and_execute(wait=True)
+        else:
+            _giskard_wrapper.plan(wait=True)
 
 
 if __name__ == '__main__':
     rospy.init_node('milestone0_server')
     _giskard_wrapper = GiskardWrapper()
 
-    set_base_position()
+    #set_base_position()
+
+    center_point = PointStamped()
+    center_point.header.frame_id = 'hand_palm_link'
+    center_point.point.z += 0.04
+
+    test_goal(goal_name='Mixing',
+              execute=True, center=center_point, radius=0.1, scale=1.0, tip_link='hand_palm_link', mixing_time=100)
 
     # run_test()
 
-    _giskard_wrapper.plan_and_execute()
-    # _giskard_wrapper.plan(wait=True)
+    '''import time
+    while True:
+        print(f"{'hand_gripper_tool_frame' in _giskard_wrapper.get_group_info(group_name='hsrb').links}  {rospy.get_rostime()}")
+        # print(_giskard_wrapper.get_group_names())
+        time.sleep(1.0)'''
+
