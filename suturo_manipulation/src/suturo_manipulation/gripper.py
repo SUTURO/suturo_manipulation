@@ -73,7 +73,7 @@ class Gripper:
         :return: applied effort
         """
         rospy.loginfo("Closing gripper with force: {}".format(force))
-        f = max(min(0.8, force), 0.2)
+        f = force # max(min(0.8, force), 0.2)
         goal = GripperApplyEffortGoal()
         goal.effort = f
         self._gripper_apply_force_client.send_goal(goal)

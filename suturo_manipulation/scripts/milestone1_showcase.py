@@ -330,6 +330,7 @@ def prepare_sequences():
 
 
 def move_gripper(open_gripper, plan=True, execute=True):
+
     _giskard_wrapper.move_gripper(open_gripper=open_gripper)
 
     if plan:
@@ -361,6 +362,10 @@ def run_test():
     context = {'action': 'placing',
                'from_above': False}
 
+    center_point = PointStamped()
+    center_point.header.frame_id = 'hand_gripper_tool_frame'
+    center_point.point.x += 0.04
+
     # retracting()
 
     name = ''
@@ -382,11 +387,29 @@ def run_test():
 
     # move_gripper(False)
 
-    lifting()
+    # mixing(execute=True, center=center_point, radius=0.1, scale=4.0, tip_link='hand_palm_link', mixing_time=5)
+
+    # lifting()
 
     # retracting(reference_frame='hand_palm_link')
 
     #take_pose()
+
+    move_gripper(open_gripper=False, execute=True)
+
+
+def mixing(center, radius=0.1, scale=1.0, tip_link='hand_palm_link', mixing_time=40, plan=True, execute=True):
+    _giskard_wrapper.mixing(center=center,
+                            radius=radius,
+                            scale=scale,
+                            mixing_time=mixing_time,
+                            tip_link=tip_link)
+
+    if plan:
+        if execute:
+            _giskard_wrapper.plan_and_execute(wait=True)
+        else:
+            _giskard_wrapper.plan(wait=True)
 
 
 def take_pose(plan=True, execute=True):
@@ -397,6 +420,7 @@ def take_pose(plan=True, execute=True):
             _giskard_wrapper.plan_and_execute(wait=True)
         else:
             _giskard_wrapper.plan(wait=True)
+
 
 def test_goal(goal_name, plan=True, execute=True, **kwargs):
 
@@ -415,14 +439,7 @@ if __name__ == '__main__':
 
     #set_base_position()
 
-    center_point = PointStamped()
-    center_point.header.frame_id = 'hand_palm_link'
-    center_point.point.z += 0.04
-
-    test_goal(goal_name='Mixing',
-              execute=True, center=center_point, radius=0.1, scale=1.0, tip_link='hand_palm_link', mixing_time=100)
-
-    # run_test()
+    run_test()
 
     '''import time
     while True:
