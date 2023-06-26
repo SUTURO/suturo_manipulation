@@ -340,6 +340,41 @@ def move_gripper(open_gripper, plan=True, execute=True):
             _giskard_wrapper.plan(wait=True)
 
 
+def mixing(center, radius=0.1, scale=1.0, tip_link='hand_palm_link', mixing_time=40, plan=True, execute=True):
+    _giskard_wrapper.mixing(center=center,
+                            radius=radius,
+                            scale=scale,
+                            mixing_time=mixing_time,
+                            tip_link=tip_link)
+
+    if plan:
+        if execute:
+            _giskard_wrapper.plan_and_execute(wait=True)
+        else:
+            _giskard_wrapper.plan(wait=True)
+
+
+def take_pose(plan=True, execute=True):
+    _giskard_wrapper.take_pose()
+
+    if plan:
+        if execute:
+            _giskard_wrapper.plan_and_execute(wait=True)
+        else:
+            _giskard_wrapper.plan(wait=True)
+
+
+def test_goal(goal_name, plan=True, execute=True, **kwargs):
+
+    _giskard_wrapper.test_goal(goal_name=goal_name, **kwargs)
+
+    if plan:
+        if execute:
+            _giskard_wrapper.plan_and_execute(wait=True)
+        else:
+            _giskard_wrapper.plan(wait=True)
+
+
 def run_test():
     objects, positions = prepare_variables()
 
@@ -398,46 +433,11 @@ def run_test():
     move_gripper(open_gripper=False, execute=True)
 
 
-def mixing(center, radius=0.1, scale=1.0, tip_link='hand_palm_link', mixing_time=40, plan=True, execute=True):
-    _giskard_wrapper.mixing(center=center,
-                            radius=radius,
-                            scale=scale,
-                            mixing_time=mixing_time,
-                            tip_link=tip_link)
-
-    if plan:
-        if execute:
-            _giskard_wrapper.plan_and_execute(wait=True)
-        else:
-            _giskard_wrapper.plan(wait=True)
-
-
-def take_pose(plan=True, execute=True):
-    _giskard_wrapper.take_pose()
-
-    if plan:
-        if execute:
-            _giskard_wrapper.plan_and_execute(wait=True)
-        else:
-            _giskard_wrapper.plan(wait=True)
-
-
-def test_goal(goal_name, plan=True, execute=True, **kwargs):
-
-    _giskard_wrapper.test_goal(goal_name=goal_name, **kwargs)
-
-    if plan:
-        if execute:
-            _giskard_wrapper.plan_and_execute(wait=True)
-        else:
-            _giskard_wrapper.plan(wait=True)
-
-
 if __name__ == '__main__':
     rospy.init_node('milestone0_server')
     _giskard_wrapper = GiskardWrapper()
 
-    #set_base_position()
+    # set_base_position()
 
     run_test()
 
