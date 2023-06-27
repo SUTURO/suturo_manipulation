@@ -181,7 +181,8 @@ def set_base_position(plan=True, execute=True):
               'arm_flex_joint': 0.0,
               'arm_roll_joint': 1.4,
               'wrist_flex_joint': -1.5,
-              'wrist_roll_joint': 0.14}
+              'wrist_roll_joint': 0.14,
+              'hand_motor_joint': 0.8}
 
     _giskard_wrapper.set_joint_goal(joints)
 
@@ -202,7 +203,7 @@ def align_height(context, name, pose, height, plan=True, execute=True):
             _giskard_wrapper.plan(wait=True)
 
 
-def lifting(name='', distance=0.02, root='base_link', tip='hand_palm_link', plan=True, execute=True):
+def lifting(name='', distance=0.02, root='base_link', tip='hand_gripper_tool_frame', plan=True, execute=True):
     _giskard_wrapper.lift_object(object_name=name, lifting=distance, root_link=root, tip_link=tip)
 
     if plan:
@@ -329,9 +330,9 @@ def prepare_sequences():
     return all_sequences
 
 
-def move_gripper(open_gripper, plan=True, execute=True):
+def move_gripper(gripper_state: str, plan=True, execute=True):
 
-    _giskard_wrapper.move_gripper(open_gripper=open_gripper)
+    _giskard_wrapper.move_gripper(gripper_state=gripper_state)
 
     if plan:
         if execute:
@@ -354,8 +355,8 @@ def mixing(center, radius=0.1, scale=1.0, tip_link='hand_palm_link', mixing_time
             _giskard_wrapper.plan(wait=True)
 
 
-def take_pose(plan=True, execute=True):
-    _giskard_wrapper.take_pose()
+def take_pose(pose_keyword='park', plan=True, execute=True):
+    _giskard_wrapper.take_pose(pose_keyword=pose_keyword)
 
     if plan:
         if execute:
@@ -422,15 +423,17 @@ def run_test():
 
     # move_gripper(False)
 
-    # mixing(execute=True, center=center_point, radius=0.1, scale=4.0, tip_link='hand_palm_link', mixing_time=5)
+    # mixing(execute=True, center=center_point, radius=0.1, scale=1.0, tip_link='hand_palm_link', mixing_time=10)
 
     # lifting()
 
     # retracting(reference_frame='hand_palm_link')
 
-    #take_pose()
+    # take_pose(pose_keyword='test')
 
-    move_gripper(open_gripper=False, execute=True)
+    # move_gripper(gripper_state='neutral', execute=True)
+    # move_gripper(gripper_state='close', execute=True)
+
 
 
 if __name__ == '__main__':
