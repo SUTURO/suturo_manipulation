@@ -4,9 +4,6 @@ import actionlib
 from tmc_control_msgs.msg import GripperApplyEffortAction, GripperApplyEffortGoal
 from control_msgs.msg import FollowJointTrajectoryAction, FollowJointTrajectoryGoal
 from trajectory_msgs.msg import JointTrajectoryPoint
-from manipulation_msgs.msg import ObjectInGripper
-from giskardpy.python_interface import GiskardWrapper
-from giskardpy.utils.tfwrapper import normalize_quaternion_msg
 
 
 class SuturoGripper:
@@ -19,6 +16,10 @@ class SuturoGripper:
                                                                         GripperApplyEffortAction)
         self._gripper_apply_force_client.wait_for_server()
 
+        self._gripper_controller = actionlib.SimpleActionClient(follow_joint_trajectory_server,
+                                                                FollowJointTrajectoryAction)
+        self._gripper_controller.wait_for_server()
+
     def close_gripper_force(self, force=0.8):
         """
         Closes the gripper with the given force.
@@ -30,9 +31,20 @@ class SuturoGripper:
         goal = GripperApplyEffortGoal()
         goal.effort = f
         self._gripper_apply_force_client.send_goal(goal)
-        if self._gripper_apply_force_client.wait_for_result(rospy.Duration(secs=5)):
-            result = self._gripper_apply_force_client.get_result()
-            rospy.loginfo("close_gripper: force {}".format(result.effort))
-        else:
-            rospy.logwarn("Close Gripper Server timed out.")
 
+    def set_gripper_joint_position(self, position):
+        """
+        Sets the gripper joint to the given  position
+        :param position: goal position of the joint -0.105 to 1.239 rad
+        :return: error_code of FollowJointTrajectoryResult
+        """
+        pos = max(min(1.239, position), -0.105)
+        goal = FollowJointTrajectoryGoal()
+        goal.trajectory.joint_names = [u'hand_motor_joint']
+        p = JointTrajectoryPoint()
+        p.positions = [pos]
+        p.velocities = [0]
+        p.effort = [0.1]
+        p.time_from_start = rospy.Time(3)
+        goal.trajectory.points = [p]
+        self._gripper_controller.send_goal(goal)

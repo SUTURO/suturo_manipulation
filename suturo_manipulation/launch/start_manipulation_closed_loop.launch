@@ -1,0 +1,12 @@
+<launch>
+	<arg name="load_map" default="true"/>
+
+	<include file="$(find hsr_velocity_controller)/launch/unload_load_my_controller.launch"/>
+
+	<include file="$(find giskardpy)/launch/giskardpy_hsr_real_vel.launch"/>
+
+	<group if="$(eval load_map == true)">
+		<node pkg="suturo_manipulation" name="upload_env" type="upload_env.py" output="screen"/>
+	</group>
+
+</launch>
