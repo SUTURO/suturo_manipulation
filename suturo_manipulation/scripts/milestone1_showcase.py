@@ -125,7 +125,7 @@ def prepare_variables():
 
 def open_gripper():
     print('Open Gripper')
-    _giskard_wrapper.move_gripper(True)
+    _giskard_wrapper.move_gripper(gripper_state='open')
     _giskard_wrapper.plan_and_execute(wait=True)
 
 
@@ -157,13 +157,16 @@ def add_object(name: str,
     _giskard_wrapper.plan_and_execute(wait=True)
 
 
-def test_new_feature(plan=True,
+def test_new_feature(rad=0.0,
+                     direction='',
+                     plan=True,
                      execute=True,
                      **kwargs):
     sequence = 'SequenceGoal'
     mixing = 'Mixing1'
+    open = 'OpenHandlelessCart'
 
-    test_goal = mixing
+    test_goal = open
 
     pose_1 = PoseStamped()
     pose_1.pose.position.x = 0.0
@@ -175,7 +178,18 @@ def test_new_feature(plan=True,
     pose_2.pose.position.y = 1.0
     pose_2.pose.position.z = 0.7
 
-    _giskard_wrapper.test_goal(goal_name=test_goal)
+    circle_point = Point(x=1.3, y=0.7, z=0.7)
+    circle_point_stamped = PointStamped(point=circle_point)
+
+    obj_size = Vector3(0.1, 0.2, 0.1)
+
+    _giskard_wrapper.test_goal(goal_name=test_goal,
+                               temp_position=circle_point_stamped,
+                               temp_size=obj_size,
+                               opening_radius=rad,
+                               door_opening_direction=direction,
+                               offset=0.0,
+                               tip_link_name='hand_palm_link')
 
     if plan:
         if execute:
@@ -240,13 +254,15 @@ def reaching(context, name, shape, pose=None, size=None, root='map', tip='hand_g
             _giskard_wrapper.plan(wait=True)
 
 
-def retracting(name='', distance=0.2, reference_frame='base_link', root='map', tip='hand_palm_link', plan=True,
+def retracting(name='', distance=0.2, reference_frame='base_link', root='map', tip='hand_palm_link', velocity=0.2,
+               plan=True,
                execute=True):
     _giskard_wrapper.retract(object_name=name,
                              distance=distance,
                              reference_frame=reference_frame,
                              root_link=root,
-                             tip_link=tip)
+                             tip_link=tip,
+                             velocity=velocity)
 
     if plan:
         if execute:
@@ -439,7 +455,8 @@ def run_test():
     sequence = all_sequences['lift_retract']
 
     context_grasping = {'action': 'grasping',
-                        'from_above': False}
+                        'from_above': False,
+                        'vertical_align': False}
 
     context_placing = {'action': 'placing',
                        'from_above': True}
@@ -462,19 +479,28 @@ def run_test():
 
     # time.sleep(3)
     # align_height(name='', pose=this_test_pose, height=0.0, from_above=True, execute=True)
+    # _giskard_wrapper.allow_all_collisions()
+    # reaching(context=context_grasping, name='iai_kitchen/drawer:drawer:drawer_knob', shape='', execute=False)# pose=root_pose_stamped_floor, size=object_size, execute=True)
 
-    # reaching(context=context_placing, name='', shape='', pose=root_pose_stamped_floor, size=object_size, execute=True)
+    # circle_point_vec = Vector3(x=1.3, y=0.7, z=0.7)
+    circle_point = Point(x=1.3, y=0.7, z=0.7)
+    circle_pose = Pose(position=circle_point)
+    circle_pose_stamped = PoseStamped(pose=circle_pose)
+    obj_size = Vector3(0.1, 0.2, 0.1)
+
+    # reaching(context=context_grasping, name='', shape='', pose=circle_pose_stamped, size=obj_size, tip='hand_palm_link', execute=True)# pose=root_pose_stamped_floor, size=object_size, execute=True)
 
     # Test new feature
-    # test_new_feature(execute=True)
+    # test_new_feature(rad=0.3, direction='right', execute=False)
+    test_new_feature(rad=0.5, direction='left', execute=False)
 
-    move_gripper(gripper_state='neutral')
+    # move_gripper(gripper_state='neutral')
 
     # mixing(execute=False, center=center_point, radius=0.1, scale=1.0, tip_link='hand_palm_link', mixing_time=10)
 
     # lifting(context=context, execute=False)
 
-    # retracting(distance=0.2, execute=False)
+    # retracting(distance=0.3, velocity=0.2, execute=True)
 
     # take_pose(pose_keyword='park', execute=True)
 
