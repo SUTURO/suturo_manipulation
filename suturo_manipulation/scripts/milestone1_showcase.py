@@ -1,9 +1,17 @@
 #!/usr/bin/env python
+import csv
+import os
 import time
+from copy import deepcopy
 from math import sin
+from pprint import pprint
+import scipy
 
+import numpy as np
 import rospy
 from geometry_msgs.msg import PoseStamped, Point, Quaternion, Vector3Stamped, PointStamped, Vector3, Pose
+from matplotlib import pyplot as plt
+from numpy import savetxt, asarray
 
 from giskardpy.python_interface import GiskardWrapper
 
@@ -217,8 +225,8 @@ def set_base_position(plan=True, execute=True):
             _giskard_wrapper.plan(wait=True)
 
 
-def align_height(context, name, pose, height, plan=True, execute=True):
-    _giskard_wrapper.align_height(context=context, object_name=name, goal_pose=pose, height=height)
+def align_height(context, name, pose, height, tip_link='hand_palm_link', plan=True, execute=True):
+    _giskard_wrapper.align_height(context=context, object_name=name, goal_pose=pose, height=height, tip_link=tip_link)
 
     if plan:
         if execute:
@@ -227,14 +235,23 @@ def align_height(context, name, pose, height, plan=True, execute=True):
             _giskard_wrapper.plan(wait=True)
 
 
-def lifting(context, distance=0.02, root='base_link', tip='hand_gripper_tool_frame', plan=True, execute=True):
-    _giskard_wrapper.lift_object(context=context, distance=distance, root_link=root, tip_link=tip)
+def lifting(context, distance=0.02, root='base_link', tip_link='hand_gripper_tool_frame', plan=True, execute=True):
+    _giskard_wrapper.lift_object(context=context, distance=distance, root_link=root, tip_link=tip_link)
 
     if plan:
         if execute:
             _giskard_wrapper.plan_and_execute(wait=True)
         else:
             _giskard_wrapper.plan(wait=True)
+
+
+def placing(context, pose=None, tip_link='hand_palm_link', execute=True):
+    _giskard_wrapper.placing(context=context, goal_pose=pose, tip_link=tip_link)
+
+    if execute:
+        _giskard_wrapper.plan_and_execute(wait=True)
+    else:
+        _giskard_wrapper.plan(wait=True)
 
 
 def reaching(context, name, shape, pose=None, size=None, root='map', tip='hand_gripper_tool_frame', plan=True,
@@ -461,6 +478,8 @@ def run_test():
     context_placing = {'action': 'placing',
                        'from_above': True}
 
+    context_door = {'action': 'door-opening'}
+
     center_point = PointStamped()
     center_point.header.frame_id = 'hand_gripper_tool_frame'
     center_point.point.x += 0.04
@@ -483,22 +502,31 @@ def run_test():
     # reaching(context=context_grasping, name='iai_kitchen/drawer:drawer:drawer_knob', shape='', execute=False)# pose=root_pose_stamped_floor, size=object_size, execute=True)
 
     # circle_point_vec = Vector3(x=1.3, y=0.7, z=0.7)
-    circle_point = Point(x=1.3, y=0.7, z=0.7)
+    circle_point = Point(x=1.5, y=-1.5, z=0.8)
     circle_pose = Pose(position=circle_point)
     circle_pose_stamped = PoseStamped(pose=circle_pose)
     obj_size = Vector3(0.1, 0.2, 0.1)
 
-    # reaching(context=context_grasping, name='', shape='', pose=circle_pose_stamped, size=obj_size, tip='hand_palm_link', execute=True)# pose=root_pose_stamped_floor, size=object_size, execute=True)
+    table_pose_stamped = deepcopy(circle_pose_stamped)
+    table_pose_stamped.pose.position.z = 0.7
+
+    # align_height(context_grasping, name=name, pose=circle_pose_stamped, height=obj_size.z, execute=True)
+    # reaching(context=context_grasping, name='', shape='', pose=circle_pose_stamped, size=obj_size, tip='hand_palm_link', execute=True)
+    placing(context=context_grasping, pose=table_pose_stamped)
+    move_gripper('open')
+
+    # reaching(context_door, name='iai_kitchen/shelf:shelf:shelf_door_left:handle', shape='')
+    # open_environment(tip_link='hand_gripper_tool_frame', environment_link='iai_kitchen/shelf:shelf:shelf_door_left:handle', goal_joint_state=-0.3)
 
     # Test new feature
     # test_new_feature(rad=0.3, direction='right', execute=False)
-    test_new_feature(rad=0.5, direction='left', execute=False)
+    # test_new_feature(rad=0.5, direction='left', execute=False)
 
     # move_gripper(gripper_state='neutral')
 
     # mixing(execute=False, center=center_point, radius=0.1, scale=1.0, tip_link='hand_palm_link', mixing_time=10)
 
-    # lifting(context=context, execute=False)
+    # lifting(context=context_placing, distance=0.1, execute=True)
 
     # retracting(distance=0.3, velocity=0.2, execute=True)
 
@@ -512,13 +540,71 @@ def run_test():
     # open_environment(tip_link='hand_gripper_tool_frame', environment_link='shelf:shelf:shelf_door_left:handle', goal_joint_state=-0.2, execute=True)
 
 
+def read_force_torque_data(filename):
+    data_range_path = os.path.expanduser('~/ForceTorqueData/' + filename)
+    seq = 'seq'
+    seq_path = '/hsrb/wrist_wrench/compensated/header/seq'
+    force_path = '/hsrb/wrist_wrench/compensated/wrench/force/'
+    torque_path = '/hsrb/wrist_wrench/compensated/wrench/torque/'
+    force = '_force'
+    torque = '_torque'
+
+    with open(data_range_path) as data_range:
+        reader = csv.DictReader(data_range)
+        wrist_seq, wrist_stamp, x_force, y_force, z_force, x_torque, y_torque, z_torque = [], [], [], [], [], [], [], []
+        for row in reader:
+            if row[seq] != '':
+                wrist_seq.append(row[seq])
+                #wrist_stamp.append(row['/hsrb/wrist_wrench/compensated/header/stamp'])
+                x_force.append(round(eval(row['x' + force]), 5))
+                y_force.append(round(eval(row['y' + force]), 5))
+                z_force.append(round(eval(row['z' + force]), 5))
+                x_torque.append(round(eval(row['x' + torque]), 5))
+                y_torque.append(round(eval(row['y' + torque]), 5))
+                z_torque.append(round(eval(row['z' + torque]), 5))
+
+        x_force_trimmed = np.trim_zeros(x_force)
+        y_force_trimmed = np.trim_zeros(y_force)
+        z_force_trimmed = np.trim_zeros(z_force)
+        x_torque_trimmed = np.trim_zeros(x_torque)
+        y_torque_trimmed = np.trim_zeros(y_torque)
+        z_torque_trimmed = np.trim_zeros(z_torque)
+
+        if not x_force.index(x_force_trimmed[0]) == y_force.index(y_force_trimmed[0]) == z_force.index(z_force_trimmed[0]):
+            print('Starting index not identical!!!')
+
+
+
+        fig, ax = plt.subplots(1, 2)
+
+        ax[0].set_title('Force')
+        # ax[0].plot(x_force_filtered, 'r', label='x_filtered')
+        ax[0].plot(x_force_trimmed, 'r', label='x_trimmed')
+        ax[0].plot(y_force_trimmed, 'g', label='y')
+        ax[0].plot(z_force_trimmed, 'b', label='z')
+        ax[0].legend()
+        ax[1].set_title('Torque')
+        ax[1].plot(x_torque_trimmed, 'r', label='x')
+        ax[1].plot(y_torque_trimmed, 'g', label='y')
+        ax[1].plot(z_torque_trimmed, 'b', label='z')
+        ax[1].legend()
+        plt.show()
+
+
 if __name__ == '__main__':
     rospy.init_node('milestone0_server')
     _giskard_wrapper = GiskardWrapper()
 
     # set_base_position()
 
-    run_test()
+    # run_test()
+
+
+    last_filtered = 'filtered.csv'
+    last_unfiltered = 'unfiltered.csv'
+    hsr_place_1 = 'place_object_hsr.csv'
+    hsr_door_slipped_1 = 'slipped_door_hsr.csv'
+    read_force_torque_data(last_filtered)
 
     '''import time
     while True:
