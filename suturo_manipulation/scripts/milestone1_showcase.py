@@ -540,37 +540,40 @@ def run_test():
     # open_environment(tip_link='hand_gripper_tool_frame', environment_link='shelf:shelf:shelf_door_left:handle', goal_joint_state=-0.2, execute=True)
 
 
-def read_force_torque_data(filename):
+def read_force_torque_data(filename, topic_names=False, trim_data=True):
     data_range_path = os.path.expanduser('~/ForceTorqueData/' + filename)
-    seq = 'seq'
-    seq_path = '/hsrb/wrist_wrench/compensated/header/seq'
-    force_path = '/hsrb/wrist_wrench/compensated/wrench/force/'
-    torque_path = '/hsrb/wrist_wrench/compensated/wrench/torque/'
-    force = '_force'
-    torque = '_torque'
+
+    if topic_names:
+        seq_path = '/hsrb/wrist_wrench/compensated/header/seq'
+        force_path = '/hsrb/wrist_wrench/compensated/wrench/force/'
+        torque_path = '/hsrb/wrist_wrench/compensated/wrench/torque/'
+    else:
+        seq_path = 'seq'
+        force_path = '_force'
+        torque_path = '_torque'
 
     with open(data_range_path) as data_range:
         reader = csv.DictReader(data_range)
         wrist_seq, wrist_stamp, x_force, y_force, z_force, x_torque, y_torque, z_torque = [], [], [], [], [], [], [], []
         for row in reader:
-            if row[seq] != '':
-                wrist_seq.append(row[seq])
-                #wrist_stamp.append(row['/hsrb/wrist_wrench/compensated/header/stamp'])
-                x_force.append(round(eval(row['x' + force]), 5))
-                y_force.append(round(eval(row['y' + force]), 5))
-                z_force.append(round(eval(row['z' + force]), 5))
-                x_torque.append(round(eval(row['x' + torque]), 5))
-                y_torque.append(round(eval(row['y' + torque]), 5))
-                z_torque.append(round(eval(row['z' + torque]), 5))
+            if row[seq_path] != '':
+                wrist_seq.append(row[seq_path])
+                x_force.append(round(eval(row['x' + force_path]), 5))
+                y_force.append(round(eval(row['y' + force_path]), 5))
+                z_force.append(round(eval(row['z' + force_path]), 5))
+                x_torque.append(round(eval(row['x' + torque_path]), 5))
+                y_torque.append(round(eval(row['y' + torque_path]), 5))
+                z_torque.append(round(eval(row['z' + torque_path]), 5))
 
-        x_force_trimmed = np.trim_zeros(x_force)
-        y_force_trimmed = np.trim_zeros(y_force)
-        z_force_trimmed = np.trim_zeros(z_force)
-        x_torque_trimmed = np.trim_zeros(x_torque)
-        y_torque_trimmed = np.trim_zeros(y_torque)
-        z_torque_trimmed = np.trim_zeros(z_torque)
+        if trim_data:
+            x_force = np.trim_zeros(x_force)
+            y_force = np.trim_zeros(y_force)
+            z_force = np.trim_zeros(z_force)
+            x_torque = np.trim_zeros(x_torque)
+            y_torque = np.trim_zeros(y_torque)
+            z_torque = np.trim_zeros(z_torque)
 
-        if not x_force.index(x_force_trimmed[0]) == y_force.index(y_force_trimmed[0]) == z_force.index(z_force_trimmed[0]):
+        if not x_force.index(x_force[0]) == y_force.index(y_force[0]) == z_force.index(z_force[0]):
             print('Starting index not identical!!!')
 
 
@@ -579,21 +582,21 @@ def read_force_torque_data(filename):
 
         ax[0].set_title('Force')
         # ax[0].plot(x_force_filtered, 'r', label='x_filtered')
-        ax[0].plot(x_force_trimmed, 'r', label='x_trimmed')
-        ax[0].plot(y_force_trimmed, 'g', label='y')
-        ax[0].plot(z_force_trimmed, 'b', label='z')
+        ax[0].plot(x_force, 'r', label='x_trimmed')
+        ax[0].plot(y_force, 'g', label='y')
+        ax[0].plot(z_force, 'b', label='z')
         ax[0].legend()
         ax[1].set_title('Torque')
-        ax[1].plot(x_torque_trimmed, 'r', label='x')
-        ax[1].plot(y_torque_trimmed, 'g', label='y')
-        ax[1].plot(z_torque_trimmed, 'b', label='z')
+        ax[1].plot(x_torque, 'r', label='x')
+        ax[1].plot(y_torque, 'g', label='y')
+        ax[1].plot(z_torque, 'b', label='z')
         ax[1].legend()
         plt.show()
 
 
 if __name__ == '__main__':
-    rospy.init_node('milestone0_server')
-    _giskard_wrapper = GiskardWrapper()
+    # rospy.init_node('milestone0_server')
+    # _giskard_wrapper = GiskardWrapper()
 
     # set_base_position()
 
@@ -604,7 +607,7 @@ if __name__ == '__main__':
     last_unfiltered = 'unfiltered.csv'
     hsr_place_1 = 'place_object_hsr.csv'
     hsr_door_slipped_1 = 'slipped_door_hsr.csv'
-    read_force_torque_data(last_filtered)
+    read_force_torque_data(last_unfiltered)
 
     '''import time
     while True:
