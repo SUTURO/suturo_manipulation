@@ -1,0 +1,2 @@
+timestamp,seq,force_x,force_y,force_z,torque_x,torque_y,torque_z,"(True, genpy.Time[1692888392520393822], 152992)"
+1692888392520393822,152992,0.0,0.0,0.0,0.0,0.0,0.0
