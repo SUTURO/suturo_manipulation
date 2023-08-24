@@ -1,5 +1,6 @@
 #!/usr/bin/env python
 import csv
+import math
 import os
 import time
 from copy import deepcopy
@@ -65,6 +66,7 @@ class FunctionWrapper:
 
     def execute_goal(self):
         if self.plan:
+            _giskard_wrapper.allow_all_collisions()
             if self.execute:
                 _giskard_wrapper.plan_and_execute(wait=True)
             else:
@@ -76,8 +78,8 @@ class FunctionWrapper:
                   'arm_lift_joint': 0.0,
                   'arm_flex_joint': 0.0,
                   'arm_roll_joint': 0.0,
-                  'wrist_flex_joint': -1.5,
-                  'wrist_roll_joint': 0.14,
+                  'wrist_flex_joint': -1.57,
+                  'wrist_roll_joint': 0.0,
                   'hand_motor_joint': 0.8}
 
         _giskard_wrapper.set_joint_goal(joints)
@@ -170,6 +172,11 @@ class FunctionWrapper:
 
         self.execute_goal()
 
+    def cart_goal(self, pose, tip, root):
+        _giskard_wrapper.set_cart_goal(goal_pose=pose, tip_link=tip, root_link=root)
+
+        self.execute_goal()
+
 
 def add_object(name: str,
                pose: PoseStamped,
@@ -243,7 +250,9 @@ class ObjectWrapper:
         grasp_default_name = 'grasp_default'
         grasp_above_name = 'grasp_above'
         place_default_name = 'place_default'
+        place_above_name = 'place_above'
         open_default_name = 'open_door'
+        slip_door_name = 'slip_door'
 
         # Declare values
         grasp_default = {'action': 'grasping'}
@@ -253,15 +262,23 @@ class ObjectWrapper:
                        'vertical_align': False}
 
         place_default = {'action': 'placing',
-                         'from_above': True}
+                         'from_above': False}
+
+        place_above = {'action': 'placing',
+                       'from_above': False}
 
         context_door = {'action': 'door-opening'}
+
+        slip_door = {'action': 'door-opening',
+                     'slip_door': -0.0065}
 
         # Add to dict
         contexts[grasp_default_name] = grasp_default
         contexts[grasp_above_name] = grasp_above
         contexts[place_default_name] = place_default
+        contexts[place_above_name] = place_above
         contexts[open_default_name] = context_door
+        contexts[slip_door_name] = slip_door
 
         return contexts
 
@@ -350,33 +367,100 @@ def run_test():
     test_wrapper = FunctionWrapper(plan=True, execute=True)
     objects = ObjectWrapper()
 
+    def reset_base(base_pose, gripper_state='neutral'):
+        test_wrapper.set_base_position()
+        test_wrapper.cart_goal(base_pose, tip='base_link', root='map')
+        test_wrapper.move_gripper(gripper_state)
+
+    def open_door_plan():
+        test_wrapper.reaching(context=ctx, name=shelf_handle_name, shape='')
+        time.sleep(1)
+        test_wrapper.move_gripper('close')
+        time.sleep(2)
+        test_wrapper.open_environment(tip_link=hand_gripper_tool_frame, environment_link=shelf_handle_name,
+                                      goal_joint_state=-1.1)
+        time.sleep(1)
+        test_wrapper.move_gripper('open')
+
+    def place_object_plan():
+        placing_pose = PoseStamped()
+        placing_pose.header.frame_id = 'map'
+        placing_pose.pose.position = Point(x=1.93, y=1.2, z=0.78)
+
+        places_object_size = Vector3(x=0, y=0, z=0.0)
+
+        placing_floor_pose = deepcopy(placing_pose)
+        placing_floor_pose.pose.position.z = 0.72
+
+        # Grasp Object
+        # test_wrapper.align_height(ctx, name='', pose=placing_pose, object_height=0.1)
+        #
+        # test_wrapper.reaching(context=ctx, name='', shape='', pose=placing_pose, size=places_object_size)
+        time.sleep(3)
+        test_wrapper.move_gripper('close')
+        time.sleep(2)
+        test_wrapper.lifting(context={'action': 'grasping'}, distance=0.03)
+        time.sleep(2)
+        test_wrapper.placing(context=objects.contexts['place_above'], pose=placing_floor_pose)
+        time.sleep(2)
+        test_wrapper.move_gripper('open')
+
     this_test_pose = PoseStamped()
     this_test_pose.header.frame_id = 'map'
     this_test_pose.pose.position = Vector3(x=0.7, y=1.0, z=0.75)
-
-    this_test_size = Vector3(x=0, y=0, z=0.05)
 
     # sequence = all_sequences['reaching_sequence']
     # sequence = all_sequences['lift_retract']
     sequence = objects.sequences['align_grasp']
 
-    start = Point(x=-0.07, y=1.03, z=0.0)
+    start = Point(x=2.7, y=0.17, z=0.0)
     start_pose = PoseStamped()
     start_pose.pose.position = start
-    start_pose = objects.poses['start_pose']
-    test_pose = objects.poses['test_pose_1']
-    test_context = objects.contexts['grasping']
-    test_wrapper.sequence_goal(sequence)
+    # start_pose = objects.poses['test1']
+    test_context = objects.contexts['grasp_default']
+    # test_wrapper.sequence_goal(sequence)
 
-    # test_wrapper.set_base_position()
-    # _giskard_wrapper.set_cart_goal(start_pose, tip_link='base_link', root_link='map')
-    # _giskard_wrapper.plan_and_execute()
+    start_hsr_door = PoseStamped()
+    start_hsr_door.header.frame_id = 'map'
+    start_hsr_door.pose.position = Point(x=2.7, y=0.17, z=0.0)
 
-    # test_wrapper.align_height(context=this_context,name='', pose=test_pose)
-    # test_wrapper.reaching(context=this_context, name='', shape='', pose=test_pose, size=this_test_size, tip='hand_palm_link')
-    # test_wrapper.lifting(context=this_context, tip_link='hand_palm_link')
-    # test_wrapper.retracting()
-    # test_wrapper.take_pose(pose_keyword='park')
+    start_hsr_table = PoseStamped()
+    start_hsr_table.header.frame_id = 'map'
+    start_hsr_table.pose.position = Point(x=1.995, y=0.7, z=0.0)
+    start_hsr_table.pose.orientation = Quaternion(x=0, y=0, z=0.703, w=0.71)
+
+
+    # ctx = objects.contexts['slip_door']
+    ctx = objects.contexts['open_door']
+    shelf_handle_name = 'iai_kitchen/shelf:shelf:shelf_door_left:handle'
+    hand_gripper_tool_frame = 'hand_gripper_tool_frame'
+    hand_palm_link = 'hand_palm_link'
+    ex = False
+
+    plan = 'door'
+    plan = 'place'
+
+    ex = True
+
+    # RESET
+    if not ex:
+        reset_base(start_hsr_door)
+
+    # EXECUTION
+    if ex:
+        time.sleep(3)
+
+        if plan == 'door':
+            open_door_plan()
+            reset_pose = start_hsr_door
+            reset_base(base_pose=reset_pose)
+        elif plan == 'place':
+            place_object_plan()
+            # reset_pose = start_hsr_table
+        else:
+            return
+
+        time.sleep(5)
 
 
 def read_force_torque_data(filename, topic_names=False, trim_data=True):
@@ -444,4 +528,3 @@ if __name__ == '__main__':
     hsr_place_1 = 'place_object_hsr.csv'
     hsr_door_slipped_1 = 'slipped_door_hsr.csv'
     # read_force_torque_data(last_unfiltered)
-
