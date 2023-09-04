@@ -93,9 +93,11 @@ class FunctionWrapper:
         self.execute_goal()
 
     def move_gripper(self, gripper_state: str):
-        _giskard_wrapper.move_gripper(gripper_state=gripper_state)
+        if self.execute:
+            _giskard_wrapper.move_gripper(gripper_state=gripper_state)
 
-        self.execute_goal()
+
+            self.execute_goal()
 
     def reaching(self, context, name, shape, pose=None, size=None, root='map', tip='hand_gripper_tool_frame'):
         _giskard_wrapper.reaching(context=context,
@@ -114,7 +116,7 @@ class FunctionWrapper:
 
         self.execute_goal()
 
-    def placing(self, context, pose=None, tip_link='hand_palm_link'):
+    def placing(self, context, pose=None, tip_link='hand_gripper_tool_frame'):
         _giskard_wrapper.placing(context=context, goal_pose=pose, tip_link=tip_link)
 
         self.execute_goal()
@@ -158,12 +160,13 @@ class FunctionWrapper:
 
     def open_environment(self, tip_link: str,
                          environment_link: str,
-                         tip_group=None, environment_group=None, goal_joint_state=None):
+                         tip_group=None, environment_group=None, goal_joint_state=None, velocity=0.2):
         _giskard_wrapper.open_environment(tip_link=tip_link,
                                           environment_link=environment_link,
                                           tip_group=tip_group,
                                           environment_group=environment_group,
-                                          goal_joint_state=goal_joint_state)
+                                          goal_joint_state=goal_joint_state,
+                                          velocity=velocity)
 
         self.execute_goal()
 
@@ -265,7 +268,7 @@ class ObjectWrapper:
                          'from_above': False}
 
         place_above = {'action': 'placing',
-                       'from_above': False}
+                       'from_above': True}
 
         context_door = {'action': 'door-opening'}
 
@@ -385,7 +388,7 @@ def run_test():
     def place_object_plan():
         placing_pose = PoseStamped()
         placing_pose.header.frame_id = 'map'
-        placing_pose.pose.position = Point(x=1.93, y=1.2, z=0.78)
+        placing_pose.pose.position = Point(x=1.7, y=1.3, z=0.78)
 
         places_object_size = Vector3(x=0, y=0, z=0.0)
 
@@ -401,7 +404,7 @@ def run_test():
         time.sleep(2)
         test_wrapper.lifting(context={'action': 'grasping'}, distance=0.03)
         time.sleep(2)
-        test_wrapper.placing(context=objects.contexts['place_above'], pose=placing_floor_pose)
+        test_wrapper.placing(context=objects.contexts['place_default'], pose=placing_floor_pose)
         time.sleep(2)
         test_wrapper.move_gripper('open')
 
@@ -437,23 +440,33 @@ def run_test():
     hand_palm_link = 'hand_palm_link'
     ex = False
 
-    plan = 'door'
+    # plan = 'door'
     plan = 'place'
 
     ex = True
 
     # RESET
-    if not ex:
-        reset_base(start_hsr_door)
+    # if not ex:
+    #     reset_base(start_hsr_door)
 
     # EXECUTION
     if ex:
         time.sleep(3)
 
         if plan == 'door':
-            open_door_plan()
-            reset_pose = start_hsr_door
-            reset_base(base_pose=reset_pose)
+
+            test_wrapper.move_gripper('close')
+            time.sleep(2)
+            test_wrapper.open_environment(tip_link=hand_gripper_tool_frame, environment_link=shelf_handle_name,
+                                          goal_joint_state=-1.1, velocity=0.1)
+
+            time.sleep(2)
+            test_wrapper.move_gripper('open')
+
+
+            # open_door_plan()
+            # reset_pose = start_hsr_door
+            # reset_base(base_pose=reset_pose)
         elif plan == 'place':
             place_object_plan()
             # reset_pose = start_hsr_table
