@@ -385,20 +385,24 @@ def run_test():
         time.sleep(1)
         test_wrapper.move_gripper('open')
 
-    def place_object_plan():
+    def prepare_place_object_plan():
         placing_pose = PoseStamped()
         placing_pose.header.frame_id = 'map'
         placing_pose.pose.position = Point(x=1.7, y=1.3, z=0.78)
 
         places_object_size = Vector3(x=0, y=0, z=0.0)
 
-        placing_floor_pose = deepcopy(placing_pose)
-        placing_floor_pose.pose.position.z = 0.72
-
         # Grasp Object
-        # test_wrapper.align_height(ctx, name='', pose=placing_pose, object_height=0.1)
-        #
-        # test_wrapper.reaching(context=ctx, name='', shape='', pose=placing_pose, size=places_object_size)
+        test_wrapper.align_height(ctx, name='', pose=placing_pose, object_height=0.1)
+        test_wrapper.reaching(context=ctx, name='', shape='', pose=placing_pose, size=places_object_size)
+
+
+    def place_object_plan():
+
+        placing_floor_pose = PoseStamped()
+        placing_floor_pose.header.frame_id = 'map'
+        placing_floor_pose.pose.position = Point(x=1.7, y=1.3, z=0.72)
+
         time.sleep(3)
         test_wrapper.move_gripper('close')
         time.sleep(2)
@@ -434,7 +438,7 @@ def run_test():
 
 
     # ctx = objects.contexts['slip_door']
-    ctx = objects.contexts['open_door']
+    ctx = objects.contexts['grasp_default']
     shelf_handle_name = 'iai_kitchen/shelf:shelf:shelf_door_left:handle'
     hand_gripper_tool_frame = 'hand_gripper_tool_frame'
     hand_palm_link = 'hand_palm_link'
@@ -446,8 +450,9 @@ def run_test():
     ex = True
 
     # RESET
-    # if not ex:
-    #     reset_base(start_hsr_door)
+    # reset_base(start_hsr_door)
+
+    # test_wrapper.set_base_position()
 
     # EXECUTION
     if ex:
@@ -468,12 +473,14 @@ def run_test():
             # reset_pose = start_hsr_door
             # reset_base(base_pose=reset_pose)
         elif plan == 'place':
+            # prepare_place_object_plan()
             place_object_plan()
-            # reset_pose = start_hsr_table
         else:
             return
 
-        time.sleep(5)
+        # time.sleep(5)
+
+    #test_wrapper.take_pose('perceive')
 
 
 def read_force_torque_data(filename, topic_names=False, trim_data=True):
