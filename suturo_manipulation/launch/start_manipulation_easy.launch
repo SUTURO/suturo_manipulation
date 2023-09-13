@@ -1,10 +1,5 @@
 <launch>
-	<arg name="load_map" default="true"/>
-	
-	<include file="$(find giskardpy)/launch/giskardpy_hsr_iai.launch"/>
 
-	<group if="$(eval load_map == true)">
-		<node pkg="suturo_manipulation" name="upload_env" type="upload_env.py" output="screen"/>
-	</group>
+	<include file="$(find suturo_manipulation)/launch/start_manipulation_open_loop.launch"/>
 
 </launch>
