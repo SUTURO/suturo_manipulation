@@ -393,7 +393,7 @@ def run_test():
         places_object_size = Vector3(x=0, y=0, z=0.0)
 
         # Grasp Object
-        test_wrapper.align_height(ctx, name='', pose=placing_pose, object_height=0.1)
+        #test_wrapper.align_height(ctx, name='', pose=placing_pose, object_height=0.1)
         test_wrapper.reaching(context=ctx, name='', shape='', pose=placing_pose, size=places_object_size)
 
 
@@ -473,8 +473,8 @@ def run_test():
             # reset_pose = start_hsr_door
             # reset_base(base_pose=reset_pose)
         elif plan == 'place':
-            # prepare_place_object_plan()
-            place_object_plan()
+            prepare_place_object_plan()
+            #place_object_plan()
         else:
             return
 
