@@ -4,6 +4,7 @@ import math
 import os
 import time
 from copy import deepcopy
+from enum import Enum
 from math import sin
 from pprint import pprint
 from typing import Dict
@@ -18,6 +19,11 @@ from matplotlib import pyplot as plt
 from numpy import savetxt, asarray
 
 from giskardpy.python_interface import GiskardWrapper
+
+
+class Robots(Enum):
+    hsrb = 'hsrb',
+    donbot = 'iai_donbot'
 
 
 class TestEntity:
@@ -60,9 +66,18 @@ def get_entity(ent_name: str,
 
 
 class FunctionWrapper:
-    def __init__(self, plan, execute):
+    def __init__(self, robot, plan, execute):
+
+        self.robot = robot
         self.plan = plan
         self.execute = execute
+
+        self.hand_gripper_tool_frame = None
+        if self.robot == 'hsrb':
+            self.hand_gripper_tool_frame = 'hand_gripper_tool_frame'
+
+        elif self.robot == 'iai_donbot':
+            self.hand_gripper_tool_frame = 'gripper_tool_frame'
 
     def execute_goal(self):
         if self.plan:
@@ -86,8 +101,8 @@ class FunctionWrapper:
 
         self.execute_goal()
 
-    def take_pose(self, pose_keyword='park', **kwargs):
-        _giskard_wrapper.take_pose(pose_keyword=pose_keyword, **kwargs)
+    def take_pose(self, pose_keyword='park'):
+        _giskard_wrapper.take_pose(pose_keyword=pose_keyword)
 
         _giskard_wrapper.allow_all_collisions()
         self.execute_goal()
@@ -95,7 +110,6 @@ class FunctionWrapper:
     def move_gripper(self, gripper_state: str):
         if self.execute:
             _giskard_wrapper.move_gripper(gripper_state=gripper_state)
-
 
             self.execute_goal()
 
@@ -110,7 +124,7 @@ class FunctionWrapper:
 
         self.execute_goal()
 
-    def align_height(self, context, name, pose, object_height=0.0, tip_link='hand_palm_link'):
+    def align_height(self, context, name, pose, object_height=0.0, root_link='map', tip_link='hand_palm_link'):
         _giskard_wrapper.align_height(context=context, object_name=name, goal_pose=pose, object_height=object_height,
                                       tip_link=tip_link)
 
@@ -121,8 +135,8 @@ class FunctionWrapper:
 
         self.execute_goal()
 
-    def lifting(self, context, distance=0.02, root='base_link', tip_link='hand_gripper_tool_frame'):
-        _giskard_wrapper.lift_object(context=context, distance=distance, root_link=root, tip_link=tip_link)
+    def vertical_motion(self, context, distance=0.02, root='base_link', tip_link='hand_gripper_tool_frame'):
+        _giskard_wrapper.vertical_motion(context=context, distance=distance, root_link=root, tip_link=tip_link)
 
         self.execute_goal()
 
@@ -367,8 +381,57 @@ class ObjectWrapper:
 
 
 def run_test():
-    test_wrapper = FunctionWrapper(plan=True, execute=True)
+    test_wrapper = FunctionWrapper(robot=Robots.hsrb, plan=True, execute=True)
     objects = ObjectWrapper()
+
+    def grasp_object(context, name, pose, size, root, tip):
+        test_wrapper.align_height(context=context, name=name, pose=pose, tip_link=tip)
+
+        test_wrapper.reaching(context=context, name=name, shape='', pose=pose, size=size, root=root, tip=tip)
+
+        test_wrapper.move_gripper('close')
+
+        test_wrapper.vertical_motion(context=context, distance=0.03, tip_link=tip)
+
+        test_wrapper.retracting(tip=tip)
+
+        test_wrapper.take_pose(pose_keyword='park')
+
+    def serve_breakfast(sequencegoal=False):
+        root_map = 'map'
+        starting_pose = PoseStamped()
+        # TODO: Set starting pose
+
+        # Go to starting pose
+        test_wrapper.cart_goal(pose=starting_pose, root=root_map, tip=test_wrapper.hand_gripper_tool_frame)
+
+        if sequencegoal:
+            pass
+        else:
+
+            target_pose = PoseStamped
+            target_size = Vector3()
+            grasping_context = objects.contexts['grasp_default']
+
+            grasp_object(context=grasping_context, name='', pose=target_pose, size=target_size,
+                         tip=test_wrapper.hand_gripper_tool_frame, root='map')
+
+    def storing_groceries(sequencegoal=False):
+        root_map = 'map'
+        starting_pose = PoseStamped()
+        # TODO: Set starting pose
+
+        # Go to starting pose
+        test_wrapper.cart_goal(pose=starting_pose, root=root_map, tip=test_wrapper.hand_gripper_tool_frame)
+
+        if sequencegoal:
+            pass
+        else:
+
+            target_pose = PoseStamped
+            grasping_context = objects.contexts['grasp_default']
+            test_wrapper.align_height(context=grasping_context, name='', pose=target_pose,
+                                      tip_link=test_wrapper.hand_gripper_tool_frame)
 
     def reset_base(base_pose, gripper_state='neutral'):
         test_wrapper.set_base_position()
@@ -393,9 +456,8 @@ def run_test():
         places_object_size = Vector3(x=0, y=0, z=0.0)
 
         # Grasp Object
-        #test_wrapper.align_height(ctx, name='', pose=placing_pose, object_height=0.1)
+        # test_wrapper.align_height(ctx, name='', pose=placing_pose, object_height=0.1)
         test_wrapper.reaching(context=ctx, name='', shape='', pose=placing_pose, size=places_object_size)
-
 
     def place_object_plan():
 
@@ -406,7 +468,7 @@ def run_test():
         time.sleep(3)
         test_wrapper.move_gripper('close')
         time.sleep(2)
-        test_wrapper.lifting(context={'action': 'grasping'}, distance=0.03)
+        test_wrapper.vertical_motion(context={'action': 'grasping'}, distance=0.03)
         time.sleep(2)
         test_wrapper.placing(context=objects.contexts['place_default'], pose=placing_floor_pose)
         time.sleep(2)
@@ -436,12 +498,9 @@ def run_test():
     start_hsr_table.pose.position = Point(x=1.995, y=0.7, z=0.0)
     start_hsr_table.pose.orientation = Quaternion(x=0, y=0, z=0.703, w=0.71)
 
-
     # ctx = objects.contexts['slip_door']
     ctx = objects.contexts['grasp_default']
     shelf_handle_name = 'iai_kitchen/shelf:shelf:shelf_door_left:handle'
-    hand_gripper_tool_frame = 'hand_gripper_tool_frame'
-    hand_palm_link = 'hand_palm_link'
     ex = False
 
     # plan = 'door'
@@ -468,19 +527,18 @@ def run_test():
             time.sleep(2)
             test_wrapper.move_gripper('open')
 
-
             # open_door_plan()
             # reset_pose = start_hsr_door
             # reset_base(base_pose=reset_pose)
         elif plan == 'place':
             prepare_place_object_plan()
-            #place_object_plan()
+            # place_object_plan()
         else:
             return
 
         # time.sleep(5)
 
-    #test_wrapper.take_pose('perceive')
+    # test_wrapper.take_pose('perceive')
 
 
 def read_force_torque_data(filename, topic_names=False, trim_data=True):
