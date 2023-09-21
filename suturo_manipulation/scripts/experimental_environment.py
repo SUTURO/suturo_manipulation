@@ -443,7 +443,7 @@ def run_test():
         time.sleep(1)
         test_wrapper.move_gripper('close')
         time.sleep(2)
-        test_wrapper.open_environment(tip_link=hand_gripper_tool_frame, environment_link=shelf_handle_name,
+        test_wrapper.open_environment(tip_link=test_wrapper.hand_gripper_tool_frame, environment_link=shelf_handle_name,
                                       goal_joint_state=-1.1)
         time.sleep(1)
         test_wrapper.move_gripper('open')
@@ -474,6 +474,17 @@ def run_test():
         time.sleep(2)
         test_wrapper.move_gripper('open')
 
+    def giskard_ghost_loop():
+        test_wrapper.take_pose('perceive')
+        time.sleep(1)
+        test_wrapper.take_pose('park')
+        hsr_test_sim = PoseStamped()
+        hsr_test_sim.header.frame_id = 'map'
+        hsr_test_sim.pose.position = Point(x=0.7, y=0.2, z=0.7)
+        test_wrapper.reaching(ctx, '', '', pose=hsr_test_sim, tip='hand_palm_link', root='base_link', size=Vector3(0,0,0))
+        time.sleep(1)
+        test_wrapper.take_pose('park')
+
     this_test_pose = PoseStamped()
     this_test_pose.header.frame_id = 'map'
     this_test_pose.pose.position = Vector3(x=0.7, y=1.0, z=0.75)
@@ -502,11 +513,10 @@ def run_test():
     ctx = objects.contexts['grasp_default']
     shelf_handle_name = 'iai_kitchen/shelf:shelf:shelf_door_left:handle'
     ex = False
+    # ex = True
 
     # plan = 'door'
     plan = 'place'
-
-    ex = True
 
     # RESET
     # reset_base(start_hsr_door)
@@ -521,7 +531,7 @@ def run_test():
 
             test_wrapper.move_gripper('close')
             time.sleep(2)
-            test_wrapper.open_environment(tip_link=hand_gripper_tool_frame, environment_link=shelf_handle_name,
+            test_wrapper.open_environment(tip_link=test_wrapper.hand_gripper_tool_frame, environment_link=shelf_handle_name,
                                           goal_joint_state=-1.1, velocity=0.1)
 
             time.sleep(2)
@@ -538,7 +548,45 @@ def run_test():
 
         # time.sleep(5)
 
-    # test_wrapper.take_pose('perceive')
+    table_sim_pose = PoseStamped()
+    table_sim_pose.pose.position = Point(1.0, 1.55, 0.5)
+
+    #test_wrapper.reaching(ctx, name='', shape='', pose=table_sim_pose, size=Vector3(), tip='hand_palm_link', root='map')
+    align = True
+    if align:
+        goal_normx = Vector3Stamped()
+        goal_normx.header.frame_id = 'map'
+        goal_normx.vector.y = 1
+
+        tip_normx = Vector3Stamped()
+        tip_normx.header.frame_id = 'hand_palm_link'
+        tip_normx.vector.z = 1
+
+        _giskard_wrapper.allow_all_collisions()
+        _giskard_wrapper.set_align_planes_goal(goal_normal=goal_normx, tip_link='hand_palm_link', tip_normal=tip_normx, root_link='arm_flex_link')
+
+        goal_normz = Vector3Stamped()
+        goal_normz.header.frame_id = 'map'
+        goal_normz.vector.x = -1
+
+        tip_normz = Vector3Stamped()
+        tip_normz.header.frame_id = 'hand_palm_link'
+        tip_normz.vector.z = 1
+
+        _giskard_wrapper.set_align_planes_goal(goal_normal=goal_normz, tip_link='hand_gripper_tool_frame', tip_normal=tip_normz,
+                                               root_link='arm_flex_link')
+
+        goal_norm_up = Vector3Stamped()
+        goal_norm_up.header.frame_id = 'map'
+        goal_norm_up.vector.z = 1
+
+        tip_norm_up = Vector3Stamped()
+        tip_norm_up.header.frame_id = 'hand_palm_link'
+        tip_norm_up.vector.x = 1
+        _giskard_wrapper.set_align_planes_goal(goal_normal=goal_norm_up, tip_link='hand_palm_link',
+                                               tip_normal=tip_norm_up,
+                                               root_link='arm_flex_link')
+        _giskard_wrapper.plan_and_execute()
 
 
 def read_force_torque_data(filename, topic_names=False, trim_data=True):
